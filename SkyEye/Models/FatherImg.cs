@@ -111,6 +111,18 @@ namespace SkyEye.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
+        public static List<string> GetCaptureRevList()
+        {
+            var ret = new List<string>();
+            var sql = "select distinct CaptureRev from WAT.dbo.FatherImg";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                ret.Add(UT.O2S(line[0]));
+            }
+            return ret;
+        }
+
         public static string GetCaptureImg(string key)
         {
             var ret = "";
@@ -134,13 +146,13 @@ namespace SkyEye.Models
             if (string.IsNullOrEmpty(caprev))
             {
                 sql = @" select top 1000 f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal from [WAT].[dbo].[SonImg] (nolock) s
-                          inner join [WAT].[dbo].[FatherImg] (nolock) f on s.MainImgKey = s.MainImgKey
+                          inner join [WAT].[dbo].[FatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
                           where s.ImgChecked = 'FALSE' order by UpdateTime desc";
             }
             else
             {
                 sql = @"select top 1000  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal from [WAT].[dbo].[SonImg] (nolock) s
-                      inner join [WAT].[dbo].[FatherImg] (nolock) f on s.MainImgKey = s.MainImgKey
+                      inner join [WAT].[dbo].[FatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
                       where s.ImgChecked = 'FALSE' and f.CaptureRev = @CaptureRev order by UpdateTime desc";
                 dict.Add("@CaptureRev", caprev);
             }
@@ -153,6 +165,37 @@ namespace SkyEye.Models
                 { imgval = Convert.ToString((char)ival); }
 
                 ret.Add(new {
+                    capimg = UT.O2S(line[0]),
+                    rawurl = UT.O2S(line[1]),
+                    chimg = UT.O2S(line[2]),
+                    chidx = UT.O2S(line[3]),
+                    cimgkey = UT.O2S(line[4]),
+                    cimgval = imgval
+                });
+            }
+            return ret;
+        }
+
+        public static List<object> NewUnTrainedImg(List<string> imgkeys)
+        {
+            var ret = new List<object>();
+
+            var keycond = "('" + string.Join("','", imgkeys) + "')";
+            var sql = @"select  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal from [WAT].[dbo].[SonImg] (nolock) s
+                      inner join [WAT].[dbo].[FatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
+                      where s.MainImgKey in <keycond> order by s.MainImgKey,s.ImgOrder asc";
+            sql = sql.Replace("<keycond>", keycond);
+
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var imgval = "";
+                var ival = UT.O2I(line[5]);
+                if (ival != -1)
+                { imgval = Convert.ToString((char)ival); }
+
+                ret.Add(new
+                {
                     capimg = UT.O2S(line[0]),
                     rawurl = UT.O2S(line[1]),
                     chimg = UT.O2S(line[2]),

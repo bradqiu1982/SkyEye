@@ -3,6 +3,22 @@
     {
         var imgtable = null;
 
+        $.post('/Main/GetCaptureRevList', {
+        }, function (output) {
+            $('#caprev').autoComplete({
+                minChars: 0,
+                source: function (term, suggest) {
+                    term = term.toLowerCase();
+                    var choices = output.caprevlist;
+                    var suggestions = [];
+                    for (i = 0; i < choices.length; i++)
+                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
+                    suggest(suggestions);
+                }
+            });
+            $('#caprev').attr('readonly', false);
+        });
+
         $.fn.dataTable.ext.buttons.trainning = {
             text: 'Trainning',
             action: function (e, dt, node, config) {
@@ -40,8 +56,8 @@
                 $("#imghead").append(
                         '<tr>' +
                         '<th>Capture Img</th>' +
-                        '<th>Raw Img</th>' +
                         '<th>Child Index</th>' +
+                        '<th>Raw Img</th>' +
                         '<th>Child Img</th>' +
                         '<th>Value</th>' +
                         '</tr>'
@@ -55,8 +71,8 @@
                     $("#imgcontent").append(
                         '<tr>' +
                         '<td>' + capimg + '</td>' +
-                        '<td>' + rawimg + '</td>' +
                         '<td>' + val.chidx + '</td>' +
+                        '<td>' + rawimg + '</td>' +
                         '<td>' + chimg + '</td>' +
                         '<td>' + imgval + '</td>' +
                         '</tr>'
