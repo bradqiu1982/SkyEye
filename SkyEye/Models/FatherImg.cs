@@ -13,20 +13,20 @@ namespace SkyEye.Models
 
         public static string LoadImg(string imgpath,Controller ctrl)
         {
-            var xyrectlist = ImgOperate4x1.FindXYRect(imgpath, 27, 43, 4800, 8000);
+            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 27, 43, 4.8, 6.8);
             if (xyrectlist.Count > 0)
             {
-                var charmatlist = ImgOperate4x1.CutCharRect(imgpath, xyrectlist[0], 30, 50, 20, 50);
+                var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 30, 50, 20, 50);
                 if (charmatlist.Count > 0)
                 {
-                    return SolveImg4x1(imgpath, charmatlist, ctrl);;
+                    return SolveImg5x1(imgpath, charmatlist, ctrl);;
                 }
             }
             return string.Empty;
         }
 
 
-        private static string SolveImg4x1(string imgpath, List<Mat> charmatlist, Controller ctrl)
+        private static string SolveImg5x1(string imgpath, List<Mat> charmatlist, Controller ctrl)
         {
             var ret = "";
 
@@ -36,7 +36,7 @@ namespace SkyEye.Models
             fimg.MainImgKey = GetUniqKey();
             fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
             fimg.CaptureImg = Convert.ToBase64String(charmatlist[0].ToBytes());
-            fimg.CaptureRev = "rect4x1";
+            fimg.CaptureRev = "rect5x1";
             fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             fimg.StoreData();
 

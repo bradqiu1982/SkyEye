@@ -268,7 +268,7 @@
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FatherImg.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
-    <Compile Include="Models\ImgOperate4x1.cs" />
+    <Compile Include="Models\ImgOperate5x1.cs" />
     <Compile Include="Models\SonImg.cs" />
     <Compile Include="Models\UT.cs" />
     <Compile Include="Models\MoveDataBase.cs" />

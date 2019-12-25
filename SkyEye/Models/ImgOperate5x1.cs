@@ -6,9 +6,9 @@ using OpenCvSharp;
 
 namespace SkyEye.Models
 {
-    public class ImgOperate4x1
+    public class ImgOperate5x1
     {
-        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, int arealow, int areahigh)
+        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh)
         {
             var ret = new List<Rect>();
             Mat src = Cv2.ImRead(file, ImreadModes.Grayscale);
@@ -33,8 +33,10 @@ namespace SkyEye.Models
             {
                 var rect = Cv2.BoundingRect(item);
                 var a = rect.Width * rect.Height;
+                var whrate = (double)rect.Width / (double)rect.Height;
                 if (rect.Height >= heighlow && rect.Height <= heighhigh
-                    && a > arealow && a < areahigh)
+                    && whrate > ratelow && whrate < ratehigh)
+                //&& a > arealow && a < areahigh)
                 {
                     if (ret.Count > 0)
                     {
