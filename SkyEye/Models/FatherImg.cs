@@ -13,20 +13,39 @@ namespace SkyEye.Models
 
         public static string LoadImg(string imgpath,Controller ctrl)
         {
-            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 27, 43, 4.8, 6.8);
+            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 27, 43, 4.65, 6.8,8000);
             if (xyrectlist.Count > 0)
             {
                 var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 30, 50, 20, 50);
                 if (charmatlist.Count > 0)
                 {
-                    return SolveImg5x1(imgpath, charmatlist, ctrl);;
+                    var caprev = "rect5x1";
+                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                    {
+                        return SolveImg(imgpath, charmatlist, caprev, ctrl, kmode);
+                    }
                 }
             }
+
+            xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+            if (xyrectlist.Count > 0)
+            {
+                var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0]);
+                if (charmatlist.Count > 0)
+                {
+                    var caprev = "rect2x1";
+                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                    {
+                        return SolveImg(imgpath, charmatlist, caprev, ctrl, kmode); 
+                    }
+                }
+            }
+
             return string.Empty;
         }
 
 
-        private static string SolveImg5x1(string imgpath, List<Mat> charmatlist, Controller ctrl)
+        private static string SolveImg(string imgpath, List<Mat> charmatlist,string caprev, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
         {
             var ret = "";
 
@@ -36,7 +55,7 @@ namespace SkyEye.Models
             fimg.MainImgKey = GetUniqKey();
             fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
             fimg.CaptureImg = Convert.ToBase64String(charmatlist[0].ToBytes());
-            fimg.CaptureRev = "rect5x1";
+            fimg.CaptureRev = caprev;
             fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             fimg.StoreData();
 
@@ -59,6 +78,12 @@ namespace SkyEye.Models
                 sonimg.ChildImg = Convert.ToBase64String(tcmresize.ToBytes());
                 sonimg.ImgOrder = idx;
                 sonimg.UpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                var stcm = tcmresize.Reshape(1, 1);
+                var resultmat = new Mat();
+                var imgval = kmode.FindNearest(stcm, 1, resultmat);
+                if (imgval > 0)
+                { sonimg.ImgVal = (int)imgval; }
 
                 if (idx < 5)
                 { sonimg.ChildCat = "X"; }

@@ -82,9 +82,9 @@
 
 
                 imgtable = $('#imgtable').DataTable({
-                    'iDisplayLength': 20,
-                    'aLengthMenu': [[20, 50, 100, -1],
-                    [20, 50, 100, "All"]],
+                    'iDisplayLength': -1,
+                    'aLengthMenu': [[-1],
+                    ["All"]],
                     "columnDefs": [
                         { "className": "dt-center", "targets": "_all" }
                     ],

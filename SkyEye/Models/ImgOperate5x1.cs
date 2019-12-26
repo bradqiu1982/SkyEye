@@ -8,7 +8,7 @@ namespace SkyEye.Models
 {
     public class ImgOperate5x1
     {
-        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh)
+        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh,int areahigh)
         {
             var ret = new List<Rect>();
             Mat src = Cv2.ImRead(file, ImreadModes.Grayscale);
@@ -35,8 +35,7 @@ namespace SkyEye.Models
                 var a = rect.Width * rect.Height;
                 var whrate = (double)rect.Width / (double)rect.Height;
                 if (rect.Height >= heighlow && rect.Height <= heighhigh
-                    && whrate > ratelow && whrate < ratehigh)
-                //&& a > arealow && a < areahigh)
+                    && whrate > ratelow && whrate < ratehigh && a < areahigh)
                 {
                     if (ret.Count > 0)
                     {
@@ -151,6 +150,34 @@ namespace SkyEye.Models
             return cwlist;
         }
 
+        private static List<List<double>> GetDetectPoint(Mat mat)
+        {
+            var ret = new List<List<double>>();
+            var kaze = KAZE.Create();
+            var kazeDescriptors = new Mat();
+            KeyPoint[] kazeKeyPoints = null;
+            kaze.DetectAndCompute(mat, null, out kazeKeyPoints, kazeDescriptors);
+            var xlist = new List<double>();
+            var ylist = new List<double>();
+            foreach (var pt in kazeKeyPoints)
+            {
+                xlist.Add(pt.Pt.X);
+                ylist.Add(pt.Pt.Y);
+            }
+            ret.Add(xlist);
+            ret.Add(ylist);
+
+            //var dstKaze = new Mat();
+            //Cv2.DrawKeypoints(mat, kazeKeyPoints, dstKaze);
+
+            //using (new Window("dstKaze", dstKaze))
+            //{
+            //    Cv2.WaitKey();
+            //}
+
+            return ret;
+        }
+
         public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh)
         {
             var cmatlist = new List<Mat>();
@@ -175,27 +202,28 @@ namespace SkyEye.Models
 
             Cv2.Resize(xyenhgray, xyenhgray, new Size(xyenhgray.Width * 2, xyenhgray.Height * 2));
 
-            var kaze = KAZE.Create();
-            var kazeDescriptors = new Mat();
-            KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(xyenhgray, null, out kazeKeyPoints, kazeDescriptors);
-            var xlist = new List<double>();
-            var ylist = new List<double>();
-            foreach (var pt in kazeKeyPoints)
-            {
-                xlist.Add(pt.Pt.X);
-                ylist.Add(pt.Pt.Y);
-            }
+            var xyptlist = GetDetectPoint(xyenhgray);
+            //var kaze = KAZE.Create();
+            //var kazeDescriptors = new Mat();
+            //KeyPoint[] kazeKeyPoints = null;
+            //kaze.DetectAndCompute(xyenhgray, null, out kazeKeyPoints, kazeDescriptors);
+            //var xlist = new List<double>();
+            //var ylist = new List<double>();
+            //foreach (var pt in kazeKeyPoints)
+            //{
+            //    xlist.Add(pt.Pt.X);
+            //    ylist.Add(pt.Pt.Y);
+            //}
 
             //using (new Window("xyenhgray", xyenhgray))
             //{
             //    Cv2.WaitKey();
             //}
 
-            var xyenhgrayresize = xyenhgray.SubMat(Convert.ToInt32(ylist.Min()) + 7, Convert.ToInt32(ylist.Max() - 5)
-                , Convert.ToInt32(xlist.Min()) + 8, Convert.ToInt32(xlist.Max()) - 6);
+            var xyenhgrayresize = xyenhgray.SubMat(Convert.ToInt32(xyptlist[1].Min()) + 7, Convert.ToInt32(xyptlist[1].Max() - 5)
+                , Convert.ToInt32(xyptlist[0].Min()) + 8, Convert.ToInt32(xyptlist[0].Max()) - 6);
 
-            if (xyenhgrayresize.Width / xyenhgrayresize.Height > 4)
+            //if (xyenhgrayresize.Width / xyenhgrayresize.Height > 4)
             {
                 var blurred = new Mat();
                 Cv2.GaussianBlur(xyenhgrayresize, blurred, new Size(5, 5), 0);
