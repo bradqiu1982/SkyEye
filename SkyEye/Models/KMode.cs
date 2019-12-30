@@ -43,7 +43,7 @@ namespace SkyEye.Models
             if (obj != null)
             { return (List<SonImg>)obj; }
 
-            var traindatas = SonImg.GetCheckedImgVal(caprev);
+            var traindatas = AITrainingData.GetCheckedImgVal(caprev);
 
             if (traindatas.Count > 0)
             { ctrl.HttpContext.Cache.Insert(caprev + "_KEY", traindatas, null, DateTime.Now.AddHours(4), Cache.NoSlidingExpiration); }

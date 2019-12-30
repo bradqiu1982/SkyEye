@@ -256,9 +256,11 @@
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\MainController.cs" />
+    <Compile Include="Controllers\OGPXYController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\AITrainingData.cs" />
     <Compile Include="Models\CBOXData.cs" />
     <Compile Include="Models\CfgUtility.cs" />
     <Compile Include="Models\CookieUtility.cs" />
@@ -266,11 +268,11 @@
     <Compile Include="Models\EmailUtility.cs" />
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
-    <Compile Include="Models\FatherImg.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
     <Compile Include="Models\ImgOperate2x1.cs" />
     <Compile Include="Models\ImgOperate5x1.cs" />
     <Compile Include="Models\KMode.cs" />
+    <Compile Include="Models\OGPFatherImg.cs" />
     <Compile Include="Models\SonImg.cs" />
     <Compile Include="Models\UT.cs" />
     <Compile Include="Models\MoveDataBase.cs" />
@@ -700,16 +702,16 @@
     <Content Include="Content\jquery-ui.css" />
     <Content Include="Content\jquery.dataTables.min.css" />
     <Content Include="Content\Layout.css" />
-    <None Include="OpenCvSharpExtern.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="opencv_videoio_ffmpeg411.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <Content Include="Content\Site.css" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\glyphicons-halflings-regular.svg" />
     <Content Include="Global.asax" />
+    <None Include="OpenCvSharpExtern.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="opencv_videoio_ffmpeg411_64.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="Scripts\ajaxfileupload.js" />
     <Content Include="Scripts\autocompletefill.js" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker.css" />
@@ -840,7 +842,7 @@
     <Content Include="Views\Main\Index.cshtml" />
     <Content Include="Scripts\VCSELPN.xlsx" />
     <Content Include="Views\Main\LoadOneImg.cshtml" />
-    <Content Include="Views\Main\TrainingNewImgs.cshtml" />
+    <Content Include="Views\OGPXY\TrainingNewImg.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
@@ -977,6 +979,25 @@
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>

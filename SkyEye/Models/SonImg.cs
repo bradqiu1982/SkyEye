@@ -32,43 +32,15 @@ namespace SkyEye.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
-        public static void UpdateCheckedImgVal(string imgkey, int val)
-        {
-            var sql = "update WAT.dbo.SonImg set ImgVal=@ImgVal,ImgChecked='TRUE' where ChildImgKey=@ChildImgKey";
-            var dict = new Dictionary<string, string>();
-            dict.Add("@ChildImgKey", imgkey);
-            dict.Add("@ImgVal", val.ToString());
-            DBUtility.ExeLocalSqlNoRes(sql, dict);
-        }
+        //public static void UpdateCheckedImgVal(string imgkey, int val)
+        //{
+        //    var sql = "update WAT.dbo.SonImg set ImgVal=@ImgVal,ImgChecked='TRUE' where ChildImgKey=@ChildImgKey";
+        //    var dict = new Dictionary<string, string>();
+        //    dict.Add("@ChildImgKey", imgkey);
+        //    dict.Add("@ImgVal", val.ToString());
+        //    DBUtility.ExeLocalSqlNoRes(sql, dict);
+        //}
 
-        public static List<SonImg> GetCheckedImgVal(string caprev)
-        {
-            var ret = new List<SonImg>();
-
-            var dict = new Dictionary<string, string>();
-            var sql = "";
-            if (string.IsNullOrEmpty(caprev))
-            {
-                sql = @"select top 30000 s.ChildImg,s.ImgVal from [WAT].[dbo].[SonImg] (nolock) s 
-                            where s.ImgChecked = 'TRUE' order by UpdateTime desc";
-            }
-            else
-            {
-                sql = @"select top 30000 s.ChildImg,s.ImgVal from [WAT].[dbo].[SonImg] (nolock) s
-                          inner join [WAT].[dbo].[FatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
-                          where s.ImgChecked = 'TRUE' and f.CaptureRev = @CaptureRev order by UpdateTime desc";
-                dict.Add("@CaptureRev", caprev);
-            }
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach (var line in dbret)
-            {
-                var tempvm = new SonImg();
-                tempvm.ChildImg = UT.O2S(line[0]);
-                tempvm.ImgVal = UT.O2I(line[1]);
-                ret.Add(tempvm);
-            }
-            return ret;
-        }
 
         public SonImg()
         {

@@ -1,0 +1,49 @@
+﻿
+@{
+    ViewBag.Title = "TrainingNewImg";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" src="~/Scripts/ImgTraining.js"></script>
+
+<script type="text/javascript">
+    $(function () {
+        IMGTRAINING.OGPIMGINIT();
+    })
+</script>
+
+
+<div class="row form-group">
+    <div class="col-xs-4"></div>
+    <div class="col-xs-4"><h1>Training Images</h1></div>
+    <div class="col-xs-4"></div>
+</div>
+
+<div class="row form-group">
+    <div class="col-xs-1"></div>
+    <div class="col-xs-2"><input class="form-control" type="text" value="Image Folder" readonly></div>
+    <div class="col-xs-8"><input class="form-control" type="text" id="imgfolder" name="imgfolder"></div>
+    <div class="col-xs-1"></div>
+</div>
+
+<div class="row form-group">
+    <div class="col-xs-1"></div>
+    <div class="col-xs-2"><input class="form-control" type="text" value="Wafer Number" readonly></div>
+    <div class="col-xs-3"><input class="form-control" type="text" id="wafernum" name="wafernum"></div>
+    <div class="col-xs-2"><button class="btn btn-success" id="btn-all" name="btn-all">TRAINING ALL</button></div>
+    <div class="col-xs-2"><button class="btn btn-success" id="btn-option" name="btn-option">TRAINING OPT</button></div>
+    <div class="col-xs-2"><button class="btn btn-success" id="btn-smart" name="btn-smart">SMART TRAINING</button></div>
+</div>
+
+<hr>
+
+<div class="row form-group">
+    <table class="table table-hover  table-condensed table-striped" id="imgtable" style="margin-top:1%">
+        <caption class="tb-caption">Training Images</caption>
+        <thead id="imghead"></thead>
+        <tbody id="imgcontent"></tbody>
+    </table>
+</div>
+
+
+
