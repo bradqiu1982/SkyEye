@@ -19,7 +19,7 @@ namespace SkyEye.Models
             var responsarray = new List<int>();
             foreach (var item in traindatas)
             {
-                var tcmresizex = Mat.ImDecode(Convert.FromBase64String(item.ChildImg),ImreadModes.Grayscale);
+                var tcmresizex = Mat.ImDecode(Convert.FromBase64String(item.TrainingImg),ImreadModes.Grayscale);
                 var tcmresize = new Mat();
                 tcmresizex.ConvertTo(tcmresize, MatType.CV_32FC1);
                 var stcm = tcmresize.Reshape(1, 1);
@@ -37,13 +37,13 @@ namespace SkyEye.Models
             return kmode;
         }
 
-        private static List<SonImg> GetTrainData(string caprev, Controller ctrl)
+        private static List<AITrainingData> GetTrainData(string caprev, Controller ctrl)
         {
             var obj = ctrl.HttpContext.Cache.Get(caprev + "_KEY");
             if (obj != null)
-            { return (List<SonImg>)obj; }
+            { return (List<AITrainingData>)obj; }
 
-            var traindatas = AITrainingData.GetCheckedImgVal(caprev);
+            var traindatas = AITrainingData.GetTrainingData(caprev);
 
             if (traindatas.Count > 0)
             { ctrl.HttpContext.Cache.Insert(caprev + "_KEY", traindatas, null, DateTime.Now.AddHours(4), Cache.NoSlidingExpiration); }

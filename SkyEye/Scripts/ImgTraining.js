@@ -1,118 +1,4 @@
 ﻿IMGTRAINING = function () {
-    var newimgtraining = function ()
-    {
-        var imgtable = null;
-
-        $.post('/Main/GetCaptureRevList', {
-        }, function (output) {
-            $('#caprev').autoComplete({
-                minChars: 0,
-                source: function (term, suggest) {
-                    term = term.toLowerCase();
-                    var choices = output.caprevlist;
-                    var suggestions = [];
-                    for (i = 0; i < choices.length; i++)
-                        if (~choices[i].toLowerCase().indexOf(term)) suggestions.push(choices[i]);
-                    suggest(suggestions);
-                }
-            });
-            $('#caprev').attr('readonly', false);
-        });
-
-        $.fn.dataTable.ext.buttons.trainning = {
-            text: 'Trainning',
-            action: function (e, dt, node, config) {
-                var kvarray = new Array();
-                $('.valclass').each(function (i, val) {
-                    var vkey = $(this).attr('vkey');
-                    var vval = $(this).val();
-                    if (vval != '')
-                    {
-                        kvarray.push(vkey + ":::" + vval);
-                    }
-                });
-                $.post('/main/UpdateTrainingData', {
-                    imgkv:JSON.stringify(kvarray)
-                }, function (output) {
-                    alert('Image Training Sucessfully!');
-                });
-            }
-        };
-
-        function loadimgs(cond,url)
-        {
-            $.post(url, {
-                cond:cond
-            }, function (output) {
-
-                if (imgtable) {
-                    imgtable.destroy();
-                    imgtable = null;
-                }
-
-                $("#imghead").empty();
-                $("#imgcontent").empty();
-
-                $("#imghead").append(
-                        '<tr>' +
-                        '<th>Capture Img</th>' +
-                        '<th>Child Index</th>' +
-                        '<th>Raw Img</th>' +
-                        '<th>Child Img</th>' +
-                        '<th>Value</th>' +
-                        '</tr>'
-                    );
-                $.each(output.imglist, function (i, val) {
-                    var capimg = '<img src="data:image/png;base64,' + val.capimg + '" />';
-                    var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
-                    var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
-                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
-
-                    $("#imgcontent").append(
-                        '<tr>' +
-                        '<td>' + capimg + '</td>' +
-                        '<td>' + val.chidx + '</td>' +
-                        '<td>' + rawimg + '</td>' +
-                        '<td>' + chimg + '</td>' +
-                        '<td>' + imgval + '</td>' +
-                        '</tr>'
-                    );
-                });
-
-
-
-                imgtable = $('#imgtable').DataTable({
-                    'iDisplayLength': -1,
-                    'aLengthMenu': [[-1],
-                    ["All"]],
-                    "columnDefs": [
-                        { "className": "dt-center", "targets": "_all" }
-                    ],
-                    "aaSorting": [],
-                    "order": [],
-                    dom: 'lBfrtip',
-                    buttons: ['trainning']
-                });
-            });
-        }
-
-        $('body').on('click', '#btn-newgo', function () {
-            var cond = $('#imgfolder').val();
-            var url = '/main/NewImgTrain';
-            if (cond == '')
-            { alert('if you want to training new img,please input the share folder path of the images!'); return false; }
-
-            loadimgs(cond,url);
-        });
-
-        $('body').on('click', '#btn-existgo', function () {
-            var cond = $('#caprev').val();
-            var url = '/main/ExistImgTrain';
-            loadimgs(cond, url);
-        });
-    }
-
-
     var ogpimgtraining = function () {
         var imgtable = null;
 
@@ -135,11 +21,97 @@
             }
         };
 
-        function loadalltrainingimgs(cond, url) {
-            var fpath = $('#imgfolder').val();
-            var wafernum = $('#wafernum').val();
+        function solveimgdata(output, traintype)
+        {
+            if (imgtable) {
+                imgtable.destroy();
+                imgtable = null;
+            }
 
-            var url = '/main/NewImgTrain';
+            $("#imghead").empty();
+            $("#imgcontent").empty();
+
+            if (traintype == 'OPTTRAINING') {
+                $("#imghead").append(
+                    '<tr>' +
+                    '<th>Capture Img</th>' +
+                    '<th>Child Index</th>' +
+                    '<th>Raw Img</th>' +
+                    '<th>Child Img</th>' +
+                    '<th>Reference Value</th>' +
+                    '<th>Training Value</th>' +
+                    '</tr>'
+                );
+                $.each(output.imglist, function (i, val) {
+                    var capimg = '<img src="data:image/png;base64,' + val.capimg + '" />';
+                    var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
+                    var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
+                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="" />';
+                    var checkcla = '';
+                    if (val.pchecked.indexOf('CHECKED') != -1)
+                    { checkcla = 'GREENTR'; }
+
+                    $("#imgcontent").append(
+                        '<tr class="' + checkcla + '">' +
+                        '<td>' + capimg + '</td>' +
+                        '<td>' + val.chidx + '</td>' +
+                        '<td>' + rawimg + '</td>' +
+                        '<td>' + chimg + '</td>' +
+                        '<td>' + val.cimgval + '</td>' +
+                        '<td>' + imgval + '</td>' +
+                        '</tr>'
+                    );
+                });
+            }
+            else {
+                $("#imghead").append(
+                        '<tr>' +
+                        '<th>Capture Img</th>' +
+                        '<th>Child Index</th>' +
+                        '<th>Raw Img</th>' +
+                        '<th>Child Img</th>' +
+                        '<th>Value</th>' +
+                        '</tr>'
+                    );
+                $.each(output.imglist, function (i, val) {
+                    var capimg = '<img src="data:image/png;base64,' + val.capimg + '" />';
+                    var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
+                    var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
+                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
+                    var checkcla = '';
+                    if (val.pchecked.indexOf('CHECKED') != -1)
+                    { checkcla = 'GREENTR'; }
+
+                    $("#imgcontent").append(
+                        '<tr class="' + checkcla + '">' +
+                        '<td>' + capimg + '</td>' +
+                        '<td>' + val.chidx + '</td>' +
+                        '<td>' + rawimg + '</td>' +
+                        '<td>' + chimg + '</td>' +
+                        '<td>' + imgval + '</td>' +
+                        '</tr>'
+                    );
+                });
+            }
+
+            imgtable = $('#imgtable').DataTable({
+                'iDisplayLength': -1,
+                'aLengthMenu': [[-1],
+                ["All"]],
+                "columnDefs": [
+                    { "className": "dt-center", "targets": "_all" }
+                ],
+                "aaSorting": [],
+                "order": [],
+                dom: 'lBfrtip',
+                buttons: ['trainning']
+            });
+        }
+
+        function loadnewtrainingimgs(traintype) {
+            var wafernum = $('#wafernum').val();
+            var fpath = $('#imgfolder').val();
+
             if (fpath == '' || wafernum == '')
             { alert('Please input the share folder path of the images and the wafer number!'); return false; }
 
@@ -162,6 +134,110 @@
                 fpath: fpath,
                 wafer: wafernum
             }, function (output) {
+                $.bootstrapLoading.end();
+                solveimgdata(output, traintype)
+                if (output.failimg != '')
+                { alert("FAIL TO ANALYZE FOLLOWING FILES:" + output.failimg); }
+            });
+        }
+
+        function loadexisttrainingimgs(traintype) {
+            var wafernum = $('#wafernum').val();
+            if (wafernum == '')
+            { alert('Please input the wafer number!'); return false; }
+
+            if (wafernum.indexOf('E') == -1
+                && wafernum.indexOf('R') == -1
+                && wafernum.indexOf('T') == -1)
+            { alert('wafer number should contains E or R or T!'); return false; }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/OGPXY/ExistImgTrain', {
+                wafer: wafernum
+            }, function (output) {
+                $.bootstrapLoading.end();
+                solveimgdata(output, traintype)
+            });
+        }
+
+        $('body').on('click', '#btn-all', function () {
+            var fpath = $('#imgfolder').val();
+            var wafernum = $('#wafernum').val();
+            if (fpath != '' && wafernum != '') {
+                loadnewtrainingimgs('ALLTRAINING');
+            }
+            else if (wafernum != '') {
+                loadexisttrainingimgs('ALLTRAINING');
+            }
+            
+        });
+
+        $('body').on('click', '#btn-option', function () {
+            var fpath = $('#imgfolder').val();
+            var wafernum = $('#wafernum').val();
+            if (fpath != '' && wafernum != '') {
+                loadnewtrainingimgs('OPTTRAINING');
+            }
+            else if (wafernum != ''){
+                loadexisttrainingimgs('OPTTRAINING');
+            }
+        });
+    }
+
+    var ogpxycompare = function () {
+        var imgtable = null;
+
+        $.fn.dataTable.ext.buttons.updatexy = {
+            text: 'Update XY',
+            action: function (e, dt, node, config) {
+                var kvarray = new Array();
+                $('.valclass').each(function (i, val) {
+                    var vkey = $(this).attr('vkey');
+                    var vval = $(this).val();
+                    if (vval != '') {
+                        kvarray.push(vkey + ":::" + vval);
+                    }
+                });
+                $.post('/OGPXY/UpdateOGPXYData', {
+                    imgkv: JSON.stringify(kvarray)
+                }, function (output) {
+                    alert('XY Update Sucessfully!');
+                });
+            }
+        };
+
+        function comparingogpxy() {
+            var wafernum = $('#wafernum').val();
+            if (wafernum == '')
+            { alert('Please input the wafer number!'); return false; }
+
+            if (wafernum.indexOf('E') == -1
+                && wafernum.indexOf('R') == -1
+                && wafernum.indexOf('T') == -1)
+            { alert('wafer number should contains E or R or T!'); return false; }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/OGPXY/OGPXYCompareData', {
+                wafernum: wafernum
+            }, function (output) {
 
                 $.bootstrapLoading.end();
 
@@ -174,32 +250,40 @@
                 $("#imgcontent").empty();
 
                 $("#imghead").append(
-                        '<tr>' +
-                        '<th>Capture Img</th>' +
-                        '<th>Child Index</th>' +
-                        '<th>Raw Img</th>' +
-                        '<th>Child Img</th>' +
-                        '<th>Value</th>' +
-                        '</tr>'
-                    );
-                $.each(output.imglist, function (i, val) {
-                    var capimg = '<img src="data:image/png;base64,' + val.capimg + '" />';
-                    var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
-                    var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
-                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
+                    '<tr>' +
+                    '<th>SN</th>' +
+                    '<th>Capture Img</th>' +
+                    '<th>NPI-X</th>' +
+                    '<th>NEW-X</th>' +
+                    '<th>NPI-Y</th>' +
+                    '<th>NEW-Y</th>' +
+                    '<th>ME-X</th>' +
+                    '<th>ME-Y</th>' +
+                    '</tr>'
+                );
+
+                $.each(output.xylist, function (i, val) {
+                    var capimg = '<img src="data:image/png;base64,' + val.CaptureImg + '" />';
+                    var imgxval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::X" value="" />';
+                    var imgyval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::Y" value="" />';
+
+                    var checkcla = '';
+                    if (val.Checked.indexOf('CHECKED') != -1)
+                    { checkcla = 'GREENTR'; }
 
                     $("#imgcontent").append(
-                        '<tr>' +
+                        '<tr class="' + checkcla + '">' +
+                        '<td>' + val.SN + '</td>' +
                         '<td>' + capimg + '</td>' +
-                        '<td>' + val.chidx + '</td>' +
-                        '<td>' + rawimg + '</td>' +
-                        '<td>' + chimg + '</td>' +
-                        '<td>' + imgval + '</td>' +
+                        '<td>' + val.X + '</td>' +
+                        '<td>' + imgxval + '</td>' +
+                        '<td>' + val.Y + '</td>' +
+                        '<td>' + imgyval + '</td>' +
+                        '<td>' + val.MX + '</td>' +
+                        '<td>' + val.MY + '</td>' +
                         '</tr>'
                     );
                 });
-
-
 
                 imgtable = $('#imgtable').DataTable({
                     'iDisplayLength': -1,
@@ -211,22 +295,22 @@
                     "aaSorting": [],
                     "order": [],
                     dom: 'lBfrtip',
-                    buttons: ['trainning']
+                    buttons: ['updatexy']
                 });
             });
         }
 
-        $('body').on('click', '#btn-all', function () {
-            loadalltrainingimgs();
+        $('body').on('click', '#btn-review', function () {
+            comparingogpxy();
         });
     }
 
     return {
-        NEWIMGINIT: function () {
-            newimgtraining();
-        },
         OGPIMGINIT: function () {
             ogpimgtraining();
+        },
+        OGPXYCMP: function () {
+            ogpxycompare();
         }
     }
 }();

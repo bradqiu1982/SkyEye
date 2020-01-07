@@ -16,7 +16,7 @@ namespace SkyEye.Models
             var blurred = new Mat();
             Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
             var edged = new Mat();
-            Cv2.Canny(blurred, edged, 50, 200, 3);
+            Cv2.Canny(blurred, edged, 50, 200, 3,true);
 
             //using (new Window("edged", edged))
             //{
@@ -81,7 +81,7 @@ namespace SkyEye.Models
 
                     if (crect.X > edged.Width / 2)
                     {
-                        if (crect.X < (edged.Width - 17) && crect.X > (edged.Width - 37))
+                        if (crect.X < (edged.Width - 17) && crect.X >= (edged.Width - 40))
                         {
                             if (cwlist[5] == -1)
                             {
@@ -92,7 +92,7 @@ namespace SkyEye.Models
                             else
                             { cwlist[5] = crect.X; }
                         }
-                        else if (crect.X < (edged.Width - 45) && crect.X > (edged.Width - 59))
+                        else if (crect.X < (edged.Width - 45) && crect.X >= (edged.Width - 65))
                         {
                             if (cwlist[4] == -1)
                             {
@@ -103,10 +103,21 @@ namespace SkyEye.Models
                             else
                             { cwlist[4] = crect.X; cwlist[5] = crect.X + crect_Width; }
                         }
+                        else if (crect.X < (edged.Width - 70) && crect.X >= (edged.Width - 90))
+                        {
+                            if (cwlist[3] == -1)
+                            {
+                                cwlist[5] = crect.X + 2 * crect_Width;
+                                cwlist[4] = crect.X + crect_Width;
+                                cwlist[3] = crect.X;
+                            }
+                            //else
+                            //{ cwlist[3] = crect.X; cwlist[4] = crect.X + crect_Width; }
+                        }
                     }
                     else
                     {
-                        if (crect.X > 17 && crect.X < 37)
+                        if (crect.X >= 20 && crect.X <= 38)
                         {
                             if (cwlist[0] == -1)
                             {
@@ -120,7 +131,7 @@ namespace SkyEye.Models
                                 cwlist[1] = crect.X + crect_Width;
                             }
                         }
-                        else if (crect.X > 45 && crect.X < 59)
+                        else if (crect.X >= 45 && crect.X <= 60)
                         {
                             if (cwlist[1] == -1)
                             {
@@ -133,6 +144,20 @@ namespace SkyEye.Models
                                 cwlist[1] = crect.X;
                                 cwlist[2] = crect.X + crect_Width;
                             }
+                        }
+                        else if (crect.X >= 76 && crect.X < 95)
+                        {
+                            if (cwlist[2] == -1)
+                            {
+                                cwlist[0] = crect.X - 2 * crect_Width;
+                                cwlist[1] = crect.X - crect_Width;
+                                cwlist[2] = crect.X;
+                            }
+                            //else
+                            //{
+                            //    cwlist[1] = crect.X - crect_Width;
+                            //    cwlist[2] = crect.X;
+                            //}
                         }
                     }//end else
                 }//end if
@@ -220,13 +245,22 @@ namespace SkyEye.Models
             //    Cv2.WaitKey();
             //}
 
-            var xyenhgrayresize = xyenhgray.SubMat(Convert.ToInt32(xyptlist[1].Min()) + 7, Convert.ToInt32(xyptlist[1].Max() - 5)
+            var width = Convert.ToInt32(xyptlist[0].Max()) - Convert.ToInt32(xyptlist[0].Min());
+            if (width >= 330)
+            {
+                xyenhgray = xyenhgray.SubMat(Convert.ToInt32(xyptlist[1].Min()) + 7, Convert.ToInt32(xyptlist[1].Max() - 5)
                 , Convert.ToInt32(xyptlist[0].Min()) + 8, Convert.ToInt32(xyptlist[0].Max()) - 6);
+            }
+            else
+            {
+                xyenhgray = xyenhgray.SubMat(Convert.ToInt32(xyptlist[1].Min()) + 3, Convert.ToInt32(xyptlist[1].Max() - 3)
+                , Convert.ToInt32(xyptlist[0].Min()) + 1, Convert.ToInt32(xyptlist[0].Max()));
+            }
 
             //if (xyenhgrayresize.Width / xyenhgrayresize.Height > 4)
             {
                 var blurred = new Mat();
-                Cv2.GaussianBlur(xyenhgrayresize, blurred, new Size(5, 5), 0);
+                Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
 
                 //using (new Window("blurred", blurred))
                 //{
@@ -266,10 +300,10 @@ namespace SkyEye.Models
                     cmatlist.Add(edged.SubMat(1, eheight - 2, 56, 81));
                     cmatlist.Add(edged.SubMat(1, eheight - 2, 82, 106));
 
-                    cmatlist.Add(edged.SubMat(1, eheight - 2, ewidth - 104, ewidth - 78));
-                    cmatlist.Add(edged.SubMat(1, eheight - 2, ewidth - 78, ewidth - 52));
-                    cmatlist.Add(edged.SubMat(1, eheight - 2, ewidth - 52, ewidth - 26));
-                    cmatlist.Add(edged.SubMat(1, eheight - 2, ewidth - 26, ewidth));
+                    cmatlist.Add(edged.SubMat(1, eheight - 2, ewidth - 111, ewidth - 84));
+                    cmatlist.Add(edged.SubMat(1, eheight - 2, ewidth - 84, ewidth - 57));
+                    cmatlist.Add(edged.SubMat(1, eheight - 2, ewidth - 57, ewidth - 30));
+                    cmatlist.Add(edged.SubMat(1, eheight - 2, ewidth - 30, ewidth));
                 }
 
             }

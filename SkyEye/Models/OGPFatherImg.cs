@@ -11,18 +11,18 @@ namespace SkyEye.Models
     public class OGPFatherImg
     {
 
-        public static string LoadImg(string imgpath,string wafer, Controller ctrl)
+        public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap, Dictionary<string, bool> probexymap, Controller ctrl)
         {
-            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 27, 43, 4.65, 6.8, 8000);
+            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
             if (xyrectlist.Count > 0)
             {
-                var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 30, 50, 20, 50);
+                var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 30, 50, 20, 47);
                 if (charmatlist.Count > 0)
                 {
                     var caprev = "OGP-rect5x1";
-                    using (var kmode = KMode.GetTrainedMode("", ctrl))
+                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
                     {
-                        return SolveImg(imgpath,wafer, charmatlist, caprev, ctrl, kmode);
+                        return SolveImg(imgpath,wafer, charmatlist, caprev,snmap, probexymap, ctrl, kmode);
                     }
                 }
             }
@@ -30,22 +30,35 @@ namespace SkyEye.Models
             xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
             if (xyrectlist.Count > 0)
             {
-                var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0]);
+                var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0],40,60);
                 if (charmatlist.Count > 0)
                 {
                     var caprev = "OGP-rect2x1";
-                    using (var kmode = KMode.GetTrainedMode("", ctrl))
+                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
                     {
-                        return SolveImg(imgpath,wafer, charmatlist, caprev, ctrl, kmode);
+                        return SolveImg(imgpath,wafer, charmatlist, caprev,snmap, probexymap, ctrl, kmode);
                     }
                 }
             }
+
+
+            Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+            var fimg = new OGPFatherImg();
+            fimg.WaferNum = wafer;
+            fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
+            fimg.MainImgKey = GetUniqKey();
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.CaptureImg = "";
+            fimg.CaptureRev = "";
+            fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            fimg.StoreFailData();
 
             return string.Empty;
         }
 
 
-        private static string SolveImg(string imgpath,string wafer, List<Mat> charmatlist, string caprev, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
+        private static string SolveImg(string imgpath,string wafer, List<Mat> charmatlist, string caprev
+            , Dictionary<string, string> snmap, Dictionary<string, bool> probexymap, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
         {
             var ret = "";
 
@@ -54,15 +67,19 @@ namespace SkyEye.Models
             var fimg = new OGPFatherImg();
             fimg.WaferNum = wafer;
             fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
+            if (snmap.ContainsKey(fimg.SN))
+            { fimg.SN = snmap[fimg.SN]; }
+
             fimg.MainImgKey = GetUniqKey();
             fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
             fimg.CaptureImg = Convert.ToBase64String(charmatlist[0].ToBytes());
             fimg.CaptureRev = caprev;
             fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            fimg.StoreData();
 
             ret = fimg.MainImgKey;
 
+            var xstr = "";
+            var ystr = "";
             var idx = 0;
             foreach (var sm in charmatlist)
             {
@@ -88,13 +105,26 @@ namespace SkyEye.Models
                 { sonimg.ImgVal = (int)imgval; }
 
                 if (idx < 5)
-                { sonimg.ChildCat = "X"; }
+                {
+                    sonimg.ChildCat = "X";
+                    if (sonimg.ImgVal > 0)
+                    { xstr += Convert.ToString((char)sonimg.ImgVal); }
+                }
                 else
-                { sonimg.ChildCat = "Y"; }
+                {
+                    sonimg.ChildCat = "Y";
+                    if (sonimg.ImgVal > 0)
+                    { ystr += Convert.ToString((char)sonimg.ImgVal); }
+                }
                 sonimg.StoreData();
-
                 idx++;
             }
+
+            var xykey =UT.O2S(UT.O2I(xstr.Replace("X", "")))+":::"+ UT.O2S(UT.O2I(ystr.Replace("Y", "")));
+            if (probexymap.ContainsKey(xykey))
+            { fimg.ProbeChecked = "CHECKED"; }
+
+            fimg.StoreData();
 
             return ret;
         }
@@ -126,7 +156,23 @@ namespace SkyEye.Models
 
         public void StoreData()
         {
-            var sql = @"insert into WAT.dbo.OGPFatherImg(WaferNum,SN,MainImgKey,RAWImgURL,CaptureImg,CaptureRev,MUpdateTime) 
+            var sql = @"insert into WAT.dbo.OGPFatherImg(WaferNum,SN,MainImgKey,RAWImgURL,CaptureImg,CaptureRev,MUpdateTime,Appv_1) 
+                    values(@WaferNum,@SN,@MainImgKey,@RAWImgURL,@CaptureImg,@CaptureRev,@MUpdateTime,@ProbeChecked)";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", WaferNum);
+            dict.Add("@SN", SN);
+            dict.Add("@MainImgKey", MainImgKey);
+            dict.Add("@RAWImgURL", RAWImgURL);
+            dict.Add("@CaptureImg", CaptureImg);
+            dict.Add("@CaptureRev", CaptureRev);
+            dict.Add("@MUpdateTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            dict.Add("@ProbeChecked", ProbeChecked);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
+        public void StoreFailData()
+        {
+            var sql = @"insert into WAT.dbo.FailAnalyzeImg(WaferNum,SN,MainImgKey,RAWImgURL,CaptureImg,CaptureRev,MUpdateTime) 
                     values(@WaferNum,@SN,@MainImgKey,@RAWImgURL,@CaptureImg,@CaptureRev,@MUpdateTime)";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferNum", WaferNum);
@@ -165,52 +211,13 @@ namespace SkyEye.Models
             return ret;
         }
 
-        public static List<object> GetExistUnTrainedImg(string caprev)
-        {
-            var ret = new List<object>();
-
-            var sql = "";
-            var dict = new Dictionary<string, string>();
-            if (string.IsNullOrEmpty(caprev))
-            {
-                sql = @" select top 1000 f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal from [WAT].[dbo].[SonImg] (nolock) s
-                          inner join [WAT].[dbo].[OGPFatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
-                          where s.ImgChecked = 'FALSE' order by UpdateTime desc";
-            }
-            else
-            {
-                sql = @"select top 1000  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal from [WAT].[dbo].[SonImg] (nolock) s
-                      inner join [WAT].[dbo].[OGPFatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
-                      where s.ImgChecked = 'FALSE' and f.CaptureRev = @CaptureRev order by UpdateTime desc";
-                dict.Add("@CaptureRev", caprev);
-            }
-            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
-            foreach (var line in dbret)
-            {
-                var imgval = "";
-                var ival = UT.O2I(line[5]);
-                if (ival != -1)
-                { imgval = Convert.ToString((char)ival); }
-
-                ret.Add(new
-                {
-                    capimg = UT.O2S(line[0]),
-                    rawurl = UT.O2S(line[1]),
-                    chimg = UT.O2S(line[2]),
-                    chidx = UT.O2S(line[3]),
-                    cimgkey = UT.O2S(line[4]),
-                    cimgval = imgval
-                });
-            }
-            return ret;
-        }
-
+      
         public static List<object> NewUnTrainedImg(List<string> imgkeys)
         {
             var ret = new List<object>();
 
             var keycond = "('" + string.Join("','", imgkeys) + "')";
-            var sql = @"select  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal from [WAT].[dbo].[SonImg] (nolock) s
+            var sql = @"select  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal,f.Appv_1 from [WAT].[dbo].[SonImg] (nolock) s
                       inner join [WAT].[dbo].[OGPFatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
                       where s.MainImgKey in <keycond> order by s.MainImgKey,s.ImgOrder asc";
             sql = sql.Replace("<keycond>", keycond);
@@ -230,7 +237,40 @@ namespace SkyEye.Models
                     chimg = UT.O2S(line[2]),
                     chidx = UT.O2S(line[3]),
                     cimgkey = UT.O2S(line[4]),
-                    cimgval = imgval
+                    cimgval = imgval,
+                    pchecked = UT.O2S(line[6])
+                });
+            }
+            return ret;
+        }
+
+        public static List<object> ExistTrainedImg(string wafernum)
+        {
+            var ret = new List<object>();
+
+            var sql = @"select  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal,f.Appv_1 from [WAT].[dbo].[SonImg] (nolock) s
+                      inner join [WAT].[dbo].[OGPFatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
+                      where f.WaferNum = @wafernum order by s.MainImgKey,s.ImgOrder asc";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafernum", wafernum);
+
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql,dict);
+            foreach (var line in dbret)
+            {
+                var imgval = "";
+                var ival = UT.O2I(line[5]);
+                if (ival != -1)
+                { imgval = Convert.ToString((char)ival); }
+
+                ret.Add(new
+                {
+                    capimg = UT.O2S(line[0]),
+                    rawurl = UT.O2S(line[1]),
+                    chimg = UT.O2S(line[2]),
+                    chidx = UT.O2S(line[3]),
+                    cimgkey = UT.O2S(line[4]),
+                    cimgval = imgval,
+                    pchecked = UT.O2S(line[6])
                 });
             }
             return ret;
@@ -273,6 +313,7 @@ namespace SkyEye.Models
             CaptureImg = "";
             CaptureRev = "";
             MUpdateTime = "";
+            ProbeChecked = "";
             ChildImgs = new Dictionary<string, List<SonImg>>();
         }
 
@@ -283,6 +324,7 @@ namespace SkyEye.Models
         public string CaptureImg { set; get; }
         public string CaptureRev { set; get; }
         public string MUpdateTime { set; get; }
+        public string ProbeChecked { set; get; }
         public Dictionary<string, List<SonImg>> ChildImgs { set; get; }
     }
 }

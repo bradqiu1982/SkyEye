@@ -95,17 +95,6 @@ namespace SkyEye.Controllers
         //    return ret;
         //}
 
-        //public JsonResult ExistImgTrain()
-        //{
-        //    var caprev = Request.Form["cond"];
-        //    var imglist = OGPFatherImg.GetExistUnTrainedImg(caprev);
-        //    var ret = new JsonResult();
-        //    ret.MaxJsonLength = Int32.MaxValue;
-        //    ret.Data = new {
-        //        imglist = imglist
-        //    };
-        //    return ret;
-        //}
 
         //public JsonResult NewImgTrain()
         //{
@@ -136,26 +125,6 @@ namespace SkyEye.Controllers
         //}
 
 
-        //public JsonResult UpdateTrainingData()
-        //{
-        //    var imgkv = Request.Form["imgkv"];
-        //    List<string> kvlist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(imgkv, (new List<string>()).GetType());
-        //    foreach (var kv in kvlist)
-        //    {
-        //        var kvs = kv.Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
-        //        var k = kvs[0].Trim();
-        //        var v = (int)Convert.ToChar(kvs[1].Trim().Substring(0, 1).ToUpper());
-        //        SonImg.UpdateCheckedImgVal(k, v);
-        //    }
-
-        //    var ret = new JsonResult();
-        //    ret.MaxJsonLength = Int32.MaxValue;
-        //    ret.Data = new
-        //    {
-        //        success = true
-        //    };
-        //    return ret;
-        //}
     }
 
 }

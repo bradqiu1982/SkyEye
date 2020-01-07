@@ -32,15 +32,15 @@ namespace SkyEye.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
-        //public static void UpdateCheckedImgVal(string imgkey, int val)
-        //{
-        //    var sql = "update WAT.dbo.SonImg set ImgVal=@ImgVal,ImgChecked='TRUE' where ChildImgKey=@ChildImgKey";
-        //    var dict = new Dictionary<string, string>();
-        //    dict.Add("@ChildImgKey", imgkey);
-        //    dict.Add("@ImgVal", val.ToString());
-        //    DBUtility.ExeLocalSqlNoRes(sql, dict);
-        //}
-
+        public static void UpdateImgVal(string MainImgKey, int idx, int val)
+        {
+            var sql = "update WAT.dbo.SonImg set ImgVal=@ImgVal where MainImgKey=@MainImgKey and ImgOrder=@ImgOrder";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@MainImgKey", MainImgKey);
+            dict.Add("@ImgOrder", idx.ToString());
+            dict.Add("@ImgVal", val.ToString());
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
 
         public SonImg()
         {

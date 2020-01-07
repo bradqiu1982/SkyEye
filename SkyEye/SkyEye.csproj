@@ -273,6 +273,9 @@
     <Compile Include="Models\ImgOperate5x1.cs" />
     <Compile Include="Models\KMode.cs" />
     <Compile Include="Models\OGPFatherImg.cs" />
+    <Compile Include="Models\OGPSNXYVM.cs" />
+    <Compile Include="Models\OGPXYFileSNMap.cs" />
+    <Compile Include="Models\ProbeXYMap.cs" />
     <Compile Include="Models\SonImg.cs" />
     <Compile Include="Models\UT.cs" />
     <Compile Include="Models\MoveDataBase.cs" />
@@ -843,6 +846,7 @@
     <Content Include="Scripts\VCSELPN.xlsx" />
     <Content Include="Views\Main\LoadOneImg.cshtml" />
     <Content Include="Views\OGPXY\TrainingNewImg.cshtml" />
+    <Content Include="Views\OGPXY\OGPXYCompare.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

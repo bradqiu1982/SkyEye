@@ -16,7 +16,7 @@ namespace SkyEye.Models
             var blurred = new Mat();
             Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
             var edged = new Mat();
-            Cv2.Canny(blurred, edged, 50, 200, 3);
+            Cv2.Canny(blurred, edged, 50, 200, 3,true);
 
             //using (new Window("edged", edged))
             //{
@@ -68,8 +68,69 @@ namespace SkyEye.Models
             return ret;
         }
 
+        private static List<int> GetPossibleXList(Mat edged, int widthlow, int widthhigh)
+        {
+            var outmat = new Mat();
+            var ids = OutputArray.Create(outmat);
+            var cons = new Mat[] { };
+            Cv2.FindContours(edged, out cons, ids, RetrievalModes.External, ContourApproximationModes.ApproxSimple);
 
-        public static List<Mat> CutCharRect(string imgpath, Rect xyrect)
+            var cwlist = new List<int>();
+            for (var idx = 0; idx < 4; idx++)
+            {
+                cwlist.Add(-1);
+            }
+
+            var idx1 = 0;
+            foreach (var item in cons)
+            {
+                idx1++;
+
+                var crect = Cv2.BoundingRect(item);
+                if (crect.Width >= widthlow && crect.Width <= widthhigh)
+                {
+                    if (crect.Y > edged.Height / 2)
+                    {
+                        if (crect.X < 45)
+                        {
+                            cwlist[0] = crect.X;
+                            cwlist[1] = crect.X + crect.Width;
+                        }
+                        else if (crect.X > 55 && crect.X < 100)
+                        {
+                            cwlist[1] = crect.X;
+                            cwlist[2] = crect.X + crect.Width;
+                        }
+                        else if (crect.X > 110 && crect.X < 160)
+                        {
+                            cwlist[2] = crect.X;
+                            cwlist[3] = crect.X + crect.Width;
+                        }
+                        else if (crect.X > 170 && crect.X < 210)
+                        { cwlist[3] = crect.X; }
+                    }
+
+                    //var mat = edged.SubMat(crect);
+                    //using (new Window("edged" + idx1, mat))
+                    //{
+                    //    Cv2.WaitKey();
+                    //}
+                }//end if
+            }//end foreach
+
+            if (cwlist[3] == -1)
+            { cwlist[3] = edged.Width - 60; }
+            if (cwlist[2] == -1)
+            { cwlist[2] = cwlist[3] - 60; }
+            if (cwlist[1] == -1)
+            { cwlist[1] = cwlist[2] - 60; }
+            if (cwlist[0] == -1)
+            { cwlist[0] = 5; }
+
+            return cwlist;
+        }
+
+        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int widthlow, int widthhigh)
         {
             var cmatlist = new List<Mat>();
 
@@ -112,8 +173,7 @@ namespace SkyEye.Models
 
             Cv2.Resize(xyenhgrayresize, xyenhgrayresize, new Size(xyenhgrayresize.Width * 2, xyenhgrayresize.Height * 2));
 
-            //if (xyenhgrayresize.Width / xyenhgrayresize.Height > 3)
-            {
+
                 var blurred = new Mat();
                 Cv2.GaussianBlur(xyenhgrayresize, blurred, new Size(5, 5), 0);
 
@@ -124,53 +184,23 @@ namespace SkyEye.Models
 
                 var edged = new Mat();
                 Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 11, 2);
-                //using (new Window("edged", edged))
-                //{
-                //    Cv2.WaitKey();
-                //}
+            //using (new Window("edged", edged))
+            //{
+            //    Cv2.WaitKey();
+            //}
 
-                var xylist2 = GetDetectPoint(edged);
-                var width = xylist2[0].Max() - xylist2[0].Min();
+            var xlist = GetPossibleXList(edged, widthlow, widthhigh);
 
-                cmatlist.Add(xyenhance);
-                if ((edged.Width - width) > 20)
-                {
-                    var w = width / 4;
-                    var zeropoint = xylist2[0].Min();
-                    var w1 = (int)(zeropoint + w);
-                    var w2 = (int)(zeropoint + 2 * w);
-                    var w3 = (int)(zeropoint + 3 * w);
-
-                    var ewidth = edged.Width;
-                    var eheight = (int)(edged.Height * 0.55);
-
-                    cmatlist.Add(edged.SubMat(0, eheight, 0, w1));
-                    cmatlist.Add(edged.SubMat(0, eheight, w1, w2));
-                    cmatlist.Add(edged.SubMat(0, eheight, w2, w3));
-                    cmatlist.Add(edged.SubMat(0, eheight, w3, edged.Width));
-
-                    cmatlist.Add(edged.SubMat(eheight, edged.Height, 0, w1));
-                    cmatlist.Add(edged.SubMat(eheight, edged.Height, w1, w2));
-                    cmatlist.Add(edged.SubMat(eheight, edged.Height, w2, w3));
-                    cmatlist.Add(edged.SubMat(eheight, edged.Height, w3, edged.Width));
-                }
-                else
-                {
-                    var ewidth = edged.Width / 4;
-                    var eheight = (int)(edged.Height * 0.55);
-
-                    cmatlist.Add(edged.SubMat(0, eheight, 0, ewidth));
-                    cmatlist.Add(edged.SubMat(0, eheight, ewidth, 2 * ewidth));
-                    cmatlist.Add(edged.SubMat(0, eheight, 2 * ewidth, 3 * ewidth));
-                    cmatlist.Add(edged.SubMat(0, eheight, 3 * ewidth, edged.Width));
-
-                    cmatlist.Add(edged.SubMat(eheight, edged.Height, 0, ewidth));
-                    cmatlist.Add(edged.SubMat(eheight, edged.Height, ewidth, 2 * ewidth));
-                    cmatlist.Add(edged.SubMat(eheight, edged.Height, 2 * ewidth, 3 * ewidth));
-                    cmatlist.Add(edged.SubMat(eheight, edged.Height, 3 * ewidth, edged.Width));
-                }
-
-            }
+            cmatlist.Add(xyenhance);
+            var eheight = (int)(edged.Height * 0.55);
+            cmatlist.Add(edged.SubMat(0, eheight, xlist[0], xlist[1]));
+            cmatlist.Add(edged.SubMat(0, eheight, xlist[1], xlist[2]));
+            cmatlist.Add(edged.SubMat(0, eheight, xlist[2], xlist[3]));
+            cmatlist.Add(edged.SubMat(0, eheight, xlist[3], edged.Width));
+            cmatlist.Add(edged.SubMat(eheight, edged.Height, xlist[0], xlist[1]));
+            cmatlist.Add(edged.SubMat(eheight, edged.Height, xlist[1], xlist[2]));
+            cmatlist.Add(edged.SubMat(eheight, edged.Height, xlist[2], xlist[3]));
+            cmatlist.Add(edged.SubMat(eheight, edged.Height, xlist[3], edged.Width));
 
             return cmatlist;
         }
