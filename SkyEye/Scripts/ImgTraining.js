@@ -35,7 +35,7 @@
                 $("#imghead").append(
                     '<tr>' +
                     '<th>Capture Img</th>' +
-                    '<th>Child Index</th>' +
+                    //'<th>Child Index</th>' +
                     '<th>Raw Img</th>' +
                     '<th>Child Img</th>' +
                     '<th>Reference Value</th>' +
@@ -54,7 +54,7 @@
                     $("#imgcontent").append(
                         '<tr class="' + checkcla + '">' +
                         '<td>' + capimg + '</td>' +
-                        '<td>' + val.chidx + '</td>' +
+                        //'<td>' + val.chidx + '</td>' +
                         '<td>' + rawimg + '</td>' +
                         '<td>' + chimg + '</td>' +
                         '<td>' + val.cimgval + '</td>' +
@@ -68,6 +68,8 @@
                         '<tr>' +
                         '<th>Capture Img</th>' +
                         '<th>Child Index</th>' +
+                        '<th>XCoord</th>' +
+                        '<th>YCoord</th>' +
                         '<th>Raw Img</th>' +
                         '<th>Child Img</th>' +
                         '<th>Value</th>' +
@@ -86,6 +88,8 @@
                         '<tr class="' + checkcla + '">' +
                         '<td>' + capimg + '</td>' +
                         '<td>' + val.chidx + '</td>' +
+                        '<td>' + val.xcoord + '</td>' +
+                        '<td>' + val.ycoord + '</td>' +
                         '<td>' + rawimg + '</td>' +
                         '<td>' + chimg + '</td>' +
                         '<td>' + imgval + '</td>' +

@@ -39,16 +39,36 @@ namespace SkyEye.Models
 
         private static List<AITrainingData> GetTrainData(string caprev, Controller ctrl)
         {
-            var obj = ctrl.HttpContext.Cache.Get(caprev + "_KEY");
+            var obj = ctrl.HttpContext.Cache.Get(caprev + "_AIKEY");
             if (obj != null)
             { return (List<AITrainingData>)obj; }
 
             var traindatas = AITrainingData.GetTrainingData(caprev);
 
             if (traindatas.Count > 0)
-            { ctrl.HttpContext.Cache.Insert(caprev + "_KEY", traindatas, null, DateTime.Now.AddHours(4), Cache.NoSlidingExpiration); }
+            { ctrl.HttpContext.Cache.Insert(caprev + "_AIKEY", traindatas, null, DateTime.Now.AddHours(4), Cache.NoSlidingExpiration); }
 
             return traindatas;
+        }
+
+        public static void CleanTrainCache(Controller ctrl)
+        {
+            var mycache = ctrl.HttpContext.Cache;
+            var citem = mycache.GetEnumerator();
+            var ckeylist = new List<string>();
+            while (citem.MoveNext())
+            {
+                var ckey = Convert.ToString(citem.Key);
+                ckeylist.Add(ckey);
+            }
+
+            foreach (var ckey in ckeylist)
+            {
+                if (ckey.Contains("_AIKEY"))
+                {
+                    mycache.Remove(ckey);
+                }
+            }
         }
 
     }

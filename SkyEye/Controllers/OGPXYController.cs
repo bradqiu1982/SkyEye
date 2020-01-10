@@ -34,6 +34,9 @@ namespace SkyEye.Controllers
             var snmap = OGPXYFileSNMap.GetSNMap(wafer);
             var probexymap = ProbeXYMap.GetProbeXYMap(wafer);
 
+            OGPFatherImg.CleanWaferData(wafer);
+            KMode.CleanTrainCache(this);
+
             var failimg = "";
             var filelist = ExternalDataCollector.DirectoryEnumerateFiles(this, folder);
             var keylist = new List<string>();
@@ -52,7 +55,7 @@ namespace SkyEye.Controllers
                 }
             }
 
-            var imglist = OGPFatherImg.NewUnTrainedImg(keylist);
+            var imglist = OGPFatherImg.NewUnTrainedImg(keylist,wafer);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new

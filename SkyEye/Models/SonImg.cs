@@ -42,6 +42,16 @@ namespace SkyEye.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
+        public static void CleanData(string wafernum)
+        {
+            var sql = @"delete [WAT].[dbo].[SonImg] where MainImgKey in
+                    (select MainImgKey from [WAT].[dbo].[OGPFatherImg] where WaferNum = @WaferNum)";
+
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafernum);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
         public SonImg()
         {
             MainImgKey = "";

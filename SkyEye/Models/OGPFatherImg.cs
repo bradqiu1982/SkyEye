@@ -30,7 +30,7 @@ namespace SkyEye.Models
             xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
             if (xyrectlist.Count > 0)
             {
-                var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0],40,60);
+                var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0],40,56);
                 if (charmatlist.Count > 0)
                 {
                     var caprev = "OGP-rect2x1";
@@ -212,12 +212,13 @@ namespace SkyEye.Models
         }
 
       
-        public static List<object> NewUnTrainedImg(List<string> imgkeys)
+        public static List<object> NewUnTrainedImg(List<string> imgkeys,string wafer)
         {
-            var ret = new List<object>();
+            var xydict = OGPSNXYVM.GetLocalOGPXYMKDict(wafer);
 
+            var ret = new List<object>();
             var keycond = "('" + string.Join("','", imgkeys) + "')";
-            var sql = @"select  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal,f.Appv_1 from [WAT].[dbo].[SonImg] (nolock) s
+            var sql = @"select  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal,f.Appv_1,s.MainImgKey from [WAT].[dbo].[SonImg] (nolock) s
                       inner join [WAT].[dbo].[OGPFatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
                       where s.MainImgKey in <keycond> order by s.MainImgKey,s.ImgOrder asc";
             sql = sql.Replace("<keycond>", keycond);
@@ -230,6 +231,15 @@ namespace SkyEye.Models
                 if (ival != -1)
                 { imgval = Convert.ToString((char)ival); }
 
+                var mk = UT.O2S(line[7]);
+                var xcoord = "";
+                var ycoord = "";
+                if (xydict.ContainsKey(mk))
+                {
+                    xcoord = xydict[mk].X;
+                    ycoord = xydict[mk].Y;
+                }
+
                 ret.Add(new
                 {
                     capimg = UT.O2S(line[0]),
@@ -238,7 +248,9 @@ namespace SkyEye.Models
                     chidx = UT.O2S(line[3]),
                     cimgkey = UT.O2S(line[4]),
                     cimgval = imgval,
-                    pchecked = UT.O2S(line[6])
+                    pchecked = UT.O2S(line[6]),
+                    xcoord = xcoord,
+                    ycoord = ycoord
                 });
             }
             return ret;
@@ -246,9 +258,10 @@ namespace SkyEye.Models
 
         public static List<object> ExistTrainedImg(string wafernum)
         {
-            var ret = new List<object>();
+            var xydict = OGPSNXYVM.GetLocalOGPXYMKDict(wafernum);
 
-            var sql = @"select  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal,f.Appv_1 from [WAT].[dbo].[SonImg] (nolock) s
+            var ret = new List<object>();
+            var sql = @"select  f.CaptureImg,f.RAWImgURL,s.ChildImg,s.ImgOrder,s.ChildImgKey,s.ImgVal,f.Appv_1,s.MainImgKey from [WAT].[dbo].[SonImg] (nolock) s
                       inner join [WAT].[dbo].[OGPFatherImg] (nolock) f on f.MainImgKey = s.MainImgKey
                       where f.WaferNum = @wafernum order by s.MainImgKey,s.ImgOrder asc";
             var dict = new Dictionary<string, string>();
@@ -262,6 +275,15 @@ namespace SkyEye.Models
                 if (ival != -1)
                 { imgval = Convert.ToString((char)ival); }
 
+                var mk = UT.O2S(line[7]);
+                var xcoord = "";
+                var ycoord = "";
+                if (xydict.ContainsKey(mk))
+                {
+                    xcoord = xydict[mk].X;
+                    ycoord = xydict[mk].Y;
+                }
+
                 ret.Add(new
                 {
                     capimg = UT.O2S(line[0]),
@@ -270,7 +292,9 @@ namespace SkyEye.Models
                     chidx = UT.O2S(line[3]),
                     cimgkey = UT.O2S(line[4]),
                     cimgval = imgval,
-                    pchecked = UT.O2S(line[6])
+                    pchecked = UT.O2S(line[6]),
+                    xcoord = xcoord,
+                    ycoord = ycoord
                 });
             }
             return ret;
@@ -302,6 +326,19 @@ namespace SkyEye.Models
                 aidata.WaferNum = UT.O2S(line[3]);
                 aidata.StoreData();
             }
+        }
+
+        public static void CleanWaferData(string wafernum)
+        {
+            SonImg.CleanData(wafernum);
+            CleanData(wafernum);
+        }
+
+        private static void CleanData(string wafernum) {
+            var sql = @"delete from [WAT].[dbo].[OGPFatherImg] where WaferNum = @WaferNum";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", wafernum);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
         public OGPFatherImg()

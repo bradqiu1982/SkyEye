@@ -7,7 +7,7 @@ namespace SkyEye.Models
 {
     public class OGPSNXYVM
     {
-        public static Dictionary<string, OGPSNXYVM> GetLocalOGPXY(string wafernum)
+        public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYSNDict(string wafernum)
         {
             var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
                         inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
@@ -19,7 +19,12 @@ namespace SkyEye.Models
             foreach (var line in dbret)
             {
                 var sn = UT.O2S(line[0]);
-                var imgval = UT.O2S((char)UT.O2I(line[1]));
+
+                var imgval = "";
+                var ival = UT.O2I(line[1]);
+                if (ival != -1)
+                { imgval = Convert.ToString((char)ival); }
+
                 var cat = UT.O2S(line[2]).ToUpper();
                 if (dict.ContainsKey(sn))
                 {
@@ -45,6 +50,50 @@ namespace SkyEye.Models
             return dict;
         }
 
+        public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYMKDict(string wafernum)
+        {
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+                        inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
+                        where WaferNum = '<wafernum>' order by SN,ImgOrder asc";
+            sql = sql.Replace("<wafernum>", wafernum);
+
+            var dict = new Dictionary<string, OGPSNXYVM>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                //var sn = UT.O2S(line[0]);
+
+                var imgval = "";
+                var ival = UT.O2I(line[1]);
+                if (ival != -1)
+                { imgval = Convert.ToString((char)ival); }
+
+                var cat = UT.O2S(line[2]).ToUpper();
+                var mk = UT.O2S(line[4]);
+
+                if (dict.ContainsKey(mk))
+                {
+                    if (cat.Contains("X"))
+                    { dict[mk].X += imgval; }
+                    else
+                    { dict[mk].Y += imgval; }
+                }
+                else
+                {
+                    var tempvm = new OGPSNXYVM();
+
+                    if (cat.Contains("X"))
+                    { tempvm.X += imgval; }
+                    else
+                    { tempvm.Y += imgval; }
+                    dict.Add(mk, tempvm);
+                }
+            }
+
+            return dict;
+        }
+
+
         public static List<OGPSNXYVM> GetMEOGPXY(string wafernum)
         {
             var ret = new List<OGPSNXYVM>();
@@ -66,7 +115,7 @@ namespace SkyEye.Models
 
         public static List<OGPSNXYVM> GetConbineXY(string wafernum)
         {
-            var localxy = GetLocalOGPXY(wafernum);
+            var localxy = GetLocalOGPXYSNDict(wafernum);
             var mexy = GetMEOGPXY(wafernum);
             foreach (var m in mexy)
             {
