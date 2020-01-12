@@ -28,6 +28,7 @@ namespace SkyEye.Controllers
 
         public JsonResult NewImgTrain()
         {
+            var ret = new JsonResult();
             var folder = Request.Form["fpath"];
             var wafer = Request.Form["wafer"];
 
@@ -37,15 +38,57 @@ namespace SkyEye.Controllers
             OGPFatherImg.CleanWaferData(wafer);
             KMode.CleanTrainCache(this);
 
+            var imglist = new List<object>();
             var failimg = "";
+
             var filelist = ExternalDataCollector.DirectoryEnumerateFiles(this, folder);
+            var samplepicture = new List<string>();
+            foreach (var fs in filelist)
+            {
+                var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+                {
+                    samplepicture.Add(fs);
+                    if (samplepicture.Count > 1)
+                    { break; }
+                }
+            }
+
+            if (samplepicture.Count == 0)
+            {
+                ret.Data = new
+                {
+                    imglist = imglist,
+                    failimg = failimg,
+                    MSG = "Failed to get enough sample picture for revsion dugement!"
+                };
+                return ret;
+            }
+
+            var caprev = "";
+            caprev = OGPFatherImg.GetPictureRev(samplepicture[0]);
+            if (string.IsNullOrEmpty(caprev))
+            {
+                caprev = OGPFatherImg.GetPictureRev(samplepicture[1]);
+                if (string.IsNullOrEmpty(caprev))
+                {
+                    ret.Data = new
+                    {
+                        imglist = imglist,
+                        failimg = failimg,
+                        MSG = "Failed to get revsion from sample pictures!"
+                    };
+                    return ret;
+                }
+            }
+
             var keylist = new List<string>();
             foreach (var fs in filelist)
             {
                 var fn = System.IO.Path.GetFileName(fs).ToUpper();
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
-                    var imgkey = OGPFatherImg.LoadImg(fs,wafer,snmap, probexymap, this);
+                    var imgkey = OGPFatherImg.LoadImg(fs,wafer,snmap, probexymap,caprev, this);
                     if (!string.IsNullOrEmpty(imgkey))
                     {
                         keylist.Add(imgkey);
@@ -55,13 +98,14 @@ namespace SkyEye.Controllers
                 }
             }
 
-            var imglist = OGPFatherImg.NewUnTrainedImg(keylist,wafer);
-            var ret = new JsonResult();
+            imglist = OGPFatherImg.NewUnTrainedImg(keylist,wafer);
+            
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
             {
                 imglist = imglist,
-                failimg = failimg
+                failimg = failimg,
+                MSG = ""
             };
             return ret;
         }

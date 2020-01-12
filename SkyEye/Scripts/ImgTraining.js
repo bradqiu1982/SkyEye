@@ -46,7 +46,7 @@
                     var capimg = '<img src="data:image/png;base64,' + val.capimg + '" />';
                     var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
                     var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
-                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="" />';
+                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
                     var checkcla = '';
                     if (val.pchecked.indexOf('CHECKED') != -1)
                     { checkcla = 'GREENTR'; }
@@ -142,6 +142,8 @@
                 solveimgdata(output, traintype)
                 if (output.failimg != '')
                 { alert("FAIL TO ANALYZE FOLLOWING FILES:" + output.failimg); }
+                if (output.MSG != '')
+                { alert(output.MSG); }
             });
         }
 

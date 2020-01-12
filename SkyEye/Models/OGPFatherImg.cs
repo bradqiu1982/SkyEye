@@ -11,48 +11,67 @@ namespace SkyEye.Models
     public class OGPFatherImg
     {
 
-        public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap, Dictionary<string, bool> probexymap, Controller ctrl)
+        public static string GetPictureRev(string imgpath)
         {
             var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
             if (xyrectlist.Count > 0)
-            {
-                var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 30, 50, 20, 47);
-                if (charmatlist.Count > 0)
-                {
-                    var caprev = "OGP-rect5x1";
-                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
-                    {
-                        return SolveImg(imgpath,wafer, charmatlist, caprev,snmap, probexymap, ctrl, kmode);
-                    }
-                }
-            }
+            { return "OGP-rect5x1"; }
 
             xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
             if (xyrectlist.Count > 0)
+            { return "OGP-rect2x1"; }
+
+            return string.Empty;
+        }
+
+        public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
+            , Dictionary<string, bool> probexymap,string caprev, Controller ctrl)
+        {
+            if (caprev.Contains("OGP-rect5x1"))
             {
-                var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0],40,56);
-                if (charmatlist.Count > 0)
+                var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
+                if (xyrectlist.Count > 0)
                 {
-                    var caprev = "OGP-rect2x1";
-                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                    var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 30, 50, 20, 47);
+                    if (charmatlist.Count > 0)
                     {
-                        return SolveImg(imgpath,wafer, charmatlist, caprev,snmap, probexymap, ctrl, kmode);
+                        //var caprev = "OGP-rect5x1";
+                        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                        {
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                        }
                     }
                 }
             }
-
-
-            Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
-            var fimg = new OGPFatherImg();
-            fimg.WaferNum = wafer;
-            fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
-            fimg.MainImgKey = GetUniqKey();
-            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
-            fimg.CaptureImg = "";
-            fimg.CaptureRev = "";
-            fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            fimg.StoreFailData();
-
+            else if (caprev.Contains("OGP-rect2x1"))
+            {
+                var xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+                if (xyrectlist.Count > 0)
+                {
+                    var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0], 40, 56);
+                    if (charmatlist.Count > 0)
+                    {
+                        //var caprev = "OGP-rect2x1";
+                        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                        {
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+                var fimg = new OGPFatherImg();
+                fimg.WaferNum = wafer;
+                fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
+                fimg.MainImgKey = GetUniqKey();
+                fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+                fimg.CaptureImg = "";
+                fimg.CaptureRev = "";
+                fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                fimg.StoreFailData();
+            }
             return string.Empty;
         }
 
