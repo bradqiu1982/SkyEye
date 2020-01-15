@@ -32,7 +32,7 @@ namespace SkyEye.Models
                 var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
                 if (xyrectlist.Count > 0)
                 {
-                    var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 30, 50, 20, 47);
+                    var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 65);
                     if (charmatlist.Count > 0)
                     {
                         //var caprev = "OGP-rect5x1";
@@ -59,19 +59,18 @@ namespace SkyEye.Models
                     }
                 }
             }
-            else
-            {
-                Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
-                var fimg = new OGPFatherImg();
-                fimg.WaferNum = wafer;
-                fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
-                fimg.MainImgKey = GetUniqKey();
-                fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
-                fimg.CaptureImg = "";
-                fimg.CaptureRev = "";
-                fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                fimg.StoreFailData();
-            }
+
+            Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+            var fimg = new OGPFatherImg();
+            fimg.WaferNum = wafer;
+            fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
+            fimg.MainImgKey = GetUniqKey();
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.CaptureImg = "";
+            fimg.CaptureRev = "";
+            fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            fimg.StoreFailData();
+
             return string.Empty;
         }
 

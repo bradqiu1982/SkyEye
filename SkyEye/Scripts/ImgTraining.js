@@ -46,7 +46,8 @@
                     var capimg = '<img src="data:image/png;base64,' + val.capimg + '" />';
                     var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
                     var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
-                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
+                    //var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
+                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="" />';
                     var checkcla = '';
                     if (val.pchecked.indexOf('CHECKED') != -1)
                     { checkcla = 'GREENTR'; }

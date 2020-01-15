@@ -16,7 +16,7 @@ namespace SkyEye.Models
             var blurred = new Mat();
             Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
             var edged = new Mat();
-            Cv2.Canny(blurred, edged, 50, 200, 3,true);
+            Cv2.Canny(blurred, edged, 50, 200, 3,false);
 
             //using (new Window("edged", edged))
             //{
@@ -54,7 +54,7 @@ namespace SkyEye.Models
             return ret;
         }
 
-        private static List<int> GetPossibleXList(Mat edged, int heighlow, int heighhigh, int widthlow, int widthhigh)
+        private static List<int> GetPossibleXList_BAK(Mat edged, int heighlow, int heighhigh, int widthlow, int widthhigh)
         {
             var outmat = new Mat();
             var ids = OutputArray.Create(outmat);
@@ -203,7 +203,7 @@ namespace SkyEye.Models
             return ret;
         }
 
-        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh)
+        public static List<Mat> CutCharRect_BAK(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh)
         {
             var cmatlist = new List<Mat>();
 
@@ -228,22 +228,6 @@ namespace SkyEye.Models
             Cv2.Resize(xyenhgray, xyenhgray, new Size(xyenhgray.Width * 2, xyenhgray.Height * 2));
 
             var xyptlist = GetDetectPoint(xyenhgray);
-            //var kaze = KAZE.Create();
-            //var kazeDescriptors = new Mat();
-            //KeyPoint[] kazeKeyPoints = null;
-            //kaze.DetectAndCompute(xyenhgray, null, out kazeKeyPoints, kazeDescriptors);
-            //var xlist = new List<double>();
-            //var ylist = new List<double>();
-            //foreach (var pt in kazeKeyPoints)
-            //{
-            //    xlist.Add(pt.Pt.X);
-            //    ylist.Add(pt.Pt.Y);
-            //}
-
-            //using (new Window("xyenhgray", xyenhgray))
-            //{
-            //    Cv2.WaitKey();
-            //}
 
             var width = Convert.ToInt32(xyptlist[0].Max()) - Convert.ToInt32(xyptlist[0].Min());
             if (width >= 330)
@@ -274,7 +258,7 @@ namespace SkyEye.Models
                 //    Cv2.WaitKey();
                 //}
 
-                var possxlist = GetPossibleXList(edged, heighlow, heighhigh, widthlow, widthhigh);
+                var possxlist = GetPossibleXList_BAK(edged, heighlow, heighhigh, widthlow, widthhigh);
 
                 var ewidth = edged.Width;
                 var eheight = edged.Height;
@@ -310,5 +294,255 @@ namespace SkyEye.Models
 
             return cmatlist;
         }
+
+
+        private static List<int> UniqX(List<int> xlist, int imgw, int avgw, int widthlow, int widthhigh)
+        {
+            var ret = new List<int>();
+            if (xlist.Count < 3) { return ret; }
+
+            ret.Add(xlist[0]);
+            for (var idx = 1; idx < xlist.Count; idx++)
+            {
+                var delta = xlist[idx] - xlist[idx - 1];
+                if (delta > widthlow)
+                { ret.Add(xlist[idx]); }
+            }
+
+            if (ret.Count == 8)
+            { return ret; }
+            else
+            {
+                var passiblexlist = new List<int>();
+                for (var idx = 0; idx < 8; idx++)
+                { passiblexlist.Add(-1); }
+
+                var xhigh = (int)(imgw * 0.666);
+
+                foreach (var x in ret)
+                {
+                    if (x < (int)(avgw))
+                    {
+                        passiblexlist[0] = x;
+                        passiblexlist[1] = passiblexlist[0] + avgw + 4;
+                        passiblexlist[2] = passiblexlist[1] + avgw + 6;
+                        passiblexlist[3] = passiblexlist[2] + avgw + 8;
+                    }
+                    else if (x > (avgw + 5) && x < 2 * avgw)
+                    {
+                        passiblexlist[1] = x;
+                        passiblexlist[2] = passiblexlist[1] + avgw + 5;
+                        passiblexlist[3] = passiblexlist[2] + avgw + 8;
+                        if (passiblexlist[0] == -1)
+                        { passiblexlist[0] = passiblexlist[1] - avgw - 5; }
+                    }
+                    else if (x > (2 * avgw + 7) && x < 3 * avgw)
+                    {
+                        passiblexlist[2] = x;
+                        passiblexlist[3] = passiblexlist[2] + avgw + 5;
+                        if (passiblexlist[1] == -1)
+                        { passiblexlist[1] = passiblexlist[2] - avgw - 5; }
+                        if (passiblexlist[0] == -1)
+                        { passiblexlist[0] = passiblexlist[1] - avgw - 8; }
+                    }
+                    else if (x > (3 * avgw + 10) && x < 4 * avgw)
+                    {
+                        passiblexlist[3] = x;
+                        if (passiblexlist[2] == -1)
+                        { passiblexlist[2] = passiblexlist[3] - avgw - 5; }
+                        if (passiblexlist[1] == -1)
+                        { passiblexlist[1] = passiblexlist[2] - avgw - 6; }
+                        if (passiblexlist[0] == -1)
+                        { passiblexlist[0] = passiblexlist[1] - avgw - 8; }
+                    }
+                    else if ((int)Math.Abs(x - xhigh) < (int)(avgw))
+                    {
+                        passiblexlist[4] = x;
+                        passiblexlist[5] = passiblexlist[4] + avgw + 4;
+                        passiblexlist[6] = passiblexlist[5] + avgw + 6;
+                        passiblexlist[7] = passiblexlist[6] + avgw + 8;
+                    }
+                    else if ((int)Math.Abs(x - xhigh) > (int)(1.1 * avgw) && (int)Math.Abs(x - xhigh) < (int)(2.1 * avgw))
+                    {
+                        passiblexlist[5] = x;
+                        passiblexlist[6] = passiblexlist[5] + avgw + 5;
+                        passiblexlist[7] = passiblexlist[6] + avgw + 6;
+                        if (passiblexlist[4] == -1)
+                        { passiblexlist[4] = passiblexlist[5] - avgw - 5; }
+                    }
+                    else if (x > imgw - avgw * 3 && x < imgw - avgw * 2)
+                    {
+                        passiblexlist[6] = x;
+                        passiblexlist[7] = passiblexlist[6] + avgw + 5;
+                        if (passiblexlist[5] == -1)
+                        { passiblexlist[5] = passiblexlist[6] - avgw - 5; }
+                        if (passiblexlist[4] == -1)
+                        { passiblexlist[4] = passiblexlist[5] - avgw - 6; }
+                    }
+                    else if (x > imgw - avgw * 1.5)
+                    {
+                        passiblexlist[7] = x;
+                        if (passiblexlist[6] == -1)
+                        { passiblexlist[6] = passiblexlist[7] - avgw - 5; }
+                        if (passiblexlist[5] == -1)
+                        { passiblexlist[5] = passiblexlist[6] - avgw - 6; }
+                        if (passiblexlist[4] == -1)
+                        { passiblexlist[4] = passiblexlist[5] - avgw - 8; }
+                    }
+                }//end foreach
+
+                for (var idx = 1; idx < passiblexlist.Count; idx++)
+                {
+                    var delta = passiblexlist[idx] - passiblexlist[idx - 1];
+                    if (delta < widthlow)
+                    {
+                        passiblexlist.Clear();
+                        return passiblexlist;
+                    }
+                }
+
+                foreach (var x in passiblexlist)
+                {
+                    if (x == -1)
+                    {
+                        passiblexlist.Clear();
+                        return passiblexlist;
+                    }
+                }
+
+                return passiblexlist;
+            }
+        }
+
+        private static List<int> GetPossibleXList(Mat edged, int heighlow, int heighhigh, int widthlow, int widthhigh)
+        {
+            var outmat = new Mat();
+            var ids = OutputArray.Create(outmat);
+            var cons = new Mat[] { };
+            Cv2.FindContours(edged, out cons, ids, RetrievalModes.List, ContourApproximationModes.ApproxSimple);
+
+            var xlow = (int)(edged.Width * 0.333 -20);
+            var xhigh = (int)(edged.Width * 0.666 - 10);
+
+            var cwlist = new List<int>();
+            var y0list = new List<int>();
+            var y1list = new List<int>();
+            var wavglist = new List<int>();
+
+            var idx1 = 0;
+            foreach (var item in cons)
+            {
+                idx1++;
+
+                var crect = Cv2.BoundingRect(item);
+                if (crect.Width >= widthlow && crect.Width <= widthhigh 
+                    && crect.Height > heighlow && crect.Height < heighhigh)
+                {
+
+                    //var mat = edged.SubMat(crect);
+                    //using (new Window("edged" + idx1, mat))
+                    //{
+                    //    Cv2.WaitKey();
+                    //}
+
+                    if (crect.X < xlow || crect.X > xhigh)
+                    {
+                        wavglist.Add(crect.Width);
+                        cwlist.Add(crect.X);
+                        y0list.Add(crect.Y);
+                        y1list.Add(crect.Height);
+                    }
+
+                }//end if
+            }//end foreach
+
+
+            cwlist.Sort();
+            var wavg = 0;
+            if (wavglist.Count > 0)
+            { wavg = (int)wavglist.Average(); }
+
+            cwlist = UniqX(cwlist, edged.Width, wavg, widthlow, widthhigh);
+
+            if (cwlist.Count == 8)
+            {
+                cwlist.Add((int)y0list.Min());
+                cwlist.Add((int)y1list.Max());
+            }
+
+            return cwlist;
+        }
+
+        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh)
+        {
+            var cmatlist = new List<Mat>();
+
+            Mat src = Cv2.ImRead(imgpath, ImreadModes.Color);
+            var xymat = src.SubMat(xyrect);
+            var srcmidy = src.Height / 2;
+            if (xyrect.Y > srcmidy)
+            {
+                var center = new Point2f(xymat.Width / 2, xymat.Height / 2);
+                var m = Cv2.GetRotationMatrix2D(center, 180, 1);
+                var outxymat = new Mat();
+                Cv2.WarpAffine(xymat, outxymat, m, new Size(xymat.Width, xymat.Height));
+                xymat = outxymat;
+            }
+
+            var xyenhance = new Mat();
+            Cv2.DetailEnhance(xymat, xyenhance);
+
+            var xyenhgray = new Mat();
+            Cv2.CvtColor(xyenhance, xyenhgray, ColorConversionCodes.BGR2GRAY);
+
+            Cv2.Resize(xyenhgray, xyenhgray, new Size(xyenhgray.Width * 4, xyenhgray.Height * 4));
+
+            xyenhgray = xyenhgray.SubMat(15, xyenhgray.Rows - 15, 15, xyenhgray.Cols - 15);
+
+            {
+                var blurred = new Mat();
+                Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
+
+                //using (new Window("blurred", blurred))
+                //{
+                //    Cv2.WaitKey();
+                //}
+
+                var edged = new Mat();
+                Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 11, 2);
+                //using (new Window("edged", edged))
+                //{
+                //    Cv2.WaitKey();
+                //}
+
+                var possxlist = GetPossibleXList(edged, heighlow, heighhigh, widthlow, widthhigh);
+                if (possxlist.Count > 0)
+                {
+                    var ewidth1 = possxlist[3] * 2 - possxlist[2] + 3;
+                    var ewidth2 = possxlist[7] * 2 - possxlist[6];
+                    if (ewidth2 > edged.Width)
+                    { ewidth2 = edged.Width; }
+
+                    var eheight0 = possxlist[8];
+                    var eheight1 = possxlist[8] + possxlist[9];
+
+                    cmatlist.Add(xyenhance);
+
+                    cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[0] > 0? possxlist[0]:0, possxlist[1]));
+                    cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[1], possxlist[2]));
+                    cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[2], possxlist[3]));
+                    cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[3], ewidth1));
+
+                    cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[4], possxlist[5]));
+                    cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[5], possxlist[6]));
+                    cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[6], possxlist[7]));
+                    cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[7], ewidth2));
+                }
+            }
+
+            return cmatlist;
+        }
+
+
     }
 }
