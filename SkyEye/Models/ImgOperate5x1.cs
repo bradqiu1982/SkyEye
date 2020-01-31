@@ -400,6 +400,12 @@ namespace SkyEye.Models
                         passiblexlist.Clear();
                         return passiblexlist;
                     }
+
+                    if (idx != 4 && delta > widthhigh)
+                    {
+                        passiblexlist.Clear();
+                        return passiblexlist;
+                    }
                 }
 
                 foreach (var x in passiblexlist)
@@ -446,7 +452,7 @@ namespace SkyEye.Models
                     //{
                     //    Cv2.WaitKey();
                     //}
-                    if (crect.X < xlow || crect.X > xhigh)
+                    if ((crect.X < xlow || crect.X > xhigh) && crect.Y > 5)
                     {
                         backxlist.Add(new KeyValuePair<int, int>(crect.X, crect.Width));
                     }//end if
@@ -460,7 +466,7 @@ namespace SkyEye.Models
                     //{
                     //    Cv2.WaitKey();
                     //}
-                    if (crect.X < xlow || crect.X > xhigh)
+                    if ((crect.X < xlow || crect.X > xhigh) && crect.Y > 5)
                     {
                         wavglist.Add(crect.Width);
                         cwlist.Add(crect.X);
@@ -524,11 +530,21 @@ namespace SkyEye.Models
 
             Cv2.Resize(xyenhgray, xyenhgray, new Size(xyenhgray.Width * 4, xyenhgray.Height * 4));
 
-            xyenhgray = xyenhgray.SubMat(15, xyenhgray.Rows - 15, 15, xyenhgray.Cols - 15);
+            var subx = new List<int>();
+            subx.Add(15); subx.Add(5);
+            subx.Add(25); subx.Add(30);
+            var xyenhgraylist = new List<Mat>();
+            foreach (var x in subx)
+            {
+                var tmpmat = new Mat();
+                tmpmat = xyenhgray.SubMat(x, xyenhgray.Rows - x, x, xyenhgray.Cols - x);
+                xyenhgraylist.Add(tmpmat);
+            }
 
+            foreach (var tempmat in xyenhgraylist)
             {
                 var blurred = new Mat();
-                Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
+                Cv2.GaussianBlur(tempmat, blurred, new Size(5, 5), 0);
 
                 //using (new Window("blurred", blurred))
                 //{
@@ -564,6 +580,7 @@ namespace SkyEye.Models
                     cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[5], possxlist[6]));
                     cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[6], possxlist[7]));
                     cmatlist.Add(edged.SubMat(eheight0, eheight1, possxlist[7], ewidth2));
+                    return cmatlist;
                 }
             }
 

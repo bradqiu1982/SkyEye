@@ -85,6 +85,7 @@ namespace SkyEye.Models
             var fimg = new OGPFatherImg();
             fimg.WaferNum = wafer;
             fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
+            fimg.FileName = fimg.SN;
             if (snmap.ContainsKey(fimg.SN))
             { fimg.SN = snmap[fimg.SN]; }
 
@@ -174,8 +175,8 @@ namespace SkyEye.Models
 
         public void StoreData()
         {
-            var sql = @"insert into WAT.dbo.OGPFatherImg(WaferNum,SN,MainImgKey,RAWImgURL,CaptureImg,CaptureRev,MUpdateTime,Appv_1) 
-                    values(@WaferNum,@SN,@MainImgKey,@RAWImgURL,@CaptureImg,@CaptureRev,@MUpdateTime,@ProbeChecked)";
+            var sql = @"insert into WAT.dbo.OGPFatherImg(WaferNum,SN,MainImgKey,RAWImgURL,CaptureImg,CaptureRev,MUpdateTime,Appv_1,Appv_3) 
+                    values(@WaferNum,@SN,@MainImgKey,@RAWImgURL,@CaptureImg,@CaptureRev,@MUpdateTime,@ProbeChecked,@FileName)";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferNum", WaferNum);
             dict.Add("@SN", SN);
@@ -185,6 +186,7 @@ namespace SkyEye.Models
             dict.Add("@CaptureRev", CaptureRev);
             dict.Add("@MUpdateTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
             dict.Add("@ProbeChecked", ProbeChecked);
+            dict.Add("@FileName", FileName);
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
@@ -369,6 +371,7 @@ namespace SkyEye.Models
             CaptureRev = "";
             MUpdateTime = "";
             ProbeChecked = "";
+            FileName = "";
             ChildImgs = new Dictionary<string, List<SonImg>>();
         }
 
@@ -380,6 +383,7 @@ namespace SkyEye.Models
         public string CaptureRev { set; get; }
         public string MUpdateTime { set; get; }
         public string ProbeChecked { set; get; }
+        public string FileName { set; get; }
         public Dictionary<string, List<SonImg>> ChildImgs { set; get; }
     }
 }
