@@ -114,8 +114,8 @@
         }
 
         function loadnewtrainingimgs(traintype) {
-            var wafernum = $('#wafernum').val();
-            var fpath = $('#imgfolder').val();
+            var wafernum = $('#wafernum').val().trim();
+            var fpath = $('#imgfolder').val().trim();
 
             if (fpath == '' || wafernum == '')
             { alert('Please input the share folder path of the images and the wafer number!'); return false; }
@@ -149,7 +149,7 @@
         }
 
         function loadexisttrainingimgs(traintype) {
-            var wafernum = $('#wafernum').val();
+            var wafernum = $('#wafernum').val().trim();
             if (wafernum == '')
             { alert('Please input the wafer number!'); return false; }
 
@@ -177,8 +177,8 @@
         }
 
         $('body').on('click', '#btn-all', function () {
-            var fpath = $('#imgfolder').val();
-            var wafernum = $('#wafernum').val();
+            var fpath = $('#imgfolder').val().trim();
+            var wafernum = $('#wafernum').val().trim();
             if (fpath != '' && wafernum != '') {
                 loadnewtrainingimgs('ALLTRAINING');
             }
@@ -189,8 +189,8 @@
         });
 
         $('body').on('click', '#btn-option', function () {
-            var fpath = $('#imgfolder').val();
-            var wafernum = $('#wafernum').val();
+            var fpath = $('#imgfolder').val().trim();
+            var wafernum = $('#wafernum').val().trim();
             if (fpath != '' && wafernum != '') {
                 loadnewtrainingimgs('OPTTRAINING');
             }
@@ -222,8 +222,68 @@
             }
         };
 
+        function solverecognizeresult(output)
+        {
+            if (imgtable) {
+                imgtable.destroy();
+                imgtable = null;
+            }
+
+            $("#imghead").empty();
+            $("#imgcontent").empty();
+
+            $("#imghead").append(
+                '<tr>' +
+                '<th>SN</th>' +
+                '<th>Capture Img</th>' +
+                '<th>NPI-X</th>' +
+                '<th>NEW-X</th>' +
+                '<th>NPI-Y</th>' +
+                '<th>NEW-Y</th>' +
+                '<th>ME-X</th>' +
+                '<th>ME-Y</th>' +
+                '</tr>'
+            );
+
+            $.each(output.xylist, function (i, val) {
+                var capimg = '<img src="data:image/png;base64,' + val.CaptureImg + '" />';
+                var imgxval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::X" value="" />';
+                var imgyval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::Y" value="" />';
+
+                var checkcla = '';
+                if (val.Checked.indexOf('CHECKED') != -1)
+                { checkcla = 'GREENTR'; }
+
+                $("#imgcontent").append(
+                    '<tr class="' + checkcla + '">' +
+                    '<td>' + val.SN + '</td>' +
+                    '<td>' + capimg + '</td>' +
+                    '<td>' + val.X + '</td>' +
+                    '<td>' + imgxval + '</td>' +
+                    '<td>' + val.Y + '</td>' +
+                    '<td>' + imgyval + '</td>' +
+                    '<td>' + val.MX + '</td>' +
+                    '<td>' + val.MY + '</td>' +
+                    '</tr>'
+                );
+            });
+
+            imgtable = $('#imgtable').DataTable({
+                'iDisplayLength': -1,
+                'aLengthMenu': [[-1],
+                ["All"]],
+                "columnDefs": [
+                    { "className": "dt-center", "targets": "_all" }
+                ],
+                "aaSorting": [],
+                "order": [],
+                dom: 'lBfrtip',
+                buttons: ['updatexy']
+            });
+        }
+
         function comparingogpxy() {
-            var wafernum = $('#wafernum').val();
+            var wafernum = $('#wafernum').val().trim();
             if (wafernum == '')
             { alert('Please input the wafer number!'); return false; }
 
@@ -247,65 +307,46 @@
             }, function (output) {
 
                 $.bootstrapLoading.end();
-
-                if (imgtable) {
-                    imgtable.destroy();
-                    imgtable = null;
-                }
-
-                $("#imghead").empty();
-                $("#imgcontent").empty();
-
-                $("#imghead").append(
-                    '<tr>' +
-                    '<th>SN</th>' +
-                    '<th>Capture Img</th>' +
-                    '<th>NPI-X</th>' +
-                    '<th>NEW-X</th>' +
-                    '<th>NPI-Y</th>' +
-                    '<th>NEW-Y</th>' +
-                    '<th>ME-X</th>' +
-                    '<th>ME-Y</th>' +
-                    '</tr>'
-                );
-
-                $.each(output.xylist, function (i, val) {
-                    var capimg = '<img src="data:image/png;base64,' + val.CaptureImg + '" />';
-                    var imgxval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::X" value="" />';
-                    var imgyval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::Y" value="" />';
-
-                    var checkcla = '';
-                    if (val.Checked.indexOf('CHECKED') != -1)
-                    { checkcla = 'GREENTR'; }
-
-                    $("#imgcontent").append(
-                        '<tr class="' + checkcla + '">' +
-                        '<td>' + val.SN + '</td>' +
-                        '<td>' + capimg + '</td>' +
-                        '<td>' + val.X + '</td>' +
-                        '<td>' + imgxval + '</td>' +
-                        '<td>' + val.Y + '</td>' +
-                        '<td>' + imgyval + '</td>' +
-                        '<td>' + val.MX + '</td>' +
-                        '<td>' + val.MY + '</td>' +
-                        '</tr>'
-                    );
-                });
-
-                imgtable = $('#imgtable').DataTable({
-                    'iDisplayLength': -1,
-                    'aLengthMenu': [[-1],
-                    ["All"]],
-                    "columnDefs": [
-                        { "className": "dt-center", "targets": "_all" }
-                    ],
-                    "aaSorting": [],
-                    "order": [],
-                    dom: 'lBfrtip',
-                    buttons: ['updatexy']
-                });
+                solverecognizeresult(output);
             });
         }
+
+        function recognizeogpxy() {
+            var wafernum = $('#wafernum').val().trim();
+            var fpath = $('#imgfolder').val().trim();
+
+            if (fpath == '' || wafernum == '')
+            { alert('Please input the share folder path of the images and the wafer number!'); return false; }
+
+            if (wafernum.indexOf('E') == -1
+                && wafernum.indexOf('R') == -1
+                && wafernum.indexOf('T') == -1)
+            { alert('wafer number should contains E or R or T!'); return false; }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/OGPXY/OGPXYRecognize', {
+                fpath: fpath,
+                wafer: wafernum
+            }, function (output) {
+                $.bootstrapLoading.end();
+                solverecognizeresult(output);
+                if (output.MSG != '')
+                { alert(output.MSG); }
+            });
+        }
+
+        $('body').on('click', '#btn-recognize', function () {
+            recognizeogpxy();
+        });
 
         $('body').on('click', '#btn-review', function () {
             comparingogpxy();

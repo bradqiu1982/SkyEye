@@ -161,6 +161,88 @@ namespace SkyEye.Controllers
 
         }
 
+        public JsonResult OGPXYRecognize()
+        {
+            var wafer = Request.Form["wafer"];
+            var folder = Request.Form["fpath"];
+
+            var xylist = new List<OGPSNXYVM>();
+            var ret = new JsonResult();
+
+            var snmap = OGPXYFileSNMap.GetSNMap(wafer);
+            var probexymap = ProbeXYMap.GetProbeXYMap(wafer);
+
+            OGPFatherImg.CleanWaferData(wafer);
+            KMode.CleanTrainCache(this);
+
+            var failimg = "";
+
+            var filelist = ExternalDataCollector.DirectoryEnumerateFiles(this, folder);
+            var samplepicture = new List<string>();
+            foreach (var fs in filelist)
+            {
+                var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+                {
+                    samplepicture.Add(fs);
+                    if (samplepicture.Count > 1)
+                    { break; }
+                }
+            }
+
+            if (samplepicture.Count == 0)
+            {
+                ret.Data = new
+                {
+                    xylist = xylist,
+                    MSG = "Failed to get enough sample picture for revsion dugement!"
+                };
+                return ret;
+            }
+
+            var caprev = "";
+            caprev = OGPFatherImg.GetPictureRev(samplepicture[0]);
+            if (string.IsNullOrEmpty(caprev))
+            {
+                caprev = OGPFatherImg.GetPictureRev(samplepicture[1]);
+                if (string.IsNullOrEmpty(caprev))
+                {
+                    ret.Data = new
+                    {
+                        xylist = xylist,
+                        MSG = "Failed to get revsion from sample pictures!"
+                    };
+                    return ret;
+                }
+            }
+
+            var keylist = new List<string>();
+            foreach (var fs in filelist)
+            {
+                var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+                {
+                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this);
+                    if (!string.IsNullOrEmpty(imgkey))
+                    {
+                        keylist.Add(imgkey);
+                    }
+                    else
+                    { failimg += fn + "/"; }
+                }
+            }
+
+            xylist = OGPSNXYVM.GetConbineXY(wafer);
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                xylist = xylist,
+                MSG = ""
+            };
+            return ret;
+        }
+
+
         public JsonResult UpdateOGPXYData()
         {
             var imgkv = Request.Form["imgkv"];
