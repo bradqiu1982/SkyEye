@@ -272,6 +272,7 @@
     <Compile Include="Models\FileLoadedData.cs" />
     <Compile Include="Models\ImgOperate2x1.cs" />
     <Compile Include="Models\ImgOperate5x1.cs" />
+    <Compile Include="Models\ImgPreOperate.cs" />
     <Compile Include="Models\KMode.cs" />
     <Compile Include="Models\OGPFatherImg.cs" />
     <Compile Include="Models\OGPSNXYVM.cs" />

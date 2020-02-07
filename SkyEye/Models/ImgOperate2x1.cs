@@ -15,54 +15,65 @@ namespace SkyEye.Models
 
             var blurred = new Mat();
             Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
-            var edged = new Mat();
-            Cv2.Canny(blurred, edged, 50, 200, 3,true);
 
-            //using (new Window("edged", edged))
-            //{
-            //    Cv2.WaitKey();
-            //}
-
-            var outmat = new Mat();
-            var ids = OutputArray.Create(outmat);
-            var cons = new Mat[] { };
-            Cv2.FindContours(edged, out cons, ids, RetrievalModes.List, ContourApproximationModes.ApproxSimple);
-            var conslist = cons.ToList();
-            //conslist.Sort(delegate (Mat obj1, Mat obj2)
-            //{
-            //    return Cv2.ContourArea(obj2).CompareTo(Cv2.ContourArea(obj1));
-            //});
-
-            var idx = 0;
-            foreach (var item in conslist)
+            var cannyflags = new List<bool>();
+            cannyflags.Add(true);
+            cannyflags.Add(false);
+            foreach (var cflag in cannyflags)
             {
-                idx++;
+                var edged = new Mat();
+                Cv2.Canny(blurred, edged, 50, 200, 3, cflag);
 
-                var rect = Cv2.BoundingRect(item);
-                var whrate = (float)rect.Width / (float)rect.Height;
-                var a = rect.Width * rect.Height;
+                //using (new Window("edged", edged))
+                //{
+                //    Cv2.WaitKey();
+                //}
 
-                if (whrate > ratelow && whrate < ratehigh
-                    && rect.Height > heighlow && rect.Height < heighhigh)
+                var outmat = new Mat();
+                var ids = OutputArray.Create(outmat);
+                var cons = new Mat[] { };
+                Cv2.FindContours(edged, out cons, ids, RetrievalModes.List, ContourApproximationModes.ApproxSimple);
+                var conslist = cons.ToList();
+                //conslist.Sort(delegate (Mat obj1, Mat obj2)
+                //{
+                //    return Cv2.ContourArea(obj2).CompareTo(Cv2.ContourArea(obj1));
+                //});
+
+                var idx = 0;
+                foreach (var item in conslist)
                 {
-                    //var xymat = src.SubMat(rect);
-                    //using (new Window("xymat" + idx, xymat))
-                    //{
-                    //    Cv2.WaitKey();
-                    //}
+                    idx++;
 
-                    if (ret.Count > 0)
+                    var rect = Cv2.BoundingRect(item);
+                    var whrate = (float)rect.Width / (float)rect.Height;
+                    var a = rect.Width * rect.Height;
+
+                    if (whrate > ratelow && whrate < ratehigh
+                        && rect.Height > heighlow && rect.Height < heighhigh)
                     {
-                        if (a > ret[0].Width * ret[0].Height)
+                        //var xymat = src.SubMat(rect);
+                        //using (new Window("xymat" + idx, xymat))
+                        //{
+                        //    Cv2.WaitKey();
+                        //}
+
+                        if (ret.Count > 0)
                         {
-                            ret.Clear();
-                            ret.Add(rect);
+                            if (a > ret[0].Width * ret[0].Height)
+                            {
+                                ret.Clear();
+                                ret.Add(rect);
+                            }
                         }
+                        else
+                        { ret.Add(rect); }
                     }
-                    else
-                    { ret.Add(rect); }
-                }
-            }
+                }//end foreach
+
+                if (ret.Count > 0)
+                { break; }
+
+            }//end foreach
 
             src.Dispose();
             return ret;

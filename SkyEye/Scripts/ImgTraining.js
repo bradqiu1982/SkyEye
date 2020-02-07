@@ -218,6 +218,7 @@
                     imgkv: JSON.stringify(kvarray)
                 }, function (output) {
                     alert('XY Update Sucessfully!');
+                    comparingogpxy();
                 });
             }
         };

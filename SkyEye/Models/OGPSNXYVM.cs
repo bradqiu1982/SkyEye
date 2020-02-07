@@ -125,7 +125,20 @@ namespace SkyEye.Models
                     localxy[m.SN].MY = m.MY;
                 }
             }
-            return localxy.Values.ToList();
+
+            var templist = localxy.Values.ToList();
+            var unmatchlist = new List<OGPSNXYVM>();
+            var matchlist = new List<OGPSNXYVM>();
+            foreach (var item in templist)
+            {
+                if (!string.IsNullOrEmpty(item.Checked))
+                { matchlist.Add(item); }
+                else
+                { unmatchlist.Add(item); }
+            }
+            unmatchlist.AddRange(matchlist);
+
+            return unmatchlist;
         }
 
         public OGPSNXYVM()
@@ -149,7 +162,9 @@ namespace SkyEye.Models
         public string Checked {
             get {
                 if (X.ToUpper().Contains(MX) && Y.ToUpper().Contains(MY) 
-                    && !string.IsNullOrEmpty(MX) && !string.IsNullOrEmpty(MY))
+                    && !string.IsNullOrEmpty(MX) && !string.IsNullOrEmpty(MY)
+                    && X.ToUpper().Substring(0,1).Contains("X")
+                    && Y.ToUpper().Substring(0, 1).Contains("Y"))
                 { return "CHECKED"; }
                 else
                 { return ""; }
