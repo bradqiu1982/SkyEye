@@ -279,7 +279,7 @@
                 "aaSorting": [],
                 "order": [],
                 dom: 'lBfrtip',
-                buttons: ['updatexy']
+                buttons: ['updatexy', 'excelHtml5']
             });
         }
 

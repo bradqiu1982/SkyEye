@@ -484,7 +484,7 @@ namespace SkyEye.Models
                     //{
                     //    Cv2.WaitKey();
                     //}
-                    if ((crect.X < xlow || crect.X > xhigh) && crect.Y >= 3)
+                    if ((crect.X < xlow || crect.X > xhigh) && crect.Y >= 4)
                     {
                         wavglist.Add(crect.Width);
                         cwlist.Add(crect.X);

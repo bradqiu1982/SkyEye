@@ -11,7 +11,7 @@ namespace SkyEye.Models
         {
             var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
                         inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
-                        where f.SN like '<wafernum>%' order by SN,ImgOrder asc";
+                        where WaferNum like '<wafernum>%' order by SN,ImgOrder asc";
             sql = sql.Replace("<wafernum>", wafernum);
 
             var dict = new Dictionary<string, OGPSNXYVM>();
