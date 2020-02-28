@@ -32,7 +32,7 @@ namespace SkyEye.Models
                 var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
                 if (xyrectlist.Count > 0)
                 {
-                    var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 65);
+                    var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 66);
                     if (charmatlist.Count > 0)
                     {
                         //var caprev = "OGP-rect5x1";
@@ -359,6 +359,92 @@ namespace SkyEye.Models
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferNum", wafernum);
             DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
+        public static List<object> GetSNFileData(string wafer)
+        {
+            var ret = new List<object>();
+
+            var sql = "select distinct SN,Appv_3 from [WAT].[dbo].[OGPFatherImg] where WaferNum = @wafer order by SN";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@wafer", wafer);
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql, dict);
+            foreach (var line in dbret)
+            {
+                var sn = UT.O2S(line[0]);
+                var file = UT.O2S(line[1]);
+                ret.Add(new
+                {
+                    sn = sn,
+                    file = file
+                });
+            }
+
+            return ret;
+        }
+
+        private static void UpdateSN_(string die, string sn, string wafer)
+        {
+            var sql = "update [WAT].[dbo].[OGPFatherImg] set SN = @SN where WaferNum = '" + wafer + "' and SN = @die";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@SN", sn);
+            dict.Add("@die", die);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
+        public static void Update1x4SN(List<string> snlist, string wafer)
+        {
+            //snlist.Add("191812-30E0601");
+
+            var snidx = 0;
+
+            for (var idx = 0; idx < 160; idx++)
+            {
+                var midx = idx % 8 + 1;
+                var sn = snlist[snidx] + ":::" + midx;
+                var die = "Die-" + (idx + 1);
+
+                UpdateSN_(die, sn, wafer);
+
+                if (midx == 8)
+                { snidx++; }
+            }
+        }
+
+        public static void Update1x12SN(List<string> snlist, string wafer)
+        {
+            //snlist.Add("192406-50R1052");
+            var snidx = 0;
+
+            for (var idx = 0; idx < 104; idx++)
+            {
+                var midx = idx % 2 + 1;
+                var sn = snlist[snidx] + ":::" + midx;
+                var die = "Die-" + (idx + 1);
+
+                UpdateSN_(die, sn, wafer);
+
+                if (midx == 2)
+                { snidx++; }
+            }
+        }
+
+        public static void Update1x1SN(List<string> snlist, string wafer,int totaldies = 480)
+        {
+            //snlist.Add("61940-277-040E0817");
+
+            var snidx = 0;
+            for (var idx = 0; idx < totaldies; idx++)
+            {
+                var midx = idx % 32 + 1;
+                var sn = snlist[snidx] + ":::" + midx;
+                var die = "Die-" + (idx + 1);
+
+                UpdateSN_(die, sn, wafer);
+
+                if (midx == 32)
+                { snidx++; }
+            }
         }
 
         public OGPFatherImg()

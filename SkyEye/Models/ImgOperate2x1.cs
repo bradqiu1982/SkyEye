@@ -208,7 +208,11 @@ namespace SkyEye.Models
 
             Mat src = Cv2.ImRead(imgpath, ImreadModes.Color);
             var xymat = src.SubMat(xyrect);
-            var srcmidy = src.Height / 2;
+
+            var availableimgpt = GetDetectPoint(src);
+            //var srcmidy = src.Height / 2;
+            var srcmidy = (availableimgpt[1].Max() + availableimgpt[1].Min()) / 2;
+
             if (xyrect.Y < srcmidy)
             {
                 var center = new Point2f(xymat.Width / 2, xymat.Height / 2);

@@ -825,6 +825,7 @@
     <Content Include="Scripts\respond.js" />
     <Content Include="Scripts\respond.min.js" />
     <Content Include="Scripts\WATLogic.js" />
+    <Content Include="Scripts\XYSN.js" />
     <Content Include="Scripts\_references.js" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
@@ -849,6 +850,7 @@
     <Content Include="Views\Main\LoadOneImg.cshtml" />
     <Content Include="Views\OGPXY\TrainingNewImg.cshtml" />
     <Content Include="Views\OGPXY\OGPXYCompare.cshtml" />
+    <Content Include="Views\Main\XYSN.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
