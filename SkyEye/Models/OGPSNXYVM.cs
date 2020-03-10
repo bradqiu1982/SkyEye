@@ -38,6 +38,7 @@ namespace SkyEye.Models
                     var tempvm = new OGPSNXYVM();
                     tempvm.MainImgKey = UT.O2S(line[4]);
                     tempvm.CaptureImg = UT.O2S(line[5]);
+                    tempvm.SN = sn;
 
                     if (cat.Contains("X"))
                     { tempvm.X += imgval; }

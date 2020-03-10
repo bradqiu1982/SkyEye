@@ -32,7 +32,7 @@ namespace SkyEye.Models
                 var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
                 if (xyrectlist.Count > 0)
                 {
-                    var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 66);
+                    var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
                     if (charmatlist.Count > 0)
                     {
                         //var caprev = "OGP-rect5x1";
@@ -40,6 +40,12 @@ namespace SkyEye.Models
                         {
                             return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
                         }
+                    }
+                    else
+                    {
+                        charmatlist = ImgOperate5x1.CutBadCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
+                        if (charmatlist.Count == 9)
+                        { return SolveUnrecognizeImg(imgpath, wafer, charmatlist, caprev, ctrl); }
                     }
                 }
             }
@@ -148,6 +154,81 @@ namespace SkyEye.Models
             return ret;
         }
 
+
+        private static string SolveUnrecognizeImg(string imgpath, string wafer, List<Mat> charmatlist, string caprev , Controller ctrl)
+        {
+            var ret = "";
+
+            Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+
+            var fimg = new OGPFatherImg();
+            fimg.WaferNum = wafer;
+            fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
+            fimg.FileName = fimg.SN;
+
+            fimg.MainImgKey = GetUniqKey();
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+
+            fimg.CaptureImg = Convert.ToBase64String(charmatlist[0].ToBytes());
+            fimg.CaptureRev = caprev;
+            fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            ret = fimg.MainImgKey;
+
+            var xstr = "";
+            var ystr = "";
+            var idx = 0;
+            foreach (var sm in charmatlist)
+            {
+                if (idx == 0)
+                { idx++; continue; }
+
+                var tcm = new Mat();
+                sm.ConvertTo(tcm, MatType.CV_32FC1);
+                var tcmresize = new Mat();
+                Cv2.Resize(tcm, tcmresize, new Size(50, 50), 0, 0, InterpolationFlags.Linear);
+
+                var sonimg = new SonImg();
+                sonimg.MainImgKey = fimg.MainImgKey;
+                sonimg.ChildImgKey = GetUniqKey();
+                sonimg.ChildImg = Convert.ToBase64String(tcmresize.ToBytes());
+                sonimg.ImgOrder = idx;
+                sonimg.UpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                var stcm = tcmresize.Reshape(1, 1);
+                var resultmat = new Mat();
+                //var imgval = kmode.FindNearest(stcm, 1, resultmat);
+                //if (imgval > 0)
+                //{ sonimg.ImgVal = (int)imgval; }
+
+                if (idx < 5)
+                {
+                    sonimg.ChildCat = "X";
+                    sonimg.ImgVal = 88;
+                    if (sonimg.ImgVal > 0)
+                    { xstr += Convert.ToString((char)sonimg.ImgVal); }
+                }
+                else
+                {
+                    sonimg.ChildCat = "Y";
+                    sonimg.ImgVal = 89;
+                    if (sonimg.ImgVal > 0)
+                    { ystr += Convert.ToString((char)sonimg.ImgVal); }
+                }
+                sonimg.StoreData();
+                idx++;
+            }
+
+            //var xykey = UT.O2S(UT.O2I(xstr.Replace("X", ""))) + ":::" + UT.O2S(UT.O2I(ystr.Replace("Y", "")));
+            //if (probexymap.ContainsKey(xykey))
+            //{ fimg.ProbeChecked = "CHECKED"; }
+
+            fimg.StoreUnrecognizeData();
+
+            return ret;
+        }
+
+
         private static string WriteRawImg(Mat rawimg, string mk, Controller ctrl)
         {
             try
@@ -177,6 +258,23 @@ namespace SkyEye.Models
         {
             var sql = @"insert into WAT.dbo.OGPFatherImg(WaferNum,SN,MainImgKey,RAWImgURL,CaptureImg,CaptureRev,MUpdateTime,Appv_1,Appv_3) 
                     values(@WaferNum,@SN,@MainImgKey,@RAWImgURL,@CaptureImg,@CaptureRev,@MUpdateTime,@ProbeChecked,@FileName)";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@WaferNum", WaferNum);
+            dict.Add("@SN", SN);
+            dict.Add("@MainImgKey", MainImgKey);
+            dict.Add("@RAWImgURL", RAWImgURL);
+            dict.Add("@CaptureImg", CaptureImg);
+            dict.Add("@CaptureRev", CaptureRev);
+            dict.Add("@MUpdateTime", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            dict.Add("@ProbeChecked", ProbeChecked);
+            dict.Add("@FileName", FileName);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
+        }
+
+        public void StoreUnrecognizeData()
+        {
+            var sql = @"insert into WAT.dbo.OGPFatherImg(WaferNum,SN,MainImgKey,RAWImgURL,CaptureImg,CaptureRev,MUpdateTime,Appv_1,Appv_2,Appv_3) 
+                    values(@WaferNum,@SN,@MainImgKey,@RAWImgURL,@CaptureImg,@CaptureRev,@MUpdateTime,@ProbeChecked,'U',@FileName)";
             var dict = new Dictionary<string, string>();
             dict.Add("@WaferNum", WaferNum);
             dict.Add("@SN", SN);
@@ -385,7 +483,7 @@ namespace SkyEye.Models
 
         private static void UpdateSN_(string die, string sn, string wafer)
         {
-            var sql = "update [WAT].[dbo].[OGPFatherImg] set SN = @SN where WaferNum = '" + wafer + "' and SN = @die";
+            var sql = "update [WAT].[dbo].[OGPFatherImg] set SN = @SN where WaferNum = '" + wafer + "' and Appv_3 = @die";
             var dict = new Dictionary<string, string>();
             dict.Add("@SN", sn);
             dict.Add("@die", die);
