@@ -354,12 +354,165 @@
         });
     }
 
+    var ogpprofreviewfun = function () {
+        var imgtable = null;
+
+        //$.fn.dataTable.ext.buttons.trainning = {
+        //    text: 'Trainning',
+        //    action: function (e, dt, node, config) {
+        //        var kvarray = new Array();
+        //        $('.valclass').each(function (i, val) {
+        //            var vkey = $(this).attr('vkey');
+        //            var vval = $(this).val();
+        //            if (vval != '') {
+        //                kvarray.push(vkey + ":::" + vval);
+        //            }
+        //        });
+        //        $.post('/OGPXY/UpdateTrainingData', {
+        //            imgkv: JSON.stringify(kvarray)
+        //        }, function (output) {
+        //            alert('Image Training Sucessfully!');
+        //        });
+        //    }
+        //};
+
+        function solveimgdata(output, traintype) {
+            if (imgtable) {
+                imgtable.destroy();
+                imgtable = null;
+            }
+
+            $("#imghead").empty();
+            $("#imgcontent").empty();
+
+            if (traintype == 'OPTTRAINING') {
+                $("#imghead").append(
+                    '<tr>' +
+                    '<th>Capture Img</th>' +
+                    '<th>Child Index</th>' +
+                    '<th>Raw Img</th>' +
+                    '<th>Child Img</th>' +
+                    '<th>Reference Value</th>' +
+                    //'<th>Training Value</th>' +
+                    '</tr>'
+                );
+                $.each(output.imglist, function (i, val) {
+                    var capimg = '<img src="data:image/png;base64,' + val.capimg + '" />';
+                    var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
+                    var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
+                    //var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
+                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="" />';
+                    var checkcla = '';
+                    if (val.pchecked.indexOf('CHECKED') != -1)
+                    { checkcla = 'GREENTR'; }
+
+                    $("#imgcontent").append(
+                        '<tr class="' + checkcla + '">' +
+                        '<td>' + capimg + '</td>' +
+                        '<td>' + val.chidx + '</td>' +
+                        '<td>' + rawimg + '</td>' +
+                        '<td>' + chimg + '</td>' +
+                        '<td>' + val.cimgval + '</td>' +
+                        //'<td>' + imgval + '</td>' +
+                        '</tr>'
+                    );
+                });
+            }
+            else {
+                $("#imghead").append(
+                        '<tr>' +
+                        '<th>Capture Img</th>' +
+                        '<th>Child Index</th>' +
+                        '<th>XCoord</th>' +
+                        '<th>YCoord</th>' +
+                        '<th>Raw Img</th>' +
+                        '<th>Child Img</th>' +
+                        '<th>Value</th>' +
+                        '</tr>'
+                    );
+                $.each(output.imglist, function (i, val) {
+                    var capimg = '<img src="data:image/png;base64,' + val.capimg + '" />';
+                    var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
+                    var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
+                    var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
+                    var checkcla = '';
+                    if (val.pchecked.indexOf('CHECKED') != -1)
+                    { checkcla = 'GREENTR'; }
+
+                    $("#imgcontent").append(
+                        '<tr class="' + checkcla + '">' +
+                        '<td>' + capimg + '</td>' +
+                        '<td>' + val.chidx + '</td>' +
+                        '<td>' + val.xcoord + '</td>' +
+                        '<td>' + val.ycoord + '</td>' +
+                        '<td>' + rawimg + '</td>' +
+                        '<td>' + chimg + '</td>' +
+                        '<td>' + imgval + '</td>' +
+                        '</tr>'
+                    );
+                });
+            }
+
+            imgtable = $('#imgtable').DataTable({
+                'iDisplayLength': -1,
+                'aLengthMenu': [[-1],
+                ["All"]],
+                "columnDefs": [
+                    { "className": "dt-center", "targets": "_all" }
+                ],
+                "aaSorting": [],
+                "order": [],
+                dom: 'lBfrtip',
+                buttons: ['excelHtml5']
+            });
+        }
+
+        function loadexisttrainingimgs(traintype) {
+            var wafernum = $('#wafernum').val().trim();
+            if (wafernum == '')
+            { alert('Please input the wafer number!'); return false; }
+
+            if (wafernum.indexOf('E') == -1
+                && wafernum.indexOf('R') == -1
+                && wafernum.indexOf('T') == -1)
+            { alert('wafer number should contains E or R or T!'); return false; }
+
+            var options = {
+                loadingTips: "loading data......",
+                backgroundColor: "#aaa",
+                borderColor: "#fff",
+                opacity: 0.8,
+                borderColor: "#fff",
+                TipsColor: "#000",
+            }
+            $.bootstrapLoading.start(options);
+
+            $.post('/OGPXY/ExistImgTrain', {
+                wafer: wafernum
+            }, function (output) {
+                $.bootstrapLoading.end();
+                solveimgdata(output, traintype)
+            });
+        }
+
+        $('body').on('click', '#btn-option', function () {
+            var wafernum = $('#wafernum').val().trim();
+            if (wafernum != '') {
+                loadexisttrainingimgs('OPTTRAINING');
+            }
+        });
+    }
+
     return {
         OGPIMGINIT: function () {
             ogpimgtraining();
         },
         OGPXYCMP: function () {
             ogpxycompare();
+        },
+        OGPPROFREVIEW: function ()
+        {
+            ogpprofreviewfun();
         }
     }
 }();

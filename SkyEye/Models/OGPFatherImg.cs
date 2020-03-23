@@ -21,9 +21,13 @@ namespace SkyEye.Models
             if (xyrectlist.Count > 0)
             { return "OGP-rect2x1"; }
 
+            var circle2168 = ImgOperateCircle2168.Detect2168Revision(imgpath, 149, 175, 45.5, 53, 1.85, 2.7, 3.56);
+            if (circle2168)
+            { return "OGP-circle2168"; }
+
             return string.Empty;
         }
-
+        
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
             , Dictionary<string, bool> probexymap,string caprev, Controller ctrl)
         {
@@ -65,6 +69,18 @@ namespace SkyEye.Models
                     }
                 }
             }
+            else if (caprev.Contains("OGP-circle2168"))
+            {
+                var charmatlist = ImgOperateCircle2168.CutCharRect(imgpath, 38, 64, 50, 100, 1.85, 2.7, 3.56,40,60);
+                if (charmatlist.Count > 0)
+                {
+                    //var caprev = "OGP-rect2x1";
+                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                    {
+                        return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                    }
+                }
+            }
 
             Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             var fimg = new OGPFatherImg();
@@ -73,7 +89,7 @@ namespace SkyEye.Models
             fimg.MainImgKey = GetUniqKey();
             fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
             fimg.CaptureImg = "";
-            fimg.CaptureRev = "";
+            fimg.CaptureRev = caprev;
             fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
             fimg.StoreFailData();
 
@@ -106,6 +122,8 @@ namespace SkyEye.Models
             var xstr = "";
             var ystr = "";
             var idx = 0;
+            var midx = (charmatlist.Count - 1) / 2 + 1;
+
             foreach (var sm in charmatlist)
             {
                 if (idx == 0)
@@ -129,7 +147,7 @@ namespace SkyEye.Models
                 if (imgval > 0)
                 { sonimg.ImgVal = (int)imgval; }
 
-                if (idx < 5)
+                if (idx < midx)
                 {
                     sonimg.ChildCat = "X";
                     if (sonimg.ImgVal > 0)

@@ -44,6 +44,8 @@ namespace SkyEye.Models
             { return (List<AITrainingData>)obj; }
 
             var traindatas = AITrainingData.GetTrainingData(caprev);
+            if (traindatas.Count == 0)
+            { traindatas = AITrainingData.GetTrainingData("OGP-rect5x1"); }
 
             if (traindatas.Count > 0)
             { ctrl.HttpContext.Cache.Insert(caprev + "_AIKEY", traindatas, null, DateTime.Now.AddHours(4), Cache.NoSlidingExpiration); }

@@ -14,6 +14,11 @@ namespace SkyEye.Controllers
             return View();
         }
 
+        public ActionResult OGPXYProfessionReview()
+        {
+            return View();
+        }
+
         //public JsonResult GetCaptureRevList()
         //{
         //    var caprevlist = OGPFatherImg.GetCaptureRevList();

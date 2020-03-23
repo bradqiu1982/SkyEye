@@ -401,7 +401,7 @@ namespace SkyEye.Models
                         passiblexlist[3] = passiblexlist[2] + avgw + 8;
                         leftready = true;
                     }
-                    else if (x > (3 * step + 8) && x < (4 * step+2) && !leftready)
+                    else if (x > (3 * step + 8) && x < (4 * step+20) && !leftready)
                     {
                         passiblexlist[3] = x;
                         passiblexlist[2] = passiblexlist[3] - avgw - 5;
@@ -545,7 +545,7 @@ namespace SkyEye.Models
                     //{
                     //    Cv2.WaitKey();
                     //}
-                    if ((crect.X < xlow || crect.X > xhigh) && crect.Y >= 4)
+                    if ((crect.X < xlow || crect.X > xhigh) && crect.X > 5 && crect.Y >= 4)
                     {
                         wavglist.Add(crect.Width);
                         cwlist.Add(crect.X);
@@ -579,8 +579,8 @@ namespace SkyEye.Models
 
             if (retlist.Count == 8)
             {
-                retlist.Add((int)y0list.Min());
-                retlist.Add((int)y1list.Max());
+                retlist.Add((int)y0list.Average());
+                retlist.Add((int)y1list.Max()+2);
             }
             return retlist;
         }
@@ -653,6 +653,8 @@ namespace SkyEye.Models
 
                         var eheight0 = possxlist[8];
                         var eheight1 = possxlist[8] + possxlist[9];
+                        if (eheight1 > edged.Height)
+                        { eheight1 = edged.Height; }
 
                         cmatlist.Add(xyenhance);
 
