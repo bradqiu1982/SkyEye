@@ -13,7 +13,11 @@ namespace SkyEye.Models
 
         public static string GetPictureRev(string imgpath)
         {
-            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
+            var xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 30, 4.5, 6.92, 4500);
+            if (xyrectlist.Count > 0)
+            { return "OGP-small5x1"; }
+
+            xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
             if (xyrectlist.Count > 0)
             { return "OGP-rect5x1"; }
 
@@ -31,7 +35,18 @@ namespace SkyEye.Models
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
             , Dictionary<string, bool> probexymap,string caprev, Controller ctrl)
         {
-            if (caprev.Contains("OGP-rect5x1"))
+            if (caprev.Contains("OGP-small5x1"))
+            {
+                var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 30, 4.5, 6.92, 4500);
+                if (charmatlist.Count > 0)
+                {
+                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                    {
+                        return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                    }
+                }
+            }
+            else if (caprev.Contains("OGP-rect5x1"))
             {
                 var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
                 if (xyrectlist.Count > 0)
@@ -39,7 +54,6 @@ namespace SkyEye.Models
                     var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
                     if (charmatlist.Count > 0)
                     {
-                        //var caprev = "OGP-rect5x1";
                         using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
                         {
                             return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
@@ -61,7 +75,6 @@ namespace SkyEye.Models
                     var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0], 40, 56);
                     if (charmatlist.Count > 0)
                     {
-                        //var caprev = "OGP-rect2x1";
                         using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
                         {
                             return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
@@ -74,7 +87,6 @@ namespace SkyEye.Models
                 var charmatlist = ImgOperateCircle2168.CutCharRect(imgpath, 38, 64, 50, 100, 1.85, 2.7, 3.56,40,60);
                 if (charmatlist.Count > 0)
                 {
-                    //var caprev = "OGP-rect2x1";
                     using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
                     {
                         return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);

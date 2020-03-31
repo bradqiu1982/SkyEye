@@ -781,5 +781,290 @@ namespace SkyEye.Models
         }
 
 
+        public static List<Rect> Get5x1Rect(Mat blurred, Mat edged, Mat xyenhance4)
+        {
+            var resizeenhance = new Mat();
+            Cv2.DetailEnhance(xyenhance4, resizeenhance);
+            var xlist = GetCoordWidthPT(resizeenhance);
+            var cbond = GetCoordBond(blurred, edged);
+
+            var xmid = (xlist.Max() + xlist.Min()) / 2;
+            var xcxlist = new List<double>();
+            var ycxlist = new List<double>();
+            foreach (var x in xlist)
+            {
+                if (x < xmid)
+                { xcxlist.Add(x); }
+                else
+                { ycxlist.Add(x); }
+            }
+
+            var xcmax = xcxlist.Max() + 3;
+            var ycmin = ycxlist.Min() - 3;
+
+            var ret = new List<Rect>();
+
+            if (cbond.Count > 0)
+            {
+
+                var ylist = new List<int>();
+                var hlist = new List<int>();
+                foreach (var item in cbond)
+                {
+                    ylist.Add(item.Y);
+                    hlist.Add(item.Height);
+                }
+
+                var y0 = (int)ylist.Average() - 2;
+                var y1 = (int)hlist.Max();
+
+                if ((int)xcmax - 202 > 0) { ret.Add(new Rect((int)xcmax - 202, y0, 45, y1)); }
+                else { ret.Add(new Rect(0, y0, 45, y1)); }
+
+                ret.Add(new Rect((int)xcmax - 152, y0, 48, y1));
+                ret.Add(new Rect((int)xcmax - 100, y0, 48, y1));
+                ret.Add(new Rect((int)xcmax - 48, y0, 48, y1));
+
+                ret.Add(new Rect((int)ycmin, y0, 47, y1));
+                ret.Add(new Rect((int)ycmin + 47, y0, 48, y1));
+                ret.Add(new Rect((int)ycmin + 100, y0, 45, y1));
+
+                if (((int)ycmin + 200) >= (edged.Cols - 2))
+                {
+                    ret.Add(new Rect((int)ycmin + 154, y0, edged.Cols - (int)ycmin - 154, y1));
+                }
+                else
+                { ret.Add(new Rect((int)ycmin + 154, y0, 48, y1)); }
+
+                cbond.Sort(delegate (Rect o1, Rect o2)
+                { return o1.X.CompareTo(o2.X); });
+
+                var filteredbond = new List<Rect>();
+                foreach (var item in cbond)
+                {
+                    if (filteredbond.Count == 0)
+                    {
+                        filteredbond.Add(item);
+                    }
+                    else
+                    {
+                        var bcnt = filteredbond.Count;
+                        if (item.X - filteredbond[bcnt - 1].X > 28)
+                        {
+                            filteredbond.Add(item);
+                        }
+                    }
+                }
+
+                var changedict = new Dictionary<int, bool>();
+
+                for (var idx = 0; idx < 7; idx++)
+                {
+                    foreach (var item in filteredbond)
+                    {
+                        if ((item.X > ret[idx].X - 20) && (item.X < ret[idx].X + 20))
+                        {
+                            var currentrect = new Rect(item.X - 2, ret[idx].Y, item.Width + 4, ret[idx].Height);
+                            //if (idx == 0)
+                            //{ currentrect = new Rect(item.X - 4, ret[idx].Y, item.Width + 4, ret[idx].Height); }
+                            //if (idx == 7)
+                            //{ currentrect = new Rect(item.X, ret[idx].Y, item.Width + 4, ret[idx].Height); }
+                            ret[idx] = currentrect;
+
+                            if (!changedict.ContainsKey(idx))
+                            {
+                                ret[idx] = currentrect;
+                                changedict.Add(idx, true);
+                            }
+
+
+                            if ((idx >= 0 && idx <= 2) || (idx >= 4 && idx <= 6))
+                            {
+                                var nextrect = new Rect(item.X + item.Width + 2, ret[idx].Y, item.Width + 4, ret[idx].Height);
+                                if (idx + 1 == 7)
+                                { nextrect = new Rect(item.X + item.Width + 4, ret[idx].Y, item.Width + 4, ret[idx].Height); }
+
+                                if (!changedict.ContainsKey(idx + 1))
+                                {
+                                    ret[idx + 1] = nextrect;
+                                    changedict.Add(idx + 1, true);
+                                }
+                            }
+
+                            if ((idx >= 1 && idx <= 3) || (idx >= 5 && idx <= 7))
+                            {
+                                var nextrect = new Rect((item.X - item.Width - 2) > 0 ? (item.X - item.Width - 2) : 0, ret[idx].Y, item.Width + 4, ret[idx].Height);
+                                if (idx - 1 == 0)
+                                { new Rect((item.X - item.Width - 4) > 0 ? (item.X - item.Width - 2) : 0, ret[idx].Y, item.Width + 4, ret[idx].Height); }
+
+                                if (!changedict.ContainsKey(idx - 1))
+                                {
+                                    ret[idx - 1] = nextrect;
+                                    changedict.Add(idx - 1, true);
+                                }
+                            }
+                            break;
+                        }//end if
+                    }//end foreach
+                }//end for
+
+            }
+            else
+            {
+                if ((int)xcmax - 200 > 0) { ret.Add(new Rect((int)xcmax - 200, 34, 44, 65)); }
+                else { ret.Add(new Rect(0, 34, 44, 65)); }
+
+                ret.Add(new Rect((int)xcmax - 152, 34, 48, 65));
+                ret.Add(new Rect((int)xcmax - 100, 34, 48, 65));
+                ret.Add(new Rect((int)xcmax - 48, 34, 48, 65));
+
+                ret.Add(new Rect((int)ycmin, 34, 47, 65));
+                ret.Add(new Rect((int)ycmin + 47, 34, 48, 65));
+                ret.Add(new Rect((int)ycmin + 100, 34, 45, 65));
+
+                if (((int)ycmin + 200) >= (edged.Cols - 2))
+                {
+                    ret.Add(new Rect((int)ycmin + 152, 34, edged.Cols - (int)ycmin - 152, 65));
+                }
+                else
+                { ret.Add(new Rect((int)ycmin + 152, 34, 48, 65)); }
+
+            }
+
+            return ret;
+        }
+
+        public static List<Rect> GetCoordBond(Mat blurred, Mat edged)
+        {
+            var rectlist = new List<Rect>();
+
+            var xlow = (int)(edged.Width * 0.333 - 20);
+            var xhigh = (int)(edged.Width * 0.666 - 10);
+
+            var edged23 = new Mat();
+            Cv2.AdaptiveThreshold(blurred, edged23, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 23, 20);
+            var struc = Cv2.GetStructuringElement(MorphShapes.Cross, new Size(3, 3));
+            var erodemat = new Mat();
+            Cv2.Erode(edged, erodemat, struc);
+
+            var matlist = new List<Mat>();
+            matlist.Add(edged);
+            matlist.Add(edged23);
+            matlist.Add(erodemat);
+            foreach (var m in matlist)
+            {
+                var outmat = new Mat();
+                var ids = OutputArray.Create(outmat);
+                var cons = new Mat[] { };
+                Cv2.FindContours(m, out cons, ids, RetrievalModes.List, ContourApproximationModes.ApproxSimple);
+
+                var idx1 = 0;
+                foreach (var item in cons)
+                {
+                    idx1++;
+
+                    var crect = Cv2.BoundingRect(item);
+
+                    if (crect.Width >= 40 && crect.Width <= 60 && crect.Height > 50 && crect.Height < 90)
+                    {
+                        if ((crect.X < xlow || crect.X > xhigh) && crect.X > 5 && crect.Y >= 6)
+                        {
+                            rectlist.Add(crect);
+                        }
+
+                    }//end if
+                }
+            }//end foreach
+
+            return rectlist;
+        }
+
+        private static List<double> GetCoordWidthPT(Mat mat)
+        {
+            var ret = new List<List<double>>();
+            var kaze = KAZE.Create();
+            var kazeDescriptors = new Mat();
+            KeyPoint[] kazeKeyPoints = null;
+            kaze.DetectAndCompute(mat, null, out kazeKeyPoints, kazeDescriptors);
+
+            var hl = 0.25 * mat.Height;
+            var hh = 0.75 * mat.Height;
+            var wl = 10;
+            var wh = mat.Width - 10;
+            var hptlist = new List<KeyPoint>();
+            foreach (var pt in kazeKeyPoints)
+            {
+                if (pt.Pt.Y >= hl && pt.Pt.Y <= hh
+                    && pt.Pt.X >= wl && pt.Pt.X <= wh)
+                {
+                    hptlist.Add(pt);
+                }
+            }
+
+            //var wptlist = hptlist;
+
+            var wptlist = new List<KeyPoint>();
+            for (var idx = 15; idx < mat.Width;)
+            {
+                var ylist = new List<double>();
+
+                var wlist = new List<KeyPoint>();
+                foreach (var pt in hptlist)
+                {
+                    if (pt.Pt.X >= (idx - 15) && pt.Pt.X < idx)
+                    {
+                        wlist.Add(pt);
+                        ylist.Add(pt.Pt.Y);
+                    }
+                }
+
+                if (wlist.Count > 3 && (ylist.Max() - ylist.Min()) > 0.25 * mat.Height)
+                { wptlist.AddRange(wlist); }
+                idx = idx + 15;
+            }
+
+            var xlist = new List<double>();
+            if (wptlist.Count() == 0)
+            {
+                return xlist;
+            }
+
+            foreach (var pt in wptlist)
+            {
+                xlist.Add(pt.Pt.X);
+            }
+
+            var xlength = xlist.Max() - xlist.Min();
+            var coordlength = 0.335 * xlength;
+            var xmin = xlist.Min() + coordlength;
+            var xmax = xlist.Max() - coordlength;
+
+            var xyptlist = new List<KeyPoint>();
+            foreach (var pt in wptlist)
+            {
+                if (pt.Pt.X <= xmin || pt.Pt.X >= xmax)
+                {
+                    xyptlist.Add(pt);
+                }
+            }
+
+            //var dstKaze = new Mat();
+            //Cv2.DrawKeypoints(mat, xyptlist.ToArray(), dstKaze);
+
+            //using (new Window("dstKaze", dstKaze))
+            //{
+            //    Cv2.WaitKey();
+            //}
+
+            xlist.Clear();
+            foreach (var pt in xyptlist)
+            {
+                xlist.Add(pt.Pt.X);
+            }
+
+            return xlist;
+        }
+
+
     }
 }

@@ -273,6 +273,7 @@
     <Compile Include="Models\ImgOperate2x1.cs" />
     <Compile Include="Models\ImgOperate5x1.cs" />
     <Compile Include="Models\ImgOperateCircle2168.cs" />
+    <Compile Include="Models\ImgOperateSmall5x1.cs" />
     <Compile Include="Models\ImgPreOperate.cs" />
     <Compile Include="Models\KMode.cs" />
     <Compile Include="Models\OGPFatherImg.cs" />
