@@ -13,7 +13,7 @@ namespace SkyEye.Models
 
         public static string GetPictureRev(string imgpath)
         {
-            var xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 30, 4.5, 6.92, 4500);
+            var xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000,50);
             if (xyrectlist.Count > 0)
             { return "OGP-small5x1"; }
 
@@ -37,7 +37,7 @@ namespace SkyEye.Models
         {
             if (caprev.Contains("OGP-small5x1"))
             {
-                var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 30, 4.5, 6.92, 4500);
+                var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 34, 4.5, 8, 5000,50);
                 if (charmatlist.Count > 0)
                 {
                     using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
@@ -155,9 +155,21 @@ namespace SkyEye.Models
 
                 var stcm = tcmresize.Reshape(1, 1);
                 var resultmat = new Mat();
-                var imgval = kmode.FindNearest(stcm, 1, resultmat);
-                if (imgval > 0)
-                { sonimg.ImgVal = (int)imgval; }
+
+                if (idx == 1)
+                {
+                    sonimg.ImgVal = (int)Convert.ToChar("X");
+                }
+                else if (idx == 5)
+                {
+                    sonimg.ImgVal = (int)Convert.ToChar("Y");
+                }
+                else
+                {
+                    var imgval = kmode.FindNearest(stcm, 1, resultmat);
+                    if (imgval > 0)
+                    { sonimg.ImgVal = (int)imgval; }
+                }
 
                 if (idx < midx)
                 {

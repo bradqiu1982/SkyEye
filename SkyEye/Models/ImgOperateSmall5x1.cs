@@ -9,8 +9,8 @@ namespace SkyEye.Models
     public class ImgOperateSmall5x1
     {
 
-        //18,30,4.5,6.92,4500
-        public static List<Rect> FindSmall5x1Rect(string imgpath, double whlow, double whhigh, double ratelow, double ratehigh, double area)
+        //18,34,4.5,6.92,5000,50
+        public static List<Rect> FindSmall5x1Rect(string imgpath, double whlow, double whhigh, double ratelow, double ratehigh, double area, double locationoffset)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             var detectsize = GetDetectPoint(srcorgimg);
@@ -25,11 +25,11 @@ namespace SkyEye.Models
             var blurred = new Mat();
             Cv2.GaussianBlur(srcgray, blurred, new Size(3, 3), 0);
 
-            return FindSmall5x1Rect_(blurred,srcgray,srcenhance, whlow, whhigh, ratelow, ratehigh, area);
+            return FindSmall5x1Rect_(blurred,srcgray,srcenhance, whlow, whhigh, ratelow, ratehigh, area,locationoffset);
         }
 
-        //18,30,4.5,6.92,4500
-        public static List<Mat> CutCharRect(string imgpath, double whlow, double whhigh, double ratelow, double ratehigh, double area)
+        //18,34,4.5,8,5000,50
+        public static List<Mat> CutCharRect(string imgpath, double whlow, double whhigh, double ratelow, double ratehigh, double area, double locationoffset)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             var detectsize = GetDetectPoint(srcorgimg);
@@ -44,7 +44,7 @@ namespace SkyEye.Models
             var blurred = new Mat();
             Cv2.GaussianBlur(srcgray, blurred, new Size(3, 3), 0);
 
-            var rects = FindSmall5x1Rect_(blurred,srcgray,srcenhance, whlow, whhigh, ratelow, ratehigh, area);
+            var rects = FindSmall5x1Rect_(blurred,srcgray,srcenhance, whlow, whhigh, ratelow, ratehigh, area,locationoffset);
             if (rects.Count == 0)
             { return new List<Mat>(); }
 
@@ -61,6 +61,8 @@ namespace SkyEye.Models
                 coormat = outxymat;
             }
 
+            Cv2.DetailEnhance(coormat, coormat);
+
             var coormatresize = new Mat();
             Cv2.Resize(coormat, coormatresize, new Size(coormat.Cols * 4, coormat.Rows * 4), 0, 0, InterpolationFlags.Linear);
 
@@ -73,9 +75,9 @@ namespace SkyEye.Models
             Cv2.GaussianBlur(coorgray, blurred, new Size(5, 5), 0);
 
             var edged = new Mat();
-            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 20);
+            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
 
-            var rectlist = GetSmall5x1CharRect(coorgray, blurred, edged);
+            var rectlist = GetSmall5x1CharRect(coorgray, blurred, edged, coorenhance);
             var ret = new List<Mat>();
             if (rectlist.Count == 0)
             { return ret; }
@@ -91,11 +93,11 @@ namespace SkyEye.Models
         }
 
 
-        private static List<Rect> GetSmall5x1CharRect(Mat coorgray, Mat blurred, Mat edged)
+        private static List<Rect> GetSmall5x1CharRect(Mat coorgray, Mat blurred, Mat edged,Mat coorenhance)
         {
 
             var cbond = GetCoordHighPT(blurred, edged);
-            var xlist = GetCoordWidthPT(coorgray);
+            var xlist = GetCoordWidthPT(coorenhance);
             if (xlist.Count == 0 || (xlist.Max() -xlist.Min()) < 400)
             { return new List<Rect>(); }
 
@@ -117,26 +119,9 @@ namespace SkyEye.Models
 
             if (cbond.Count > 0)
             {
-                var y0 = cbond[0].Y;
-                var y1 = cbond[0].Height;
+                var y0list = new List<int>();
+                var y1list = new List<int>();
 
-                if ((int)xcmax - 175 > 0) { ret.Add(new Rect((int)xcmax - 175, y0, 44, y1)); }
-                else { ret.Add(new Rect(0, y0, 44, y1)); }
-
-                ret.Add(new Rect((int)xcmax - 132, y0, 43, y1));
-                ret.Add(new Rect((int)xcmax - 90, y0, 44, y1));
-                ret.Add(new Rect((int)xcmax - 46, y0, 45, y1));
-
-                ret.Add(new Rect((int)ycmin, y0, 47, y1));
-                ret.Add(new Rect((int)ycmin + 45, y0, 45, y1));
-                ret.Add(new Rect((int)ycmin + 87, y0, 45, y1));
-
-                if (((int)ycmin + 133 + 46) >= (edged.Cols-1))
-                { ret.Add(new Rect((int)ycmin + 133, y0, edged.Cols - (int)ycmin - 135, y1)); }
-                else
-                { ret.Add(new Rect((int)ycmin + 133, y0, 46, y1)); }
-
-                //sort cbond
                 cbond.Sort(delegate (Rect o1, Rect o2)
                 { return o1.X.CompareTo(o2.X); });
 
@@ -146,6 +131,8 @@ namespace SkyEye.Models
                     if (filteredbond.Count == 0)
                     {
                         filteredbond.Add(item);
+                        y0list.Add(item.Y);
+                        y1list.Add(item.Height);
                     }
                     else
                     {
@@ -153,9 +140,33 @@ namespace SkyEye.Models
                         if (item.X - filteredbond[bcnt - 1].X > 28)
                         {
                             filteredbond.Add(item);
+                            y0list.Add(item.Y);
+                            y1list.Add(item.Height);
                         }
                     }
-                }//end foreach
+                }
+
+                var y0 = (int)y0list.Average();
+                var y1 = y1list.Max();
+
+                if ((int)xcmax - 179 > 0) { ret.Add(new Rect((int)xcmax - 179, y0, 44, y1)); }
+                else { ret.Add(new Rect(0, y0, 44, y1)); }
+
+                ret.Add(new Rect((int)xcmax - 130, y0, 43, y1));
+                ret.Add(new Rect((int)xcmax - 90, y0, 44, y1));
+                ret.Add(new Rect((int)xcmax - 46, y0, 45, y1));
+
+                ret.Add(new Rect((int)ycmin, y0, 45, y1));
+                ret.Add(new Rect((int)ycmin + 50, y0, 45, y1));
+                ret.Add(new Rect((int)ycmin + 90, y0, 45, y1));
+
+                if (((int)ycmin + 135 + 46) >= (edged.Cols-1))
+                { ret.Add(new Rect((int)ycmin + 135, y0, edged.Cols - (int)ycmin - 135, y1)); }
+                else
+                { ret.Add(new Rect((int)ycmin + 135, y0, 46, y1)); }
+
+
+                var changedict = new Dictionary<int, bool>();
 
                 for (var idx = 0; idx < 7; idx++)
                 {
@@ -164,18 +175,42 @@ namespace SkyEye.Models
                         if ((item.X > ret[idx].X - 15) && (item.X < ret[idx].X + 15))
                         {
                             var currentrect = new Rect(item.X, ret[idx].Y, item.Width, ret[idx].Height);
-                            ret[idx] = currentrect;
+                            if (!changedict.ContainsKey(idx))
+                            {
+                                ret[idx] = currentrect;
+                                changedict.Add(idx, true);
+                            }
+                            break;
+                        }
+                    }
+                }//end for
 
+                for (var idx = 0; idx < 7; idx++)
+                {
+                    foreach (var item in filteredbond)
+                    {
+                        if ((item.X > ret[idx].X - 15) && (item.X < ret[idx].X + 15))
+                        {
                             if ((idx >= 0 && idx <= 2) || (idx >= 4 && idx <= 6))
                             {
-                                var nextrect = new Rect(item.X + item.Width + 1, ret[idx].Y, item.Width, ret[idx].Height);
-                                ret[idx + 1] = nextrect;
+                                var nextrect = new Rect(item.X + item.Width + 1, ret[idx].Y
+                                    ,((item.X + 2*item.Width + 1) < edged.Width)?item.Width:(edged.Width - item.X - item.Width - 1), ret[idx].Height);
+
+                                if (!changedict.ContainsKey(idx+1))
+                                {
+                                    ret[idx + 1] = nextrect;
+                                    changedict.Add(idx+1, true);
+                                }
                             }
 
                             if ((idx >= 1 && idx <= 3) || (idx >= 5 && idx <= 7))
                             {
                                 var nextrect = new Rect((item.X - item.Width - 1) > 0 ? (item.X - item.Width) : 0, ret[idx].Y, item.Width + 1, ret[idx].Height);
-                                ret[idx - 1] = nextrect;
+                                if (!changedict.ContainsKey(idx - 1))
+                                {
+                                    ret[idx - 1] = nextrect;
+                                    changedict.Add(idx - 1, true);
+                                }
                             }
                             break;
                         }
@@ -184,21 +219,29 @@ namespace SkyEye.Models
             }
             else
             {
-                if ((int)xcmax - 175 > 0) { ret.Add(new Rect((int)xcmax - 175, 9, 44, 69)); }
-                else { ret.Add(new Rect(0, 9, 44, 69)); }
+                var y0 = 18;
+                var y1 = 69;
+                if (edged.Height < 88)
+                { y1 = edged.Height - y0; }
 
-                ret.Add(new Rect((int)xcmax - 130, 9, 43, 69));
-                ret.Add(new Rect((int)xcmax - 90, 9, 44, 69));
-                ret.Add(new Rect((int)xcmax - 46, 9, 45, 69));
+                if ((int)xcmax - 179 > 0) { ret.Add(new Rect((int)xcmax - 179, y0, 44, y1)); }
+                else { ret.Add(new Rect(0, y0, 44, y1)); }
 
-                ret.Add(new Rect((int)ycmin, 9, 47, 69));
-                ret.Add(new Rect((int)ycmin + 45, 9, 45, 69));
-                ret.Add(new Rect((int)ycmin + 87, 9, 45, 69));
+                ret.Add(new Rect((int)xcmax - 130, y0, 43, y1));
+                ret.Add(new Rect((int)xcmax - 90, y0, 44, y1));
+                ret.Add(new Rect((int)xcmax - 46, y0, 45, y1));
 
-                if (((int)ycmin + 133 + 46) >= (edged.Cols-1))
-                { ret.Add(new Rect((int)ycmin + 133, 9, edged.Cols - (int)ycmin - 135, 69)); }
+                ret.Add(new Rect((int)ycmin, y0, 47, y1));
+                ret.Add(new Rect((int)ycmin + 50, y0, 45, y1));
+                ret.Add(new Rect((int)ycmin + 90, y0, 45, y1));
+
+                if (((int)ycmin + 135 + 46) >= (edged.Cols - 1))
+                {
+                    ret.Add(new Rect((int)ycmin + 135, y0, edged.Cols - (int)ycmin - 135, y1));
+                }
                 else
-                { ret.Add(new Rect((int)ycmin + 133, 9, 46, 69)); }
+                { ret.Add(new Rect((int)ycmin + 135, y0, 46, y1)); }
+
             }
 
             return ret;
@@ -286,7 +329,7 @@ namespace SkyEye.Models
                     }
                 }
 
-                if (wlist.Count > 3 && (ylist.Max() - ylist.Min()) > 0.25 * mat.Height)
+                if (wlist.Count > 8 && (ylist.Max() - ylist.Min()) > 0.25 * mat.Height)
                 { wptlist.AddRange(wlist); }
                 idx = idx + 15;
             }
@@ -301,7 +344,7 @@ namespace SkyEye.Models
             }
 
             var xlength = xlist.Max() - xlist.Min();
-            var coordlength = 0.335 * xlength;
+            var coordlength = 0.336 * xlength;
             var xmin = xlist.Min() + coordlength;
             var xmax = xlist.Max() - coordlength;
 
@@ -354,8 +397,8 @@ namespace SkyEye.Models
             return false;
         }
 
-        //18,30,4.5,6.92,4500
-        private static List<Rect> FindSmall5x1Rect_(Mat blurred,Mat srcgray,Mat srcenhance,double whlow,double whhigh,double ratelow,double ratehigh,double area)
+        //18,34,4.5,6.92,5000,50
+        private static List<Rect> FindSmall5x1Rect_(Mat blurred,Mat srcgray,Mat srcenhance,double whlow,double whhigh,double ratelow,double ratehigh,double area,double locationoffset)
         {
             var cflaglist = new List<bool>();
             cflaglist.Add(false);
@@ -389,13 +432,16 @@ namespace SkyEye.Models
                     var whrate = (double)rect.Height / (double)rect.Width;
                     var a = rect.Width * rect.Height;
                     if (rect.Width >= whlow && rect.Width <= whhigh
-                        && whrate >= ratelow && whrate < ratehigh && a < area)
+                        && whrate >= ratelow && whrate < ratehigh && a < area && rect.Y > locationoffset)
                     {
                         //var xymat = srcgray.SubMat(rect);
                         //using (new Window("xymat" + idx, xymat))
                         //{
                         //    Cv2.WaitKey();
                         //}
+
+                        if ((rect.Width >= 18 && rect.Width <= 20) && ((rect.X + rect.Width + 2) <= edged.Width))
+                        { rect = new Rect(rect.X - 2, rect.Y, rect.Width + 4, rect.Height); }
 
                         if (ret.Count > 0)
                         {
@@ -412,46 +458,53 @@ namespace SkyEye.Models
 
                 if (ret.Count > 0)
                 {
-                    if (CheckVerticalCutMat(srcgray,srcenhance, ret[0]))
+                    if (CheckVerticalCutMat(srcgray, srcenhance, ret[0]))
                     {
                         return ret;
                     }
+                    else
+                    { ret.Clear(); }
                 }
 
-                foreach (var item in conslist)
-                {
-                    idx++;
+                //foreach (var item in conslist)
+                //{
+                //    idx++;
 
-                    var rect = Cv2.BoundingRect(item);
-                    var whrate = (double)rect.Width / (double)rect.Height;
-                    var a = rect.Width * rect.Height;
-                    if (rect.Height >= whlow && rect.Height <= whhigh
-                        && whrate >= ratelow && whrate < ratehigh && a < area)
-                    {
-                        //var xymat = srcgray.SubMat(rect);
-                        //using (new Window("xymat" + idx, xymat))
-                        //{
-                        //    Cv2.WaitKey();
-                        //}
+                //    var rect = Cv2.BoundingRect(item);
+                //    var whrate = (double)rect.Width / (double)rect.Height;
+                //    var a = rect.Width * rect.Height;
+                //    if (rect.Height >= whlow && rect.Height <= whhigh
+                //        && whrate >= ratelow && whrate < ratehigh && a < area && rect.X > locationoffset)
+                //    {
+                //        //var xymat = srcgray.SubMat(rect);
+                //        //using (new Window("xymat" + idx, xymat))
+                //        //{
+                //        //    Cv2.WaitKey();
+                //        //}
 
-                        if (ret.Count > 0)
-                        {
-                            if (a > ret[0].Width * ret[0].Height)
-                            {
-                                ret.Clear();
-                                ret.Add(rect);
-                            }
-                        }
-                        else
-                        { ret.Add(rect); }
-                    }
-                }
+                //        if ((rect.Height >= 18 && rect.Height <= 20) && ((rect.Y + rect.Height + 2) <= edged.Height))
+                //        { rect = new Rect(rect.X, rect.Y - 2, rect.Width, rect.Height + 4); }
 
-                if (ret.Count > 0)
-                { return ret; }
+                //        if (ret.Count > 0)
+                //        {
+                //            if (a > ret[0].Width * ret[0].Height)
+                //            {
+                //                ret.Clear();
+                //                ret.Add(rect);
+                //            }
+                //        }
+                //        else
+                //        { ret.Add(rect); }
+                //    }
+                //}
+
+                //if (ret.Count > 0)
+                //{
+                //    return ret;
+                //}
             }
 
-            return ret;
+            return new List<Rect>();
         }
 
 
@@ -463,9 +516,29 @@ namespace SkyEye.Models
             var kazeDescriptors = new Mat();
             KeyPoint[] kazeKeyPoints = null;
             kaze.DetectAndCompute(mat, null, out kazeKeyPoints, kazeDescriptors);
+
+            var wptlist = new List<KeyPoint>();
+            for (var idx = 20; idx < mat.Width;)
+            {
+                var yhlist = new List<double>();
+                var wlist = new List<KeyPoint>();
+                foreach (var pt in kazeKeyPoints)
+                {
+                    if (pt.Pt.X >= (idx - 20) && pt.Pt.X < idx)
+                    {
+                        wlist.Add(pt);
+                        yhlist.Add(pt.Pt.Y);
+                    }
+                }
+
+                if (wlist.Count > 10 && (yhlist.Max() - yhlist.Min()) > 0.3 * mat.Height)
+                { wptlist.AddRange(wlist); }
+                idx = idx + 20;
+            }
+
             var xlist = new List<double>();
             var ylist = new List<double>();
-            foreach (var pt in kazeKeyPoints)
+            foreach (var pt in wptlist)
             {
                 xlist.Add(pt.Pt.X);
                 ylist.Add(pt.Pt.Y);
