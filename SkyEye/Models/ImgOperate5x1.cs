@@ -56,8 +56,11 @@ namespace SkyEye.Models
             var ret = new List<Rect>();
             Mat src = Cv2.ImRead(file, ImreadModes.Grayscale);
 
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoising(src, denoisemat, 10, 7, 21);
+
             var blurred = new Mat();
-            Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
+            Cv2.GaussianBlur(denoisemat, blurred, new Size(5, 5), 0);
 
             var truerect = FindXYRect_( blurred, true,  heighlow,  heighhigh,  ratelow,  ratehigh,  areahigh);
             var falserect = FindXYRect_( blurred, false,  heighlow,  heighhigh,  ratelow,  ratehigh,  areahigh);
@@ -496,7 +499,9 @@ namespace SkyEye.Models
             Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
             var xyenhgray = new Mat();
-            Cv2.CvtColor(xyenhance4x, xyenhgray, ColorConversionCodes.BGR2GRAY);
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
 
 
             var blurred = new Mat();
@@ -512,6 +517,13 @@ namespace SkyEye.Models
                 cmatlist.Add(xyenhance);
                 foreach (var rect in crectlist)
                 {
+                    if (rect.X < 0 || rect.Y < 0
+                        ||((rect.X+rect.Width) > edged.Width)
+                        ||((rect.Y+rect.Height) > edged.Height))
+                    {
+                        cmatlist.Clear();
+                        return cmatlist;
+                    }
                     cmatlist.Add(edged.SubMat(rect));
                 }
             }
@@ -626,7 +638,7 @@ namespace SkyEye.Models
         {
             var resizeenhance = new Mat();
             Cv2.DetailEnhance(xyenhance4, resizeenhance);
-            var xlist = GetCoordWidthPT1(resizeenhance);
+            var xlist = GetCoordWidthPT1(resizeenhance,edged);
             if (xlist.Count == 0 || (xlist.Max() - xlist.Min()) < 400)
             { return new List<Rect>(); }
 
@@ -863,13 +875,13 @@ namespace SkyEye.Models
             return rectlist;
         }
 
-        private static List<double> GetCoordWidthPT1(Mat mat)
+        private static List<double> GetCoordWidthPT1(Mat mat,Mat edged)
         {
             var ret = new List<List<double>>();
             var kaze = KAZE.Create();
             var kazeDescriptors = new Mat();
             KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(mat, null, out kazeKeyPoints, kazeDescriptors);
+            kaze.DetectAndCompute(edged, null, out kazeKeyPoints, kazeDescriptors);
 
             var hl = 0.25 * mat.Height;
             var hh = 0.75 * mat.Height;

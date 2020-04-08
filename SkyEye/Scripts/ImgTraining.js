@@ -236,17 +236,19 @@
             $("#imghead").append(
                 '<tr>' +
                 '<th>SN</th>' +
+                '<th>RAW Img</th>' +
                 '<th>Capture Img</th>' +
                 '<th>NPI-X</th>' +
                 '<th>NEW-X</th>' +
                 '<th>NPI-Y</th>' +
                 '<th>NEW-Y</th>' +
-                '<th>ME-X</th>' +
-                '<th>ME-Y</th>' +
+                //'<th>ME-X</th>' +
+                //'<th>ME-Y</th>' +
                 '</tr>'
             );
 
             $.each(output.xylist, function (i, val) {
+                var rawimg = '<a href="' + val.RawImg + '" target="_blank">RAWImg</a>';
                 var capimg = '<img src="data:image/png;base64,' + val.CaptureImg + '" />';
                 var imgxval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::X" value="" />';
                 var imgyval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::Y" value="" />';
@@ -258,13 +260,14 @@
                 $("#imgcontent").append(
                     '<tr class="' + checkcla + '">' +
                     '<td>' + val.SN + '</td>' +
+                    '<td>' + rawimg + '</td>' +
                     '<td>' + capimg + '</td>' +
                     '<td>' + val.X + '</td>' +
                     '<td>' + imgxval + '</td>' +
                     '<td>' + val.Y + '</td>' +
                     '<td>' + imgyval + '</td>' +
-                    '<td>' + val.MX + '</td>' +
-                    '<td>' + val.MY + '</td>' +
+                    //'<td>' + val.MX + '</td>' +
+                    //'<td>' + val.MY + '</td>' +
                     '</tr>'
                 );
             });

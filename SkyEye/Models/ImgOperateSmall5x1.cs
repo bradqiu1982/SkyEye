@@ -19,13 +19,30 @@ namespace SkyEye.Models
             var srcenhance = new Mat();
             Cv2.DetailEnhance(srcrealimg, srcenhance);
 
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoisingColored(srcenhance, denoisemat, 10, 10, 7, 21);
+
             var srcgray = new Mat();
-            Cv2.CvtColor(srcenhance, srcgray, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(denoisemat, srcgray, ColorConversionCodes.BGR2GRAY);
 
             var blurred = new Mat();
             Cv2.GaussianBlur(srcgray, blurred, new Size(3, 3), 0);
 
-            return FindSmall5x1Rect_(blurred,srcgray,srcenhance, whlow, whhigh, ratelow, ratehigh, area,locationoffset);
+            var frects = FindSmall5x1Rect_(blurred,srcgray,srcenhance, whlow, whhigh, ratelow, ratehigh, area,locationoffset,false);
+            var trects = FindSmall5x1Rect_(blurred, srcgray, srcenhance, whlow, whhigh, ratelow, ratehigh, area, locationoffset, true);
+            var rects = new List<Rect>();
+            if (frects.Count > 0 && trects.Count > 0)
+            {
+                if (frects[0].Width * frects[0].Height > trects[0].Width * trects[0].Height)
+                { rects.AddRange(frects); }
+                else
+                { rects.AddRange(trects); }
+            }
+            else if (frects.Count > 0)
+            { rects.AddRange(frects); }
+            else if (trects.Count > 0)
+            { rects.AddRange(trects); }
+            return rects;
         }
 
         //18,34,4.5,8,5000,50
@@ -38,13 +55,30 @@ namespace SkyEye.Models
             var srcenhance = new Mat();
             Cv2.DetailEnhance(srcrealimg, srcenhance);
 
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoisingColored(srcenhance, denoisemat, 10, 10, 7, 21);
+
             var srcgray = new Mat();
-            Cv2.CvtColor(srcenhance, srcgray, ColorConversionCodes.BGR2GRAY);
+            Cv2.CvtColor(denoisemat, srcgray, ColorConversionCodes.BGR2GRAY);
 
             var blurred = new Mat();
             Cv2.GaussianBlur(srcgray, blurred, new Size(3, 3), 0);
 
-            var rects = FindSmall5x1Rect_(blurred,srcgray,srcenhance, whlow, whhigh, ratelow, ratehigh, area,locationoffset);
+            var frects = FindSmall5x1Rect_(blurred, srcgray, srcenhance, whlow, whhigh, ratelow, ratehigh, area, locationoffset, false);
+            var trects = FindSmall5x1Rect_(blurred, srcgray, srcenhance, whlow, whhigh, ratelow, ratehigh, area, locationoffset, true);
+            var rects = new List<Rect>();
+            if (frects.Count > 0 && trects.Count > 0)
+            {
+                if (frects[0].Width * frects[0].Height > trects[0].Width * trects[0].Height)
+                { rects.AddRange(frects); }
+                else
+                { rects.AddRange(trects); }
+            }
+            else if (frects.Count > 0)
+            { rects.AddRange(frects); }
+            else if (trects.Count > 0)
+            { rects.AddRange(trects); }
+
             if (rects.Count == 0)
             { return new List<Mat>(); }
 
@@ -70,7 +104,9 @@ namespace SkyEye.Models
             Cv2.DetailEnhance(coormatresize, coorenhance);
 
             var coorgray = new Mat();
-            Cv2.CvtColor(coorenhance, coorgray, ColorConversionCodes.BGR2GRAY);
+            var denoisemat2 = new Mat();
+            Cv2.FastNlMeansDenoisingColored(coorenhance, denoisemat2, 10, 10, 7, 21);
+            Cv2.CvtColor(denoisemat2, coorgray, ColorConversionCodes.BGR2GRAY);
 
             Cv2.GaussianBlur(coorgray, blurred, new Size(5, 5), 0);
 
@@ -86,6 +122,13 @@ namespace SkyEye.Models
             ret.Add(coorenhance);
             foreach (var rect in rectlist)
             {
+                if (rect.X < 0 || rect.Y < 0
+                    || ((rect.X + rect.Width) > edged.Width)
+                    || ((rect.Y + rect.Height) > edged.Height))
+                {
+                    ret.Clear();
+                    return ret;
+                }
                 var cmat = edged.SubMat(rect);
                 ret.Add(cmat);
             }
@@ -97,7 +140,7 @@ namespace SkyEye.Models
         {
 
             var cbond = GetCoordHighPT(blurred, edged);
-            var xlist = GetCoordWidthPT(coorenhance);
+            var xlist = GetCoordWidthPT(coorenhance,edged);
             if (xlist.Count == 0 || (xlist.Max() -xlist.Min()) < 400)
             { return new List<Rect>(); }
 
@@ -157,7 +200,7 @@ namespace SkyEye.Models
                 ret.Add(new Rect((int)xcmax - 46, y0, 45, y1));
 
                 ret.Add(new Rect((int)ycmin, y0, 45, y1));
-                ret.Add(new Rect((int)ycmin + 50, y0, 45, y1));
+                ret.Add(new Rect((int)ycmin + 52, y0, 45, y1));
                 ret.Add(new Rect((int)ycmin + 90, y0, 45, y1));
 
                 if (((int)ycmin + 135 + 46) >= (edged.Cols-1))
@@ -232,7 +275,7 @@ namespace SkyEye.Models
                 ret.Add(new Rect((int)xcmax - 46, y0, 45, y1));
 
                 ret.Add(new Rect((int)ycmin, y0, 47, y1));
-                ret.Add(new Rect((int)ycmin + 50, y0, 45, y1));
+                ret.Add(new Rect((int)ycmin + 52, y0, 45, y1));
                 ret.Add(new Rect((int)ycmin + 90, y0, 45, y1));
 
                 if (((int)ycmin + 135 + 46) >= (edged.Cols - 1))
@@ -290,13 +333,16 @@ namespace SkyEye.Models
             return rectlist;
         }
 
-        private static List<double> GetCoordWidthPT(Mat mat)
+        private static List<double> GetCoordWidthPT(Mat mat,Mat edged)
         {
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoisingColored(mat, denoisemat, 10, 10, 7, 21);
+
             var ret = new List<List<double>>();
             var kaze = KAZE.Create();
             var kazeDescriptors = new Mat();
             KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(mat, null, out kazeKeyPoints, kazeDescriptors);
+            kaze.DetectAndCompute(denoisemat, null, out kazeKeyPoints, kazeDescriptors);
 
             var hl = 0.25 * mat.Height;
             var hh = 0.75 * mat.Height;
@@ -358,7 +404,7 @@ namespace SkyEye.Models
             }
 
             //var dstKaze = new Mat();
-            //Cv2.DrawKeypoints(mat, xyptlist.ToArray(), dstKaze);
+            //Cv2.DrawKeypoints(denoisemat, xyptlist.ToArray(), dstKaze);
 
             //using (new Window("dstKaze", dstKaze))
             //{
@@ -384,7 +430,7 @@ namespace SkyEye.Models
             Cv2.Flip(outxymat, outxymat, FlipMode.Y);
             Cv2.Resize(outxymat, outxymat, new Size(outxymat.Width * 4, outxymat.Height * 4));
             Cv2.DetailEnhance(outxymat, outxymat);
-            var xlist = GetCoordWidthPT(outxymat);
+            var xlist = GetCoordWidthPT(outxymat, outxymat);
             if (xlist.Count > 0)
             {
                 var xmax = xlist.Max();
@@ -398,15 +444,16 @@ namespace SkyEye.Models
         }
 
         //18,34,4.5,6.92,5000,50
-        private static List<Rect> FindSmall5x1Rect_(Mat blurred,Mat srcgray,Mat srcenhance,double whlow,double whhigh,double ratelow,double ratehigh,double area,double locationoffset)
+        private static List<Rect> FindSmall5x1Rect_(Mat blurred,Mat srcgray,Mat srcenhance,double whlow,double whhigh,double ratelow,double ratehigh,double area,double locationoffset,bool cflag)
         {
-            var cflaglist = new List<bool>();
-            cflaglist.Add(false);
-            cflaglist.Add(true);
             var ret = new List<Rect>();
 
-            foreach (var cflag in cflaglist)
-            {
+            //var cflaglist = new List<bool>();
+            //cflaglist.Add(false);
+            //cflaglist.Add(true);
+
+            //foreach (var cflag in cflaglist)
+            //{
                 var edged = new Mat();
                 Cv2.Canny(blurred, edged, 50, 200, 3, cflag);
 
@@ -502,7 +549,7 @@ namespace SkyEye.Models
                 //{
                 //    return ret;
                 //}
-            }
+            //}
 
             return new List<Rect>();
         }

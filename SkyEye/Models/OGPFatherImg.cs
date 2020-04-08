@@ -37,7 +37,7 @@ namespace SkyEye.Models
         {
             if (caprev.Contains("OGP-small5x1"))
             {
-                var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 34, 4.5, 8, 5000,50);
+                var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 35, 4.5, 8, 5500,50);
                 if (charmatlist.Count > 0)
                 {
                     using (var kmode = KMode.GetTrainedMode(caprev, ctrl))

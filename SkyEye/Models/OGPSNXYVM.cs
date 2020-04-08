@@ -9,7 +9,7 @@ namespace SkyEye.Models
     {
         public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYSNDict(string wafernum)
         {
-            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
                         inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
                         where WaferNum like '<wafernum>%' order by SN,ImgOrder asc";
             sql = sql.Replace("<wafernum>", wafernum);
@@ -39,6 +39,7 @@ namespace SkyEye.Models
                     tempvm.MainImgKey = UT.O2S(line[4]);
                     tempvm.CaptureImg = UT.O2S(line[5]);
                     tempvm.SN = sn;
+                    tempvm.RawImg = UT.O2S(line[6]);
 
                     if (cat.Contains("X"))
                     { tempvm.X += imgval; }
@@ -117,15 +118,15 @@ namespace SkyEye.Models
         public static List<OGPSNXYVM> GetConbineXY(string wafernum)
         {
             var localxy = GetLocalOGPXYSNDict(wafernum);
-            var mexy = GetMEOGPXY(wafernum);
-            foreach (var m in mexy)
-            {
-                if (localxy.ContainsKey(m.SN))
-                {
-                    localxy[m.SN].MX = m.MX;
-                    localxy[m.SN].MY = m.MY;
-                }
-            }
+            //var mexy = GetMEOGPXY(wafernum);
+            //foreach (var m in mexy)
+            //{
+            //    if (localxy.ContainsKey(m.SN))
+            //    {
+            //        localxy[m.SN].MX = m.MX;
+            //        localxy[m.SN].MY = m.MY;
+            //    }
+            //}
 
             var templist = localxy.Values.ToList();
             var unmatchlist = new List<OGPSNXYVM>();
@@ -146,6 +147,7 @@ namespace SkyEye.Models
         {
             MainImgKey = "";
             CaptureImg = "";
+            RawImg = "";
             SN = "";
             X = "";
             Y = "";
@@ -155,6 +157,7 @@ namespace SkyEye.Models
 
         public string MainImgKey { set; get; }
         public string CaptureImg { set; get; }
+        public string RawImg { set; get; }
         public string SN { set; get; }
         public string X { set; get; }
         public string Y { set; get; }
