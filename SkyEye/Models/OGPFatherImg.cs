@@ -35,44 +35,11 @@ namespace SkyEye.Models
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
             , Dictionary<string, bool> probexymap,string caprev, Controller ctrl)
         {
-            if (caprev.Contains("OGP-small5x1"))
+            try
             {
-                var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 35, 4.5, 8, 5500,50);
-                if (charmatlist.Count > 0)
+                if (caprev.Contains("OGP-small5x1"))
                 {
-                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
-                    {
-                        return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
-                    }
-                }
-            }
-            else if (caprev.Contains("OGP-rect5x1"))
-            {
-                var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
-                if (xyrectlist.Count > 0)
-                {
-                    var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
-                    if (charmatlist.Count > 0)
-                    {
-                        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
-                        {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
-                        }
-                    }
-                    else
-                    {
-                        charmatlist = ImgOperate5x1.CutBadCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
-                        if (charmatlist.Count == 9)
-                        { return SolveUnrecognizeImg(imgpath, wafer, charmatlist, caprev, ctrl); }
-                    }
-                }
-            }
-            else if (caprev.Contains("OGP-rect2x1"))
-            {
-                var xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
-                if (xyrectlist.Count > 0)
-                {
-                    var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0], 40, 56);
+                    var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 35, 4.5, 8, 5500,50);
                     if (charmatlist.Count > 0)
                     {
                         using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
@@ -81,18 +48,55 @@ namespace SkyEye.Models
                         }
                     }
                 }
-            }
-            else if (caprev.Contains("OGP-circle2168"))
-            {
-                var charmatlist = ImgOperateCircle2168.CutCharRect(imgpath, 38, 64, 50, 100, 1.85, 2.7, 3.56,40,60);
-                if (charmatlist.Count > 0)
+                else if (caprev.Contains("OGP-rect5x1"))
                 {
-                    using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                    var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
+                    if (xyrectlist.Count > 0)
                     {
-                        return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                        var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
+                        if (charmatlist.Count > 0)
+                        {
+                            using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                            {
+                                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                            }
+                        }
+                        else
+                        {
+                            charmatlist = ImgOperate5x1.CutBadCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
+                            if (charmatlist.Count == 9)
+                            { return SolveUnrecognizeImg(imgpath, wafer, charmatlist, caprev, ctrl); }
+                        }
+                    }
+                }
+                else if (caprev.Contains("OGP-rect2x1"))
+                {
+                    var xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+                    if (xyrectlist.Count > 0)
+                    {
+                        var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0], 40, 56);
+                        if (charmatlist.Count > 0)
+                        {
+                            using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                            {
+                                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                            }
+                        }
+                    }
+                }
+                else if (caprev.Contains("OGP-circle2168"))
+                {
+                    var charmatlist = ImgOperateCircle2168.CutCharRect(imgpath, 38, 64, 50, 100, 1.85, 2.7, 3.56,40,60);
+                    if (charmatlist.Count > 0)
+                    {
+                        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                        {
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                        }
                     }
                 }
             }
+            catch (Exception ex) { }
 
             Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             var fimg = new OGPFatherImg();
@@ -108,6 +112,84 @@ namespace SkyEye.Models
             return string.Empty;
         }
 
+        public static string Load200xImg(string imgpath, string wafer, string caprev, Controller ctrl)
+        {
+            try
+            {
+                if (caprev.Contains("OGP-small5x1"))
+                {
+                    var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 35, 4.5, 8, 5500, 50);
+                    if (charmatlist.Count > 0)
+                    {
+                        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                        {
+                            return Solve200xImg(imgpath, wafer, charmatlist, caprev, ctrl, kmode);
+                        }
+                    }
+                }
+                //else if (caprev.Contains("OGP-rect5x1"))
+                //{
+                //    var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
+                //    if (xyrectlist.Count > 0)
+                //    {
+                //        var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
+                //        if (charmatlist.Count > 0)
+                //        {
+                //            using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                //            {
+                //                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                //            }
+                //        }
+                //        else
+                //        {
+                //            charmatlist = ImgOperate5x1.CutBadCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
+                //            if (charmatlist.Count == 9)
+                //            { return SolveUnrecognizeImg(imgpath, wafer, charmatlist, caprev, ctrl); }
+                //        }
+                //    }
+                //}
+                //else if (caprev.Contains("OGP-rect2x1"))
+                //{
+                //    var xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+                //    if (xyrectlist.Count > 0)
+                //    {
+                //        var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0], 40, 56);
+                //        if (charmatlist.Count > 0)
+                //        {
+                //            using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                //            {
+                //                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                //            }
+                //        }
+                //    }
+                //}
+                //else if (caprev.Contains("OGP-circle2168"))
+                //{
+                //    var charmatlist = ImgOperateCircle2168.CutCharRect(imgpath, 38, 64, 50, 100, 1.85, 2.7, 3.56, 40, 60);
+                //    if (charmatlist.Count > 0)
+                //    {
+                //        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                //        {
+                //            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                //        }
+                //    }
+                //}
+            }
+            catch (Exception ex) { }
+
+            Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+            var fimg = new OGPFatherImg();
+            fimg.WaferNum = wafer;
+            fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
+            fimg.MainImgKey = GetUniqKey();
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.CaptureImg = "";
+            fimg.CaptureRev = caprev;
+            fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            fimg.StoreFailData();
+
+            return string.Empty;
+        }
 
         private static string SolveImg(string imgpath,string wafer, List<Mat> charmatlist, string caprev
             , Dictionary<string, string> snmap, Dictionary<string, bool> probexymap, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
@@ -196,6 +278,78 @@ namespace SkyEye.Models
             return ret;
         }
 
+        private static string Solve200xImg(string imgpath, string wafer, List<Mat> charmatlist, string caprev
+            , Controller ctrl, OpenCvSharp.ML.KNearest kmode)
+        {
+            var ret = "";
+
+            Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+
+            var fimg = new OGPFatherImg();
+            fimg.WaferNum = wafer;
+            var sns = Path.GetFileNameWithoutExtension(imgpath).Split(new string[] { "_", "." },StringSplitOptions.RemoveEmptyEntries);
+            fimg.SN = sns[0];
+            if (sns.Length > 2)
+            { fimg.SN += "_"+sns[1]; }
+            fimg.FileName = fimg.SN;
+            fimg.MainImgKey = GetUniqKey();
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.CaptureImg = Convert.ToBase64String(charmatlist[0].ToBytes());
+            fimg.CaptureRev = caprev;
+            fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            ret = fimg.MainImgKey;
+
+            var idx = 0;
+            var midx = (charmatlist.Count - 1) / 2 + 1;
+
+            foreach (var sm in charmatlist)
+            {
+                if (idx == 0)
+                { idx++; continue; }
+
+                var tcm = new Mat();
+                sm.ConvertTo(tcm, MatType.CV_32FC1);
+                var tcmresize = new Mat();
+                Cv2.Resize(tcm, tcmresize, new Size(50, 50), 0, 0, InterpolationFlags.Linear);
+
+                var sonimg = new SonImg();
+                sonimg.MainImgKey = fimg.MainImgKey;
+                sonimg.ChildImgKey = GetUniqKey();
+                sonimg.ChildImg = Convert.ToBase64String(tcmresize.ToBytes());
+                sonimg.ImgOrder = idx;
+                sonimg.UpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                var stcm = tcmresize.Reshape(1, 1);
+                var resultmat = new Mat();
+
+                if (idx == 1)
+                {
+                    sonimg.ImgVal = (int)Convert.ToChar("X");
+                }
+                else if (idx == 5)
+                {
+                    sonimg.ImgVal = (int)Convert.ToChar("Y");
+                }
+                else
+                {
+                    var imgval = kmode.FindNearest(stcm, 1, resultmat);
+                    if (imgval > 0)
+                    { sonimg.ImgVal = (int)imgval; }
+                }
+
+                if (idx < midx)
+                { sonimg.ChildCat = "X"; }
+                else
+                { sonimg.ChildCat = "Y"; }
+                sonimg.StoreData();
+                idx++;
+            }
+
+            fimg.StoreData();
+
+            return ret;
+        }
 
         private static string SolveUnrecognizeImg(string imgpath, string wafer, List<Mat> charmatlist, string caprev , Controller ctrl)
         {
@@ -521,6 +675,14 @@ namespace SkyEye.Models
             }
 
             return ret;
+        }
+
+        public static void UpdateModification(string MainImgKey)
+        {
+            var sql = "update [WAT].[dbo].[OGPFatherImg] set Appv_4 = 'UPDATED' where MainImgKey = @MainImgKey";
+            var dict = new Dictionary<string, string>();
+            dict.Add("@MainImgKey", MainImgKey);
+            DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
         private static void UpdateSN_(string die, string sn, string wafer)

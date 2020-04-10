@@ -153,10 +153,10 @@
             if (wafernum == '')
             { alert('Please input the wafer number!'); return false; }
 
-            if (wafernum.indexOf('E') == -1
-                && wafernum.indexOf('R') == -1
-                && wafernum.indexOf('T') == -1)
-            { alert('wafer number should contains E or R or T!'); return false; }
+            //if (wafernum.indexOf('E') == -1
+            //    && wafernum.indexOf('R') == -1
+            //    && wafernum.indexOf('T') == -1)
+            //{ alert('wafer number should contains E or R or T!'); return false; }
 
             var options = {
                 loadingTips: "loading data......",

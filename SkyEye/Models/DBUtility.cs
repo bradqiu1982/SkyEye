@@ -528,6 +528,120 @@ namespace SkyEye.Models
         }
 
 
+        private static SqlConnection GetMeOCRConnector()
+        {
+            var conn = new SqlConnection();
+            try
+            {
+                conn.ConnectionString = @"Server=Wux-Parallel.china.ads.finisar.com;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;";
+                conn.Open();
+                return conn;
+            }
+            catch (SqlException ex)
+            {
+                logthdinfo("fail to connect to the allen database:" + ex.Message);
+                //System.Windows.MessageBox.Show(ex.ToString());
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logthdinfo("fail to connect to the allen database" + ex.Message);
+                //System.Windows.MessageBox.Show(ex.ToString());
+                return null;
+            }
+        }
+
+        public static List<List<object>> ExeMeOCRSqlWithRes(string sql, Dictionary<string, string> parameters = null)
+        {
+            var ret = new List<List<object>>();
+            var conn = GetMeOCRConnector();
+            if (conn == null)
+                return ret;
+            SqlDataReader sqlreader = null;
+            SqlCommand command = null;
+
+            try
+            {
+                command = conn.CreateCommand();
+                command.CommandTimeout = 180;
+                command.CommandText = sql;
+                command.CommandText = "SET ARITHABORT ON;" + command.CommandText;
+
+                if (parameters != null)
+                {
+                    foreach (var param in parameters)
+                    {
+                        SqlParameter parameter = new SqlParameter();
+                        parameter.ParameterName = param.Key;
+                        parameter.SqlDbType = SqlDbType.NVarChar;
+                        parameter.Value = param.Value;
+                        command.Parameters.Add(parameter);
+                    }
+                }
+                sqlreader = command.ExecuteReader();
+                if (sqlreader.HasRows)
+                {
+                    while (sqlreader.Read())
+                    {
+                        Object[] values = new Object[sqlreader.FieldCount];
+                        sqlreader.GetValues(values);
+                        ret.Add(values.ToList<object>());
+                    }
+
+                }
+
+                sqlreader.Close();
+                CloseConnector(conn);
+                return ret;
+            }
+            catch (SqlException ex)
+            {
+                logthdinfo("execute exception: " + sql + "\r\n" + ex.Message + "\r\n");
+
+                try
+                {
+                    if (sqlreader != null)
+                    {
+                        sqlreader.Close();
+                    }
+                    if (command != null)
+                    {
+                        command.Dispose();
+                    }
+                }
+                catch (Exception e)
+                { }
+
+                CloseConnector(conn);
+
+                ret.Clear();
+                return ret;
+            }
+            catch (Exception ex)
+            {
+                logthdinfo("execute exception: " + sql + "\r\n" + ex.Message + "\r\n");
+
+                try
+                {
+                    if (sqlreader != null)
+                    {
+                        sqlreader.Close();
+                    }
+                    if (command != null)
+                    {
+                        command.Dispose();
+                    }
+                }
+                catch (Exception e)
+                { }
+
+                CloseConnector(conn);
+
+                ret.Clear();
+                return ret;
+            }
+        }
+
         private static SqlConnection GetAllenConnector()
         {
             var conn = new SqlConnection();

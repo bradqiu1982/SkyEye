@@ -318,7 +318,7 @@ namespace SkyEye.Models
 
                     var crect = Cv2.BoundingRect(item);
 
-                    if (crect.Width > 36 && crect.Width <= 60 && crect.Height > 54 && crect.Height <= 65 && crect.Y > 8)
+                    if (crect.Width > 36 && crect.Width <= 50 && crect.Height > 54 && crect.Height <= 65 && crect.Y > 8)
                     {
                         //Cv2.Rectangle(coorenhance, crect, new Scalar(0, 255, 0));
                         //using (new Window("xyenhance4", coorenhance))

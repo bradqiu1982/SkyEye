@@ -275,6 +275,8 @@ namespace SkyEye.Controllers
                         SonImg.UpdateImgVal(mainkey, 7, (int)charlist[1]);
                         SonImg.UpdateImgVal(mainkey, 8, (int)charlist[2]);
                     }
+
+                    OGPFatherImg.UpdateModification(mainkey);
                 }
             }
 
@@ -287,5 +289,166 @@ namespace SkyEye.Controllers
             return ret;
         }
 
+        public ActionResult OCR4Operater()
+        {
+            return View();
+        }
+
+        public JsonResult GetOCRLotnumList()
+        {
+            var vallist = GeneralOCRVM.GetLotNumList();
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                vallist = vallist.Keys.ToList()
+            };
+            return ret;
+        }
+
+        public JsonResult GetOCRProdList()
+        {
+            var vallist = GeneralOCRVM.GetProductList();
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                vallist = vallist.Keys.ToList()
+            };
+            return ret;
+        }
+
+        public JsonResult GetOCRMacList()
+        {
+            var vallist = GeneralOCRVM.GetMachineList();
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                vallist = vallist.Keys.ToList()
+            };
+            return ret;
+        }
+
+        public JsonResult GetOCRVM()
+        {
+            var lotnum = Request.Form["lotnum"];
+            var sdate = Request.Form["sdate"];
+            var edate = Request.Form["edate"];
+            var prod = Request.Form["prod"];
+            var mac = Request.Form["mac"];
+            var ssdate = "";
+            if (!string.IsNullOrEmpty(sdate))
+            { ssdate = UT.O2T(sdate).ToString("yyyy-MM-dd") + " 00:00:00"; }
+            var eedate = "";
+            if (!string.IsNullOrEmpty(edate))
+            {  eedate = UT.O2T(edate).ToString("yyyy-MM-dd") + " 23:59:59"; }
+
+            GeneralOCRVM.RefreshNewLotNum(this);
+            GeneralOCRVM.ParseNewLot(this);
+            var ocrlist = GeneralOCRVM.GetOCRVM(ssdate, eedate, mac, prod, lotnum);
+            var ocrkey = "";
+            var uploader = "";
+            var ocrkeydict = new Dictionary<string, bool>();
+            foreach (var item in ocrlist)
+            {
+                if (!ocrkeydict.ContainsKey(item.OCRKey))
+                { ocrkeydict.Add(item.OCRKey, true); }
+                uploader = item.Uploader;
+            }
+
+            if (ocrkeydict.Count > 0)
+            { ocrkey = string.Join(":", ocrkeydict.Keys.ToList()); }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                ocrkey = ocrkey,
+                uploader = uploader,
+                ocrlist = ocrlist
+            };
+            return ret;
+        }
+
+        public JsonResult ConfirmOCRInfo()
+        {
+            var ocrkey = Request.Form["ocrkey"];
+            var conf = Request.Form["conf"];
+
+            var xyval = Request.Form["xyval"];
+            if (!string.IsNullOrEmpty(xyval))
+            {
+                List<string> kvlist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(xyval, (new List<string>()).GetType());
+                foreach (var kv in kvlist)
+                {
+                    var kvs = kv.ToUpper().Split(new string[] { ":::" }, StringSplitOptions.RemoveEmptyEntries);
+                    var mainkey = kvs[0].Trim();
+                    var xy = kvs[1];
+                    var val = kvs[2].Trim().Replace("X", "").Replace("Y", "");
+                    if (val.Length == 3)
+                    {
+                        var charlist = val.ToList();
+                        if (xy.Contains("X"))
+                        {
+                            SonImg.UpdateImgVal(mainkey, 1, (int)Convert.ToChar("X"));
+                            SonImg.UpdateImgVal(mainkey, 2, (int)charlist[0]);
+                            SonImg.UpdateImgVal(mainkey, 3, (int)charlist[1]);
+                            SonImg.UpdateImgVal(mainkey, 4, (int)charlist[2]);
+                        }
+                        else
+                        {
+                            SonImg.UpdateImgVal(mainkey, 5, (int)Convert.ToChar("Y"));
+                            SonImg.UpdateImgVal(mainkey, 6, (int)charlist[0]);
+                            SonImg.UpdateImgVal(mainkey, 7, (int)charlist[1]);
+                            SonImg.UpdateImgVal(mainkey, 8, (int)charlist[2]);
+                        }
+
+                        OGPFatherImg.UpdateModification(mainkey);
+                    }//end if
+                }//end foreach
+            }//end if
+
+
+            var ocrkeys = ocrkey.Split(new string[] { ":" }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var k in ocrkeys)
+            { GeneralOCRVM.ConfirmOCR(k, conf); }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                success = true
+            };
+            return ret;
+        }
+
+        public ActionResult OCRAudit()
+        { return View(); }
+
+        public JsonResult GetOCRAuditVM()
+        {
+            var lotnum = Request.Form["lotnum"];
+            var sdate = Request.Form["sdate"];
+            var edate = Request.Form["edate"];
+            var prod = Request.Form["prod"];
+            var mac = Request.Form["mac"];
+            var ssdate = "";
+            if (!string.IsNullOrEmpty(sdate))
+            { ssdate = UT.O2T(sdate).ToString("yyyy-MM-dd") + " 00:00:00"; }
+            var eedate = "";
+            if (!string.IsNullOrEmpty(edate))
+            { eedate = UT.O2T(edate).ToString("yyyy-MM-dd") + " 23:59:59"; }
+
+            var ocrlist = GeneralOCRVM.GetOCRVM(ssdate, eedate, mac, prod, lotnum);
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                ocrlist = ocrlist
+            };
+            return ret;
+        }
     }
 }

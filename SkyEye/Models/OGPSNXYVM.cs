@@ -9,7 +9,7 @@ namespace SkyEye.Models
     {
         public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYSNDict(string wafernum)
         {
-            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4 FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
                         inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
                         where WaferNum like '<wafernum>%' order by SN,ImgOrder asc";
             sql = sql.Replace("<wafernum>", wafernum);
@@ -40,6 +40,7 @@ namespace SkyEye.Models
                     tempvm.CaptureImg = UT.O2S(line[5]);
                     tempvm.SN = sn;
                     tempvm.RawImg = UT.O2S(line[6]);
+                    tempvm.Modified = UT.O2S(line[7]);
 
                     if (cat.Contains("X"))
                     { tempvm.X += imgval; }
@@ -153,6 +154,7 @@ namespace SkyEye.Models
             Y = "";
             MX = "";
             MY = "";
+            Modified = "";
         }
 
         public string MainImgKey { set; get; }
@@ -174,5 +176,7 @@ namespace SkyEye.Models
                 { return ""; }
             }
         }
+        public string Modified { set; get; }
+
     }
 }

@@ -1,0 +1,96 @@
+﻿
+@{
+    ViewBag.Title = "OCR4Operater";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link type="text/css" rel="stylesheet" href="~/Content/Layout.css" />
+<link type="text/css" rel="stylesheet" href="~/Scripts/jquery-autocomplete/jquery.auto-complete.css" />
+<link type="text/css" rel="stylesheet" href="~/Scripts/bootstrap-datepicker/bootstrap-datepicker.min.css" />
+
+
+<script type="text/javascript" src="~/Scripts/jquery-autocomplete/jquery.auto-complete.min.js"></script>
+<script type="text/javascript" src="~/Scripts/bootstrap-datepicker/bootstrap-datepicker.min.js"></script>
+
+<script type="text/javascript" src="~/Scripts/OCR.js"></script>
+
+<script type="text/javascript">
+    $(function () {
+        OCR.OCROPTINIT();
+    })
+</script>
+
+<div class="row form-group" style="margin-top:-3%">
+    <div class="col-xs-3"></div>
+    <div class="col-xs-6"><h1 style="text-align:center">OCR OPERATER TOOL</h1></div>
+    <div class="col-xs-3"></div>
+</div>
+<hr>
+<div class="row form-group">
+    @*<div class="col-xs-1"></div>*@
+    <div class="col-xs-2"><input class="form-control" type="text" value="Lot Number" readonly></div>
+    <div class="col-xs-3"><input class="form-control" type="text" id="lotnum" name="lotnum" readonly="readonly"></div>
+    <div class="col-xs-2"><button class="btn btn-success" id="btn-query" name="btn-query">查询</button></div>
+    <div class="col-xs-4"></div>
+</div>
+
+<hr>
+
+<div class="row form-group">
+    @*<div class="col-xs-1"></div>*@
+    <div class="col-xs-2"><input class="form-control" type="text" value="Start Date" readonly></div>
+    <div class="col-xs-3">
+        <div class="input-group date" data-date=""
+             data-date-format="yyyy-mm-dd">
+            <input type="text" class="form-control"
+                   id="sdate" name="sdate" value="" readonly>
+            <span class="input-group-addon">
+                <span class="glyphicon glyphicon-th"></span>
+            </span>
+        </div>
+    </div>
+    <div class="col-xs-1">~</div>
+    <div class="col-xs-2"><input class="form-control" type="text" value="End Date" readonly></div>
+    <div class="col-xs-3">
+        <div class="input-group date" data-date=""
+             data-date-format="yyyy-mm-dd">
+            <input type="text" class="form-control"
+                   id="edate" name="edate" value="" readonly>
+            <span class="input-group-addon">
+                <span class="glyphicon glyphicon-th"></span>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row form-group">
+    @*<div class="col-xs-1"></div>*@
+    <div class="col-xs-1"><input class="form-control" type="text" value="Prod" readonly></div>
+    <div class="col-xs-3"><input class="form-control" type="text" id="prod" name="prod" readonly="readonly"></div>
+    <div class="col-xs-1">or</div>
+    <div class="col-xs-1"><input class="form-control" type="text" value="OGP#" readonly></div>
+    <div class="col-xs-3"><input class="form-control" type="text" id="mac" name="mac" readonly="readonly"></div>
+    <div class="col-xs-1"><button class="btn btn-success" id="btn-query1" name="btn-query1">查询</button></div>
+    <div class="col-xs-1"></div>
+</div>
+
+<hr>
+
+<div class="row form-group">
+    @*<div class="col-xs-1"></div>*@
+    <div class="col-xs-2"><input class="form-control" type="text" value="Confirmer" readonly></div>
+    <div class="col-xs-3"><input class="form-control" type="text" id="conf" name="conf"></div>
+    <div class="col-xs-2"><button class="btn btn-success" id="btn-conf" name="btn-conf">确认</button></div>
+    <div class="col-xs-4"><input class="hide" type="text" id="ocrkey" name="ocrkey"></div>
+</div>
+
+<hr>
+
+<div class="row form-group">
+    <table class="table table-hover  table-condensed table-striped" id="imgtable" style="margin-top:1%">
+        <caption class="tb-caption">OCR XY</caption>
+        <thead id="imghead"></thead>
+        <tbody id="imgcontent"></tbody>
+    </table>
+</div>
+

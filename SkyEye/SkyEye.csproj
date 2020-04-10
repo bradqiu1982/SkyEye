@@ -270,6 +270,7 @@
     <Compile Include="Models\ExcelReader.cs" />
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
+    <Compile Include="Models\GeneralOCRVM.cs" />
     <Compile Include="Models\ImgOperate2x1.cs" />
     <Compile Include="Models\ImgOperate5x1.cs" />
     <Compile Include="Models\ImgOperateCircle2168.cs" />
@@ -815,6 +816,7 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\OCR.js" />
     <Content Include="Scripts\SkyEyeCfg.txt" />
     <Content Include="Scripts\waferqual.js" />
     <Content Include="Scripts\modernizr-2.6.2.js" />
@@ -854,6 +856,8 @@
     <Content Include="Views\OGPXY\OGPXYCompare.cshtml" />
     <Content Include="Views\Main\XYSN.cshtml" />
     <Content Include="Views\OGPXY\OGPXYProfessionReview.cshtml" />
+    <Content Include="Views\OGPXY\OCR4Operater.cshtml" />
+    <Content Include="Views\OGPXY\OCRAudit.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
