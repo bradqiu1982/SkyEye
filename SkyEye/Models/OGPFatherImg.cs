@@ -251,6 +251,12 @@ namespace SkyEye.Models
                     var imgval = kmode.FindNearest(stcm, 1, resultmat);
                     if (imgval > 0)
                     { sonimg.ImgVal = (int)imgval; }
+
+                    //var matched = new Mat();
+                    //var dist = new Mat();
+                    //kmode.FindNearest(stcm, 7, resultmat,matched,dist);
+                    //var matchstr = matched.Dump();
+                    //var diststr = dist.Dump();
                 }
 
                 if (idx < midx)

@@ -31,20 +31,51 @@ namespace SkyEye.Controllers
         //    return ret;
         //}
 
+        private bool CheckWaferParseFile(string wafer)
+        {
+            var file = Server.MapPath("~/userfiles") + "\\"+wafer+"_PARSING";
+            if (System.IO.File.Exists(file))
+            { return false; }
+            System.IO.File.WriteAllText(file, "HELLO");
+            return true;
+        }
+
+        private void CleanWaferParseFile(string wafer)
+        {
+            var file = Server.MapPath("~/userfiles") + "\\" + wafer + "_PARSING";
+            if (System.IO.File.Exists(file))
+            {
+                try
+                { System.IO.File.Delete(file); }
+                catch (Exception ex) { }
+            }
+        }
+
         public JsonResult NewImgTrain()
         {
             var ret = new JsonResult();
             var folder = Request.Form["fpath"];
-            var wafer = Request.Form["wafer"];
+            var wafer = Request.Form["wafer"].Trim().Replace("\\", "").Replace("/", "");
+
+            var imglist = new List<object>();
+            var failimg = "";
+
+            if (!CheckWaferParseFile(wafer))
+            {
+                ret.Data = new
+                {
+                    imglist = imglist,
+                    failimg = failimg,
+                    MSG = "This wafer "+wafer+" is parsing now!"
+                };
+                return ret;
+            }
 
             var snmap = OGPXYFileSNMap.GetSNMap(wafer);
             var probexymap = ProbeXYMap.GetProbeXYMap(wafer);
 
             OGPFatherImg.CleanWaferData(wafer);
             KMode.CleanTrainCache(this);
-
-            var imglist = new List<object>();
-            var failimg = "";
 
             var filelist = ExternalDataCollector.DirectoryEnumerateFiles(this, folder);
             var samplepicture = new List<string>();
@@ -61,6 +92,7 @@ namespace SkyEye.Controllers
 
             if (samplepicture.Count == 0)
             {
+                CleanWaferParseFile(wafer);
                 ret.Data = new
                 {
                     imglist = imglist,
@@ -77,6 +109,7 @@ namespace SkyEye.Controllers
                 caprev = OGPFatherImg.GetPictureRev(samplepicture[1]);
                 if (string.IsNullOrEmpty(caprev))
                 {
+                    CleanWaferParseFile(wafer);
                     ret.Data = new
                     {
                         imglist = imglist,
@@ -104,7 +137,9 @@ namespace SkyEye.Controllers
             }
 
             imglist = OGPFatherImg.NewUnTrainedImg(keylist,wafer);
-            
+
+            CleanWaferParseFile(wafer);
+
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
             {
@@ -117,7 +152,7 @@ namespace SkyEye.Controllers
 
         public JsonResult ExistImgTrain()
         {
-            var wafer = Request.Form["wafer"];
+            var wafer = Request.Form["wafer"].Trim().Replace("\\", "").Replace("/", "");
             var imglist = OGPFatherImg.ExistTrainedImg(wafer);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
@@ -154,7 +189,7 @@ namespace SkyEye.Controllers
 
         public JsonResult OGPXYCompareData()
         {
-            var wafernum = Request.Form["wafernum"];
+            var wafernum = Request.Form["wafernum"].Trim().Replace("\\", "").Replace("/", "");
             var xylist = OGPSNXYVM.GetConbineXY(wafernum);
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
@@ -168,11 +203,21 @@ namespace SkyEye.Controllers
 
         public JsonResult OGPXYRecognize()
         {
-            var wafer = Request.Form["wafer"];
+            var wafer = Request.Form["wafer"].Trim().Replace("\\", "").Replace("/", "");
             var folder = Request.Form["fpath"];
 
             var xylist = new List<OGPSNXYVM>();
             var ret = new JsonResult();
+
+            if (!CheckWaferParseFile(wafer))
+            {
+                ret.Data = new
+                {
+                    xylist = xylist,
+                    MSG = "This wafer " + wafer + " is parsing now!"
+                };
+                return ret;
+            }
 
             var snmap = OGPXYFileSNMap.GetSNMap(wafer);
             var probexymap = ProbeXYMap.GetProbeXYMap(wafer);
@@ -197,6 +242,7 @@ namespace SkyEye.Controllers
 
             if (samplepicture.Count == 0)
             {
+                CleanWaferParseFile(wafer);
                 ret.Data = new
                 {
                     xylist = xylist,
@@ -212,6 +258,7 @@ namespace SkyEye.Controllers
                 caprev = OGPFatherImg.GetPictureRev(samplepicture[1]);
                 if (string.IsNullOrEmpty(caprev))
                 {
+                    CleanWaferParseFile(wafer);
                     ret.Data = new
                     {
                         xylist = xylist,
@@ -238,6 +285,9 @@ namespace SkyEye.Controllers
             }
 
             xylist = OGPSNXYVM.GetConbineXY(wafer);
+
+            CleanWaferParseFile(wafer);
+
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new
             {
@@ -450,5 +500,59 @@ namespace SkyEye.Controllers
             };
             return ret;
         }
+
+        public ActionResult OCRQuery()
+        {
+            return View();
+        }
+
+        public JsonResult QUERYOCRDATA()
+        {
+            var marks = Request.Form["marks"];
+            List<string> snlist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+
+            var alldata = new List<OGPSNXYVM>();
+            var lotdict = GeneralOCRVM.GetLotNumList();
+            foreach (var sn in snlist)
+            {
+                if (lotdict.ContainsKey(sn.ToUpper()))
+                {
+                    var xylist = OGPSNXYVM.GetLocalOGPXYSNDict(sn);
+                    if (xylist.Count > 0)
+                    { alldata.AddRange(xylist.Values.ToList()); }
+                }
+            }
+
+            var realsnlist = new List<string>();
+            foreach (var sn in snlist)
+            {
+                if (!lotdict.ContainsKey(sn.ToUpper()))
+                { realsnlist.Add(sn); }
+            }
+
+            if (realsnlist.Count > 0)
+            {
+                var xylist = OGPSNXYVM.GetLocalOGPXYSNDict(realsnlist);
+                if (xylist.Count > 0)
+                { alldata.AddRange(xylist.Values.ToList()); }
+            }
+
+            var lotproddict = GeneralOCRVM.GetLotProdDict();
+            foreach (var item in alldata)
+            {
+                if (lotproddict.ContainsKey(item.WaferNum))
+                { item.Product = lotproddict[item.WaferNum]; }
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                ocrlist = alldata
+            };
+            return ret;
+        }
+
+
     }
 }

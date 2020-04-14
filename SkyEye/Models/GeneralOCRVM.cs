@@ -90,9 +90,44 @@ namespace SkyEye.Models
             }
             return "2020-04-10 00:00:00";
         }
-        
+
+        private static bool CheckParsingFile(Controller ctrl)
+        {
+            var file = ctrl.Server.MapPath("~/userfiles") + "\\Parsing_" + DateTime.Now.ToString("yyyyMMdd");
+            if (System.IO.File.Exists(file))
+            { return false; }
+            System.IO.File.WriteAllText(file, "HELLO");
+            return true;
+        }
+
+        private static void CleanParsingFile(Controller ctrl)
+        {
+            var file = ctrl.Server.MapPath("~/userfiles") + "\\Parsing_" + DateTime.Now.ToString("yyyyMMdd");
+            if (System.IO.File.Exists(file))
+            {
+                try
+                { System.IO.File.Delete(file); }
+                catch (Exception ex) { }
+            }
+        }
+
         public static void ParseNewLot(Controller ctrl)
         {
+            if (!CheckParsingFile(ctrl))
+            {
+                var idx = 0;
+                var file = ctrl.Server.MapPath("~/userfiles") + "\\Parsing_" + DateTime.Now.ToString("yyyyMMdd");
+                while (true)
+                {
+                    new System.Threading.ManualResetEvent(false).WaitOne(3000);
+                    if (!System.IO.File.Exists(file))
+                    { return; }
+                    idx++;
+                    if (idx > 20)
+                    { return; }
+                }
+            }
+
             var unparsedlist = GetUnParsedData();
             foreach (var ocr in unparsedlist)
             {
@@ -104,6 +139,8 @@ namespace SkyEye.Models
                 }
                 catch (Exception ex) { }
             }
+
+            CleanParsingFile(ctrl);
         }
 
         private static bool ParseNewLot_(string lotnum,string path,Controller ctrl)
@@ -256,7 +293,7 @@ namespace SkyEye.Models
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
             foreach (var line in dbret)
             {
-                var val = UT.O2S(line[0]);
+                var val = UT.O2S(line[0]).ToUpper();
                 if (!string.IsNullOrEmpty(val) && !ret.ContainsKey(val))
                 { ret.Add(val, true); }
             }
@@ -276,6 +313,21 @@ namespace SkyEye.Models
         public static Dictionary<string, bool> GetMachineList()
         {
             return GetParamList("UploadMachine");
+        }
+
+        public static Dictionary<string, string> GetLotProdDict()
+        {
+            var ret = new Dictionary<string, string>();
+            var sql = "select distinct LotNum,Product  from GeneralOCRVM";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var lot = UT.O2S(line[0]).ToUpper();
+                var prod = UT.O2S(line[1]);
+                if (!string.IsNullOrEmpty(lot) && !ret.ContainsKey(lot))
+                { ret.Add(lot,prod); }
+            }
+            return ret;
         }
 
         public GeneralOCRVM()

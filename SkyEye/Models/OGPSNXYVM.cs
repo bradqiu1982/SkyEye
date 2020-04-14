@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Web;
 
 namespace SkyEye.Models
@@ -9,7 +10,7 @@ namespace SkyEye.Models
     {
         public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYSNDict(string wafernum)
         {
-            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4 FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4,WaferNum FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
                         inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
                         where WaferNum like '<wafernum>%' order by SN,ImgOrder asc";
             sql = sql.Replace("<wafernum>", wafernum);
@@ -19,6 +20,7 @@ namespace SkyEye.Models
             foreach (var line in dbret)
             {
                 var sn = UT.O2S(line[0]);
+                var k = UT.O2S(line[4])+":"+sn;
 
                 var imgval = "";
                 var ival = UT.O2I(line[1]);
@@ -26,12 +28,12 @@ namespace SkyEye.Models
                 { imgval = Convert.ToString((char)ival); }
 
                 var cat = UT.O2S(line[2]).ToUpper();
-                if (dict.ContainsKey(sn))
+                if (dict.ContainsKey(k))
                 {
                     if (cat.Contains("X"))
-                    { dict[sn].X += imgval; }
+                    { dict[k].X += imgval; }
                     else
-                    { dict[sn].Y += imgval; }
+                    { dict[k].Y += imgval; }
                 }
                 else
                 {
@@ -41,12 +43,66 @@ namespace SkyEye.Models
                     tempvm.SN = sn;
                     tempvm.RawImg = UT.O2S(line[6]);
                     tempvm.Modified = UT.O2S(line[7]);
+                    tempvm.WaferNum = UT.O2S(line[8]);
 
                     if (cat.Contains("X"))
                     { tempvm.X += imgval; }
                     else
                     { tempvm.Y += imgval; }
-                    dict.Add(sn, tempvm);
+                    dict.Add(k, tempvm);
+                }
+            }
+
+            return dict;
+        }
+
+        public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYSNDict(List<string> snlist)
+        {
+            var sb = new StringBuilder();
+            foreach (var sn in snlist)
+            { sb.Append("or f.SN like '" + sn + "%' "); }
+
+            var sncond = "(" + sb.ToString().Substring(2) + ")";
+
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4,WaferNum FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+                        inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
+                        where "+sncond+" order by SN,ImgOrder asc";
+
+            var dict = new Dictionary<string, OGPSNXYVM>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var sn = UT.O2S(line[0]);
+                var k = UT.O2S(line[4]) + ":" + sn;
+
+                var imgval = "";
+                var ival = UT.O2I(line[1]);
+                if (ival != -1)
+                { imgval = Convert.ToString((char)ival); }
+
+                var cat = UT.O2S(line[2]).ToUpper();
+                if (dict.ContainsKey(k))
+                {
+                    if (cat.Contains("X"))
+                    { dict[k].X += imgval; }
+                    else
+                    { dict[k].Y += imgval; }
+                }
+                else
+                {
+                    var tempvm = new OGPSNXYVM();
+                    tempvm.MainImgKey = UT.O2S(line[4]);
+                    tempvm.CaptureImg = UT.O2S(line[5]);
+                    tempvm.SN = sn;
+                    tempvm.RawImg = UT.O2S(line[6]);
+                    tempvm.Modified = UT.O2S(line[7]);
+                    tempvm.WaferNum = UT.O2S(line[8]).ToUpper();
+
+                    if (cat.Contains("X"))
+                    { tempvm.X += imgval; }
+                    else
+                    { tempvm.Y += imgval; }
+                    dict.Add(k, tempvm);
                 }
             }
 
@@ -155,6 +211,8 @@ namespace SkyEye.Models
             MX = "";
             MY = "";
             Modified = "";
+            WaferNum = "";
+            Product = "";
         }
 
         public string MainImgKey { set; get; }
@@ -177,6 +235,7 @@ namespace SkyEye.Models
             }
         }
         public string Modified { set; get; }
-
+        public string WaferNum { set; get; }
+        public string Product { set; get; }
     }
 }

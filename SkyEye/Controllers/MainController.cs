@@ -59,6 +59,20 @@ namespace SkyEye.Controllers
                 if (!System.IO.File.Exists(dailyscan))
                 {
                     System.IO.File.WriteAllText(dailyscan, "hello");
+
+                    heartbeatlog("GeneralOCRVM.RefreshNewLotNum");
+                    try
+                    {
+                        GeneralOCRVM.RefreshNewLotNum(this);
+                    }
+                    catch (Exception ex) { }
+
+                    heartbeatlog("GeneralOCRVM.ParseNewLot");
+                    try
+                    {
+                        GeneralOCRVM.ParseNewLot(this);
+                    }
+                    catch (Exception ex) { }
                 }
 
                 heartbeatlog("end heartbeat");

@@ -490,23 +490,38 @@ namespace SkyEye.Models
                         if ((rect.Width >= 18 && rect.Width <= 20) && ((rect.X + rect.Width + 2) <= edged.Width))
                         { rect = new Rect(rect.X - 2, rect.Y, rect.Width + 4, rect.Height); }
 
-                        if (ret.Count > 0)
-                        {
-                            if (a > ret[0].Width * ret[0].Height)
-                            {
-                                ret.Clear();
-                                ret.Add(rect);
-                            }
-                        }
-                        else
-                        { ret.Add(rect); }
+                        ret.Add(rect);
+                        //if (ret.Count > 0)
+                        //{
+                        //    if (a > ret[0].Width * ret[0].Height)
+                        //    {
+                        //        ret.Clear();
+                        //        ret.Add(rect);
+                        //    }
+                        //}
+                        //else
+                        //{ ret.Add(rect); }
                     }
                 }
 
                 if (ret.Count > 0)
                 {
-                    if (CheckVerticalCutMat(srcgray, srcenhance, ret[0]))
+                    var crect = ret[0];
+                    if (ret.Count > 1)
                     {
+                        ret.Sort(delegate (Rect obj1, Rect obj2)
+                        {
+                            var a1 = obj1.Width * obj1.Height;
+                            var a2 = obj2.Width * obj2.Height;
+                            return a1.CompareTo(a2);
+                        });
+                        crect = ret[1];
+                    }
+
+                    if (CheckVerticalCutMat(srcgray, srcenhance, crect))
+                    {
+                        ret = new List<Rect>();
+                        ret.Add(crect);
                         return ret;
                     }
                     else
