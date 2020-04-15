@@ -11,7 +11,19 @@ namespace SkyEye.Models
         public static void RefreshNewLotNum(Controller ctrl)
         {
             if (!CheckRefreshFile(ctrl))
-            { return; }
+            {
+                while (true)
+                {
+                    var idx = 0;
+                    var file = ctrl.Server.MapPath("~/userfiles") + "\\Refeshing_" + DateTime.Now.ToString("yyyyMMdd");
+                    new System.Threading.ManualResetEvent(false).WaitOne(2000);
+                    if (!System.IO.File.Exists(file))
+                    { break; }
+                    idx++;
+                    if (idx > 20)
+                    { return; }
+                }
+            }
 
             try
             {
@@ -119,9 +131,9 @@ namespace SkyEye.Models
                 var file = ctrl.Server.MapPath("~/userfiles") + "\\Parsing_" + DateTime.Now.ToString("yyyyMMdd");
                 while (true)
                 {
-                    new System.Threading.ManualResetEvent(false).WaitOne(3000);
+                    new System.Threading.ManualResetEvent(false).WaitOne(2000);
                     if (!System.IO.File.Exists(file))
-                    { return; }
+                    { break; }
                     idx++;
                     if (idx > 20)
                     { return; }

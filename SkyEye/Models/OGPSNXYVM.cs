@@ -10,7 +10,7 @@ namespace SkyEye.Models
     {
         public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYSNDict(string wafernum)
         {
-            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4,WaferNum FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4,WaferNum,s.Appv_1 FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
                         inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
                         where WaferNum like '<wafernum>%' order by SN,ImgOrder asc";
             sql = sql.Replace("<wafernum>", wafernum);
@@ -27,13 +27,24 @@ namespace SkyEye.Models
                 if (ival != -1)
                 { imgval = Convert.ToString((char)ival); }
 
+                var rate = UT.O2S(line[9]);
+                var frate = 0.0;
+                if (!string.IsNullOrEmpty(rate))
+                { frate = UT.O2D(rate); }
+
                 var cat = UT.O2S(line[2]).ToUpper();
                 if (dict.ContainsKey(k))
                 {
                     if (cat.Contains("X"))
-                    { dict[k].X += imgval; }
+                    {
+                        dict[k].X += imgval;
+                        dict[k].XConfidence = dict[k].XConfidence * frate * 0.01;
+                    }
                     else
-                    { dict[k].Y += imgval; }
+                    {
+                        dict[k].Y += imgval;
+                        dict[k].YConfidence = dict[k].YConfidence * frate * 0.01;
+                    }
                 }
                 else
                 {
@@ -46,9 +57,15 @@ namespace SkyEye.Models
                     tempvm.WaferNum = UT.O2S(line[8]);
 
                     if (cat.Contains("X"))
-                    { tempvm.X += imgval; }
+                    {
+                        tempvm.X += imgval;
+                        tempvm.XConfidence = tempvm.XConfidence * frate * 0.01;
+                    }
                     else
-                    { tempvm.Y += imgval; }
+                    {
+                        tempvm.Y += imgval;
+                        tempvm.YConfidence = tempvm.YConfidence * frate * 0.01;
+                    }
                     dict.Add(k, tempvm);
                 }
             }
@@ -64,9 +81,9 @@ namespace SkyEye.Models
 
             var sncond = "(" + sb.ToString().Substring(2) + ")";
 
-            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4,WaferNum FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4,WaferNum,s.Appv_1 FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
                         inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
-                        where "+sncond+" order by SN,ImgOrder asc";
+                        where " + sncond+" order by SN,ImgOrder asc";
 
             var dict = new Dictionary<string, OGPSNXYVM>();
             var dbret = DBUtility.ExeLocalSqlWithRes(sql);
@@ -80,13 +97,24 @@ namespace SkyEye.Models
                 if (ival != -1)
                 { imgval = Convert.ToString((char)ival); }
 
+                var rate = UT.O2S(line[9]);
+                var frate = 0.0;
+                if (!string.IsNullOrEmpty(rate))
+                { frate = UT.O2D(rate); }
+
                 var cat = UT.O2S(line[2]).ToUpper();
                 if (dict.ContainsKey(k))
                 {
                     if (cat.Contains("X"))
-                    { dict[k].X += imgval; }
+                    {
+                        dict[k].X += imgval;
+                        dict[k].XConfidence = dict[k].XConfidence * frate * 0.01;
+                    }
                     else
-                    { dict[k].Y += imgval; }
+                    {
+                        dict[k].Y += imgval;
+                        dict[k].YConfidence = dict[k].YConfidence * frate * 0.01;
+                    }
                 }
                 else
                 {
@@ -99,9 +127,15 @@ namespace SkyEye.Models
                     tempvm.WaferNum = UT.O2S(line[8]).ToUpper();
 
                     if (cat.Contains("X"))
-                    { tempvm.X += imgval; }
+                    {
+                        tempvm.X += imgval;
+                        tempvm.XConfidence = tempvm.XConfidence * frate * 0.01;
+                    }
                     else
-                    { tempvm.Y += imgval; }
+                    {
+                        tempvm.Y += imgval;
+                        tempvm.YConfidence = tempvm.YConfidence * frate * 0.01;
+                    }
                     dict.Add(k, tempvm);
                 }
             }
@@ -111,7 +145,7 @@ namespace SkyEye.Models
 
         public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYMKDict(string wafernum)
         {
-            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,s.Appv_1 FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
                         inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
                         where WaferNum = '<wafernum>' order by SN,ImgOrder asc";
             sql = sql.Replace("<wafernum>", wafernum);
@@ -127,24 +161,40 @@ namespace SkyEye.Models
                 if (ival != -1)
                 { imgval = Convert.ToString((char)ival); }
 
+                var rate = UT.O2S(line[5]);
+                var frate = 0.0;
+                if (!string.IsNullOrEmpty(rate))
+                { frate = UT.O2D(rate); }
+
                 var cat = UT.O2S(line[2]).ToUpper();
                 var mk = UT.O2S(line[4]);
 
                 if (dict.ContainsKey(mk))
                 {
                     if (cat.Contains("X"))
-                    { dict[mk].X += imgval; }
+                    {
+                        dict[mk].X += imgval;
+                        dict[mk].XConfidence = dict[mk].XConfidence * frate * 0.01;
+                    }
                     else
-                    { dict[mk].Y += imgval; }
+                    {
+                        dict[mk].Y += imgval;
+                        dict[mk].YConfidence = dict[mk].YConfidence * frate * 0.01;
+                    }
                 }
                 else
                 {
                     var tempvm = new OGPSNXYVM();
-
                     if (cat.Contains("X"))
-                    { tempvm.X += imgval; }
+                    {
+                        tempvm.X += imgval;
+                        tempvm.XConfidence = tempvm.XConfidence * frate * 0.01;
+                    }
                     else
-                    { tempvm.Y += imgval; }
+                    {
+                        tempvm.Y += imgval;
+                        tempvm.YConfidence = tempvm.YConfidence * frate * 0.01;
+                    }
                     dict.Add(mk, tempvm);
                 }
             }
@@ -213,6 +263,8 @@ namespace SkyEye.Models
             Modified = "";
             WaferNum = "";
             Product = "";
+            XConfidence = 1.0;
+            YConfidence = 1.0;
         }
 
         public string MainImgKey { set; get; }
@@ -237,5 +289,16 @@ namespace SkyEye.Models
         public string Modified { set; get; }
         public string WaferNum { set; get; }
         public string Product { set; get; }
+        public double XConfidence { set; get; }
+        public double YConfidence { set; get; }
+        public string XYConfidence {
+            get {
+                if (XConfidence < 0.83)
+                { return "CFAIL"; }
+                if (YConfidence < 0.83)
+                { return "CFAIL"; }
+                return "CPASS";
+            }
+        }
     }
 }

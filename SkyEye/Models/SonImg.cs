@@ -10,8 +10,8 @@ namespace SkyEye.Models
 
         public void StoreData()
         {
-            var sql = @"insert into WAT.dbo.SonImg(MainImgKey,ChildImgKey,ChildCat,ChildImg,ImgVal,ImgOrder,UpdateTime) 
-                    values(@MainImgKey,@ChildImgKey,@ChildCat,@ChildImg,@ImgVal,@ImgOrder,@UpdateTime)";
+            var sql = @"insert into WAT.dbo.SonImg(MainImgKey,ChildImgKey,ChildCat,ChildImg,ImgVal,ImgOrder,UpdateTime,Appv_1) 
+                    values(@MainImgKey,@ChildImgKey,@ChildCat,@ChildImg,@ImgVal,@ImgOrder,@UpdateTime,@Rate)";
             var dict = new Dictionary<string, string>();
             dict.Add("@MainImgKey", MainImgKey);
             dict.Add("@ChildImgKey", ChildImgKey);
@@ -20,12 +20,13 @@ namespace SkyEye.Models
             dict.Add("@ImgVal", ImgVal.ToString());
             dict.Add("@ImgOrder", ImgOrder.ToString());
             dict.Add("@UpdateTime",DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+            dict.Add("@Rate", Rate);
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
         public static void UpdateImgVal(string imgkey,int val)
         {
-            var sql = "update WAT.dbo.SonImg set ImgVal=@ImgVal where ChildImgKey=@ChildImgKey";
+            var sql = "update WAT.dbo.SonImg set ImgVal=@ImgVal,Appv_1='100' where ChildImgKey=@ChildImgKey";
             var dict = new Dictionary<string, string>();
             dict.Add("@ChildImgKey", imgkey);
             dict.Add("@ImgVal", val.ToString());
@@ -34,7 +35,7 @@ namespace SkyEye.Models
 
         public static void UpdateImgVal(string MainImgKey, int idx, int val)
         {
-            var sql = "update WAT.dbo.SonImg set ImgVal=@ImgVal where MainImgKey=@MainImgKey and ImgOrder=@ImgOrder";
+            var sql = "update WAT.dbo.SonImg set ImgVal=@ImgVal,Appv_1='100' where MainImgKey=@MainImgKey and ImgOrder=@ImgOrder";
             var dict = new Dictionary<string, string>();
             dict.Add("@MainImgKey", MainImgKey);
             dict.Add("@ImgOrder", idx.ToString());
@@ -62,6 +63,7 @@ namespace SkyEye.Models
             ImgOrder = 0;
             ImgChecked = "FALSE";
             UpdateTime = "";
+            Rate = "";
         }
 
         public string MainImgKey { set; get; }
@@ -83,5 +85,12 @@ namespace SkyEye.Models
         public int ImgOrder { set; get; }
         public string ImgChecked { set; get; }
         public string UpdateTime { set; get; }
+        public string Rate { set; get; }
+        public double FRate { get {
+                if (string.IsNullOrEmpty(Rate))
+                { return 0; }
+                else
+                { return UT.O2D(Rate); }
+            } }
     }
 }

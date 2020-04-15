@@ -106,6 +106,8 @@
                 '<th>NEW-X</th>' +
                 '<th>NPI-Y</th>' +
                 '<th>NEW-Y</th>' +
+                //'<th>XRATE</th>' +
+                //'<th>YRATE</th>' +
                 '</tr>'
                 );
 
@@ -117,7 +119,7 @@
                         var imgyval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::Y" value="" />';
 
                         $("#imgcontent").append(
-                            '<tr>' +
+                            '<tr class="' + val.XYConfidence + '">' +
                             '<td>' + ocr.LotNum + '</td>' +
                             '<td>' + ocr.Product + '</td>' +
                             '<td>' + val.SN + '</td>' +
@@ -127,6 +129,8 @@
                             '<td>' + imgxval + '</td>' +
                             '<td>' + val.Y + '</td>' +
                             '<td>' + imgyval + '</td>' +
+                            //'<td>' + val.XConfidence + '</td>' +
+                            //'<td>' + val.YConfidence + '</td>' +
                             '</tr>'
                         );
                     });

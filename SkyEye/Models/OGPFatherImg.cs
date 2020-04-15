@@ -195,6 +195,11 @@ namespace SkyEye.Models
             , Dictionary<string, string> snmap, Dictionary<string, bool> probexymap, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
         {
             var ret = "";
+            var ratelist = new List<double>();
+            ratelist.Add(70);
+            ratelist.Add(10); ratelist.Add(10);
+            ratelist.Add(3); ratelist.Add(3);
+            ratelist.Add(2); ratelist.Add(2);
 
             Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
 
@@ -241,10 +246,12 @@ namespace SkyEye.Models
                 if (idx == 1)
                 {
                     sonimg.ImgVal = (int)Convert.ToChar("X");
+                    sonimg.Rate = "100";
                 }
                 else if (idx == 5)
                 {
                     sonimg.ImgVal = (int)Convert.ToChar("Y");
+                    sonimg.Rate = "100";
                 }
                 else
                 {
@@ -252,11 +259,25 @@ namespace SkyEye.Models
                     if (imgval > 0)
                     { sonimg.ImgVal = (int)imgval; }
 
-                    //var matched = new Mat();
-                    //var dist = new Mat();
-                    //kmode.FindNearest(stcm, 7, resultmat,matched,dist);
-                    //var matchstr = matched.Dump();
-                    //var diststr = dist.Dump();
+                    var rate = 0.0;
+                    var matched = new Mat();
+                    kmode.FindNearest(stcm, 7, resultmat, matched);
+                    var matchstr = matched.Dump();
+                    var ms = matchstr.Split(new string[] { "[", "]", "," }, StringSplitOptions.RemoveEmptyEntries);
+                    var msidx = 0;
+                    foreach (var m in ms)
+                    {
+                        if (string.Compare(m.Trim(), imgval.ToString()) == 0)
+                        {
+                            rate += ratelist[msidx];
+                            if (rate == 93 && msidx == 3)
+                            {
+                                rate = 100; break;
+                            }
+                        }
+                        msidx++;
+                    }
+                    sonimg.Rate = rate.ToString();
                 }
 
                 if (idx < midx)
@@ -288,6 +309,11 @@ namespace SkyEye.Models
             , Controller ctrl, OpenCvSharp.ML.KNearest kmode)
         {
             var ret = "";
+            var ratelist = new List<double>();
+            ratelist.Add(70);
+            ratelist.Add(10); ratelist.Add(10);
+            ratelist.Add(3); ratelist.Add(3);
+            ratelist.Add(2); ratelist.Add(2);
 
             Mat rawimg = Cv2.ImRead(imgpath, ImreadModes.Color);
 
@@ -332,16 +358,38 @@ namespace SkyEye.Models
                 if (idx == 1)
                 {
                     sonimg.ImgVal = (int)Convert.ToChar("X");
+                    sonimg.Rate = "100";
                 }
                 else if (idx == 5)
                 {
                     sonimg.ImgVal = (int)Convert.ToChar("Y");
+                    sonimg.Rate = "100";
                 }
                 else
                 {
                     var imgval = kmode.FindNearest(stcm, 1, resultmat);
                     if (imgval > 0)
                     { sonimg.ImgVal = (int)imgval; }
+
+                    var rate = 0.0;
+                    var matched = new Mat();
+                    kmode.FindNearest(stcm, 7, resultmat, matched);
+                    var matchstr = matched.Dump();
+                    var ms = matchstr.Split(new string[] { "[", "]", "," }, StringSplitOptions.RemoveEmptyEntries);
+                    var msidx = 0;
+                    foreach (var m in ms)
+                    {
+                        if (string.Compare(m.Trim(), imgval.ToString()) == 0)
+                        {
+                            rate += ratelist[msidx];
+                            if (rate == 93 && msidx == 3)
+                            {
+                                rate = 100; break;
+                            }
+                        }
+                        msidx++;
+                    }
+                    sonimg.Rate = rate.ToString();
                 }
 
                 if (idx < midx)
