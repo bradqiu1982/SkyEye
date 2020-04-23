@@ -155,8 +155,20 @@ namespace SkyEye.Models
                 { ycxlist.Add(x); }
             }
 
+            var xwd = xcxlist.Max() - xcxlist.Min();
+            var ywd = ycxlist.Max() - ycxlist.Min();
+            var blankwidth = ycxlist.Min() - xcxlist.Max();
+
             var xcmax = xcxlist.Max() + 3;
             var ycmin = ycxlist.Min() - 3;
+
+            if (Math.Abs(ywd - xwd) > 30 && blankwidth > 220)
+            {
+                if (ywd > xwd)
+                { xcmax = xcxlist.Max() + 47; }
+                else
+                { ycmin = ycxlist.Min() - 47; }
+            }
 
             var ret = new List<Rect>();
 
