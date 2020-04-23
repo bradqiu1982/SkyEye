@@ -73,6 +73,75 @@ namespace SkyEye.Models
             return dict;
         }
 
+        public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYSNDict(string lotnum,string SN_)
+        {
+            
+            var sql = @"SELECT f.SN,s.ImgVal,s.ChildCat,s.ImgOrder,f.MainImgKey,f.CaptureImg,f.RAWImgURL,f.Appv_4,WaferNum,s.Appv_1 FROM [WAT].[dbo].[OGPFatherImg] f with(nolock)
+                        inner join [WAT].[dbo].[SonImg] s with (nolock) on f.MainImgKey = s.MainImgKey
+                        where WaferNum like '<wafernum>%' and sn = '<sn>' order by ImgOrder asc";
+
+            sql = sql.Replace("<wafernum>", lotnum.Replace("=","").Replace("%", "").Replace("'", ""))
+                .Replace("<sn>", SN_.Replace("=", "").Replace("%", "").Replace("'", ""));
+
+            var dict = new Dictionary<string, OGPSNXYVM>();
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var sn = UT.O2S(line[0]);
+                var k = UT.O2S(line[4]) + ":" + sn;
+
+                var imgval = "";
+                var ival = UT.O2I(line[1]);
+                if (ival != -1)
+                { imgval = Convert.ToString((char)ival); }
+
+                var rate = UT.O2S(line[9]);
+                var frate = 0.0;
+                if (!string.IsNullOrEmpty(rate))
+                { frate = UT.O2D(rate); }
+
+                var cat = UT.O2S(line[2]).ToUpper();
+                if (dict.ContainsKey(k))
+                {
+                    if (cat.Contains("X"))
+                    {
+                        dict[k].X += imgval;
+                        dict[k].XConfidence = dict[k].XConfidence * frate * 0.01;
+                    }
+                    else
+                    {
+                        dict[k].Y += imgval;
+                        dict[k].YConfidence = dict[k].YConfidence * frate * 0.01;
+                    }
+                }
+                else
+                {
+                    var tempvm = new OGPSNXYVM();
+                    tempvm.MainImgKey = UT.O2S(line[4]);
+                    tempvm.CaptureImg = UT.O2S(line[5]);
+                    tempvm.SN = sn;
+                    tempvm.RawImg = UT.O2S(line[6]);
+                    tempvm.Modified = UT.O2S(line[7]);
+                    tempvm.WaferNum = UT.O2S(line[8]);
+
+                    if (cat.Contains("X"))
+                    {
+                        tempvm.X += imgval;
+                        tempvm.XConfidence = tempvm.XConfidence * frate * 0.01;
+                    }
+                    else
+                    {
+                        tempvm.Y += imgval;
+                        tempvm.YConfidence = tempvm.YConfidence * frate * 0.01;
+                    }
+                    dict.Add(k, tempvm);
+                }
+            }
+
+            return dict;
+        }
+
+
         public static Dictionary<string, OGPSNXYVM> GetLocalOGPXYSNDict(List<string> snlist)
         {
             var sb = new StringBuilder();
@@ -236,18 +305,23 @@ namespace SkyEye.Models
             //}
 
             var templist = localxy.Values.ToList();
-            var unmatchlist = new List<OGPSNXYVM>();
-            var matchlist = new List<OGPSNXYVM>();
-            foreach (var item in templist)
-            {
-                if (!string.IsNullOrEmpty(item.Checked))
-                { matchlist.Add(item); }
-                else
-                { unmatchlist.Add(item); }
-            }
-            unmatchlist.AddRange(matchlist);
+            templist.Sort(delegate(OGPSNXYVM obj1,OGPSNXYVM obj2) {
+                return obj2.CFDLevel.CompareTo(obj1.CFDLevel);
+            });
+            return templist;
 
-            return unmatchlist;
+            //var unmatchlist = new List<OGPSNXYVM>();
+            //var matchlist = new List<OGPSNXYVM>();
+            //foreach (var item in templist)
+            //{
+            //    if (!string.IsNullOrEmpty(item.Checked))
+            //    { matchlist.Add(item); }
+            //    else
+            //    { unmatchlist.Add(item); }
+            //}
+            //unmatchlist.AddRange(matchlist);
+
+            //return unmatchlist;
         }
 
         public OGPSNXYVM()
@@ -291,13 +365,26 @@ namespace SkyEye.Models
         public string Product { set; get; }
         public double XConfidence { set; get; }
         public double YConfidence { set; get; }
-        public string XYConfidence {
+        public int XYConfidence {
             get {
                 if (XConfidence < 0.83)
-                { return "CFAIL"; }
+                { return 3; }
                 if (YConfidence < 0.83)
-                { return "CFAIL"; }
-                return "CPASS";
+                { return 3; }
+                return 1;
+            }
+        }
+
+        public int CFDLevel {
+            get {
+                if (XConfidence * YConfidence >= 0.9)
+                { return 1; }
+                else if (XConfidence <= 0.8 || YConfidence <= 0.8)
+                { return 3; }
+                else if (XConfidence * YConfidence <= 0.7)
+                { return 3; }
+                else
+                { return 2; }
             }
         }
     }

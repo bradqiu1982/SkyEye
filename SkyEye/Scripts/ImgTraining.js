@@ -48,12 +48,9 @@
                     var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
                     //var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
                     var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="" />';
-                    var checkcla = '';
-                    if (val.pchecked.indexOf('CHECKED') != -1)
-                    { checkcla = 'GREENTR'; }
 
                     $("#imgcontent").append(
-                        '<tr class="' + checkcla + '">' +
+                        '<tr class="CFD' + val.cfdlevel + '">' +
                         '<td>' + capimg + '</td>' +
                         //'<td>' + val.chidx + '</td>' +
                         '<td>' + rawimg + '</td>' +
@@ -81,12 +78,10 @@
                     var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
                     var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
                     var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
-                    var checkcla = '';
-                    if (val.pchecked.indexOf('CHECKED') != -1)
-                    { checkcla = 'GREENTR'; }
+
 
                     $("#imgcontent").append(
-                        '<tr class="' + checkcla + '">' +
+                        '<tr>' +
                         '<td>' + capimg + '</td>' +
                         '<td>' + val.chidx + '</td>' +
                         '<td>' + val.xcoord + '</td>' +
@@ -253,12 +248,8 @@
                 var imgxval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::X" value="" />';
                 var imgyval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::Y" value="" />';
 
-                var checkcla = '';
-                if (val.Checked.indexOf('CHECKED') != -1)
-                { checkcla = 'GREENTR'; }
-
                 $("#imgcontent").append(
-                    '<tr class="' + checkcla + '">' +
+                    '<tr class="CFD' + val.CFDLevel + '">' +
                     '<td>' + val.SN + '</td>' +
                     '<td>' + rawimg + '</td>' +
                     '<td>' + capimg + '</td>' +
@@ -291,10 +282,10 @@
             if (wafernum == '')
             { alert('Please input the wafer number!'); return false; }
 
-            if (wafernum.indexOf('E') == -1
-                && wafernum.indexOf('R') == -1
-                && wafernum.indexOf('T') == -1)
-            { alert('wafer number should contains E or R or T!'); return false; }
+            //if (wafernum.indexOf('E') == -1
+            //    && wafernum.indexOf('R') == -1
+            //    && wafernum.indexOf('T') == -1)
+            //{ alert('wafer number should contains E or R or T!'); return false; }
 
             var options = {
                 loadingTips: "loading data......",
@@ -349,7 +340,9 @@
         }
 
         $('body').on('click', '#btn-recognize', function () {
+            $('#btn-recognize').attr('disabled', true);
             recognizeogpxy();
+            $('#btn-recognize').removeAttr('disabled');
         });
 
         $('body').on('click', '#btn-review', function () {
@@ -405,12 +398,9 @@
                     var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
                     //var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
                     var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="" />';
-                    var checkcla = '';
-                    if (val.pchecked.indexOf('CHECKED') != -1)
-                    { checkcla = 'GREENTR'; }
 
                     $("#imgcontent").append(
-                        '<tr class="' + checkcla + '">' +
+                        '<tr class="CFD' + val.cfdlevel + '">' +
                         '<td>' + capimg + '</td>' +
                         '<td>' + val.chidx + '</td>' +
                         '<td>' + rawimg + '</td>' +
@@ -438,12 +428,9 @@
                     var rawimg = '<a href="' + val.rawurl + '" target="_blank">RAWImg</a>';
                     var chimg = '<img src="data:image/png;base64,' + val.chimg + '" />';
                     var imgval = '<input type="text" class="valclass" vkey="' + val.cimgkey + '" value="' + val.cimgval + '" />';
-                    var checkcla = '';
-                    if (val.pchecked.indexOf('CHECKED') != -1)
-                    { checkcla = 'GREENTR'; }
 
                     $("#imgcontent").append(
-                        '<tr class="' + checkcla + '">' +
+                        '<tr>' +
                         '<td>' + capimg + '</td>' +
                         '<td>' + val.chidx + '</td>' +
                         '<td>' + val.xcoord + '</td>' +

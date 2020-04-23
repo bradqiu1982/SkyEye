@@ -18,6 +18,24 @@ namespace SkyEye.Controllers
             return View();
         }
 
+        //http://wuxinpi.china.ads.finisar.com:9091/Main/RefreshLotCoord
+        public ActionResult RefreshLotCoord()
+        {
+            try
+            {
+                GeneralOCRVM.RefreshNewLotNum(this);
+            }
+            catch (Exception ex) { }
+
+            try
+            {
+                GeneralOCRVM.ParseNewLot(this);
+            }
+            catch (Exception ex) { }
+
+            return View("Index");
+        }
+
         private void heartbeatlog(string msg)
         {
             try
@@ -215,7 +233,86 @@ namespace SkyEye.Controllers
             }
         }
 
+        public JsonResult UpdateGeneralOCRSN()
+        {
+            string updatesn = Request.Form["updatesn"];
+            var upsnlist = (List<SnCoord>)Newtonsoft.Json.JsonConvert.DeserializeObject(updatesn, (new List<SnCoord>()).GetType());
 
+            foreach (var item in upsnlist)
+            {
+                var vm = OGPSNXYVM.GetLocalOGPXYSNDict(item.lotnum, item.sn);
+                if (vm.Count > 0)
+                {
+                    var val = vm.Values.ToList()[0];
+                    if (val.X.Contains(item.x.Replace("X", "").Replace("x", ""))
+                        && val.Y.Contains(item.y.Replace("Y", "").Replace("y", "")))
+                    { }
+                    else
+                    {
+                        var modified = false;
+                        var xcharlist = item.x.Replace("X", "").Replace("x", "").ToList();
+                        if (xcharlist.Count == 3)
+                        {
+                            SonImg.UpdateImgVal(val.MainImgKey, 1, (int)Convert.ToChar("X"));
+                            SonImg.UpdateImgVal(val.MainImgKey, 2, (int)xcharlist[0]);
+                            SonImg.UpdateImgVal(val.MainImgKey, 3, (int)xcharlist[1]);
+                            SonImg.UpdateImgVal(val.MainImgKey, 4, (int)xcharlist[2]);
+                            modified = true;
+                        }
+
+                        var ycharlist = item.y.Replace("Y", "").Replace("y", "").ToList();
+                        if (ycharlist.Count == 3)
+                        {
+                            SonImg.UpdateImgVal(val.MainImgKey, 5, (int)Convert.ToChar("Y"));
+                            SonImg.UpdateImgVal(val.MainImgKey, 6, (int)ycharlist[0]);
+                            SonImg.UpdateImgVal(val.MainImgKey, 7, (int)ycharlist[1]);
+                            SonImg.UpdateImgVal(val.MainImgKey, 8, (int)ycharlist[2]);
+                            modified = true;
+                        }
+
+                        if (modified)
+                        { OGPFatherImg.UpdateModification(val.MainImgKey); }
+
+                    }//end else
+                }//end if
+            }//foreach
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                MSG = "OK"
+            };
+            return ret;
+        }
+
+        //public ActionResult PostSNData()
+        //{
+        //    var updatesnobj = new List<object>();
+        //    updatesnobj.Add(new
+        //    {
+        //        lotnum = "S2004100792",
+        //        sn = "X3FAPZS_0",
+        //        x = "X225",
+        //        y = "Y273"
+        //    });
+
+        //    updatesnobj.Add(new
+        //    {
+        //        lotnum = "S2004100792",
+        //        sn = "X3FAPZS_3",
+        //        x = "X228",
+        //        y = "Y273"
+        //    });
+
+        //    var client = new RestSharp.RestClient("http://localhost:9091/Main/UpdateGeneralOCRSN");
+        //    var request = new RestSharp.RestRequest(RestSharp.Method.POST);
+        //    request.RequestFormat = RestSharp.DataFormat.Json;
+        //    request.AddParameter("updatesn", Newtonsoft.Json.JsonConvert.SerializeObject(updatesnobj));
+        //    client.Execute(request);
+
+        //    return View("Index");
+        //}
 
     }
 

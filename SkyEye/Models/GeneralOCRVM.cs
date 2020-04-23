@@ -342,6 +342,42 @@ namespace SkyEye.Models
             return ret;
         }
 
+        public static string GetSNCoord(string LotNum)
+        {
+            var ret = new List<object>();
+            var xylist = OGPSNXYVM.GetLocalOGPXYSNDict(LotNum).Values.ToList();
+            foreach (var item in xylist)
+            {
+                if (item.XYConfidence == 3)
+                {
+                    ret.Add(new
+                    {
+                        lotnum = item.WaferNum,
+                        sn = item.SN,
+                        x = item.X,
+                        y = item.Y,
+                        confidence = "NO"
+                    });
+                }
+                else
+                {
+                    ret.Add(new
+                    {
+                        lotnum = item.WaferNum,
+                        sn = item.SN,
+                        x = item.X,
+                        y = item.Y,
+                        confidence = "YES"
+                    });
+                }
+            }
+
+            if (ret.Count == 0)
+            { return string.Empty; }
+
+            return Newtonsoft.Json.JsonConvert.SerializeObject(ret);
+        }
+
         public GeneralOCRVM()
         {
             OCRKey = "";

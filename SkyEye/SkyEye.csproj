@@ -109,6 +109,7 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\OpenCvSharp4.4.2.0.20200108\lib\net461\OpenCvSharp.UserInterface.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="RestSharp, Version=106.6.10.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
       <HintPath>..\packages\RestSharp.106.6.10\lib\net452\RestSharp.dll</HintPath>
@@ -256,6 +257,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\GeneralOCRController.cs" />
     <Compile Include="Controllers\MainController.cs" />
     <Compile Include="Controllers\OGPXYController.cs" />
     <Compile Include="Global.asax.cs">
@@ -281,6 +283,7 @@
     <Compile Include="Models\OGPSNXYVM.cs" />
     <Compile Include="Models\OGPXYFileSNMap.cs" />
     <Compile Include="Models\ProbeXYMap.cs" />
+    <Compile Include="Models\SnCoord.cs" />
     <Compile Include="Models\SonImg.cs" />
     <Compile Include="Models\UT.cs" />
     <Compile Include="Models\MoveDataBase.cs" />

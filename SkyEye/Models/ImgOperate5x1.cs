@@ -728,7 +728,7 @@ namespace SkyEye.Models
                 {
                     foreach (var item in filteredbond)
                     {
-                        if ((item.X > ret[idx].X - 20) && (item.X < ret[idx].X + 20))
+                        if ((item.X > ret[idx].X - 24) && (item.X < ret[idx].X + 24))
                         {
                             var currentrect = new Rect(item.X - 2, ret[idx].Y, item.Width + 4, ret[idx].Height);
                             if (idx == 0)
@@ -757,7 +757,7 @@ namespace SkyEye.Models
                 {
                     foreach (var item in filteredbond)
                     {
-                        if ((item.X > ret[idx].X - 20) && (item.X < ret[idx].X + 20))
+                        if ((item.X > ret[idx].X - 24) && (item.X < ret[idx].X + 24))
                         {
                             if ((idx >= 0 && idx <= 2) || (idx >= 4 && idx <= 6))
                             {

@@ -119,7 +119,7 @@
                         var imgyval = '<input type="text" class="valclass" vkey="' + val.MainImgKey + ':::Y" value="" />';
 
                         $("#imgcontent").append(
-                            '<tr class="' + val.XYConfidence + '">' +
+                            '<tr class="CFD' + val.XYConfidence + '">' +
                             '<td>' + ocr.LotNum + '</td>' +
                             '<td>' + ocr.Product + '</td>' +
                             '<td>' + val.SN + '</td>' +

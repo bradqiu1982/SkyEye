@@ -74,7 +74,7 @@ namespace SkyEye.Models
                     var xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
                     if (xyrectlist.Count > 0)
                     {
-                        var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0], 40, 56);
+                        var charmatlist = ImgOperate2x1.CutCharRect(imgpath, xyrectlist[0], 40, 56, 65);
                         if (charmatlist.Count > 0)
                         {
                             using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
@@ -602,10 +602,12 @@ namespace SkyEye.Models
                 var mk = UT.O2S(line[7]);
                 var xcoord = "";
                 var ycoord = "";
+                var cfdlevel = 2;
                 if (xydict.ContainsKey(mk))
                 {
                     xcoord = xydict[mk].X;
                     ycoord = xydict[mk].Y;
+                    cfdlevel = xydict[mk].CFDLevel;
                 }
 
                 ret.Add(new
@@ -618,7 +620,8 @@ namespace SkyEye.Models
                     cimgval = imgval,
                     pchecked = UT.O2S(line[6]),
                     xcoord = xcoord,
-                    ycoord = ycoord
+                    ycoord = ycoord,
+                    cfdlevel = cfdlevel
                 });
             }
             return ret;
@@ -646,10 +649,12 @@ namespace SkyEye.Models
                 var mk = UT.O2S(line[7]);
                 var xcoord = "";
                 var ycoord = "";
+                var cfdlevel = 2;
                 if (xydict.ContainsKey(mk))
                 {
                     xcoord = xydict[mk].X;
                     ycoord = xydict[mk].Y;
+                    cfdlevel = xydict[mk].CFDLevel;
                 }
 
                 ret.Add(new
@@ -662,7 +667,8 @@ namespace SkyEye.Models
                     cimgval = imgval,
                     pchecked = UT.O2S(line[6]),
                     xcoord = xcoord,
-                    ycoord = ycoord
+                    ycoord = ycoord,
+                    cfdlevel = cfdlevel
                 });
             }
             return ret;
