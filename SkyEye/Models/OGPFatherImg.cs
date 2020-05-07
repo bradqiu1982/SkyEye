@@ -754,7 +754,7 @@ namespace SkyEye.Models
             DBUtility.ExeLocalSqlNoRes(sql, dict);
         }
 
-        public static void Update1x4SN(List<string> snlist, string wafer)
+        public static void Update1x4SN(List<string> snlist, string wafer, int totaldies = 160)
         {
             //snlist.Add("191812-30E0601");
 
@@ -773,12 +773,12 @@ namespace SkyEye.Models
             }
         }
 
-        public static void Update1x12SN(List<string> snlist, string wafer)
+        public static void Update1x12SN(List<string> snlist, string wafer, int totaldies = 104)
         {
             //snlist.Add("192406-50R1052");
             var snidx = 0;
 
-            for (var idx = 0; idx < 104; idx++)
+            for (var idx = 0; idx < totaldies; idx++)
             {
                 var midx = idx % 2 + 1;
                 var sn = snlist[snidx] + ":::" + midx;

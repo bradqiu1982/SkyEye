@@ -279,6 +279,7 @@
     <Compile Include="Models\ImgOperateSmall5x1.cs" />
     <Compile Include="Models\ImgPreOperate.cs" />
     <Compile Include="Models\KMode.cs" />
+    <Compile Include="Models\ModuleSNWaferMap.cs" />
     <Compile Include="Models\OGPFatherImg.cs" />
     <Compile Include="Models\OGPSNXYVM.cs" />
     <Compile Include="Models\OGPXYFileSNMap.cs" />

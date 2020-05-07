@@ -189,13 +189,24 @@ namespace SkyEye.Models
                 { return false; }
             }
 
+            var snlist = new List<string>();
             foreach (var fs in filelist)
             {
                 var fn = System.IO.Path.GetFileName(fs).ToUpper();
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
                    OGPFatherImg.Load200xImg(fs, lotnum , caprev, ctrl);
+                   var sn = fn.Split(new string[] { "_", "." }, StringSplitOptions.RemoveEmptyEntries)[0].Trim().ToUpper();
+                    if (sn.Length == 7 && !snlist.Contains(sn))
+                    { snlist.Add(sn); }
                 }
+            }
+
+            if (snlist.Count > 0)
+            {
+                var snwaferdict = UT.GetWaferFromSN(snlist);
+                foreach (var kv in snwaferdict)
+                { ModuleSNWaferMap.StoreData(kv.Key, kv.Value); }
             }
 
             return true;
@@ -285,11 +296,22 @@ namespace SkyEye.Models
                 ret.Add(tempvm);
             }
 
+            var modulesnwfdict = ModuleSNWaferMap.GetSN2WF();
+
             foreach (var item in ret)
             {
                 if (!string.IsNullOrEmpty(item.Parsed))
                 {
                     var xylist = OGPSNXYVM.GetLocalOGPXYSNDict(item.LotNum);
+                    foreach (var xy in xylist)
+                    {
+                        var key = xy.Value.SN.Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+                        if (modulesnwfdict.ContainsKey(key))
+                        {
+                            xy.Value.ModuleWF = modulesnwfdict[key];
+                        }
+                    }
+
                     if (xylist.Count > 0)
                     { item.XYList.AddRange(xylist.Values.ToList());}
                 }

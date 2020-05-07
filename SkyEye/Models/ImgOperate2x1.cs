@@ -88,7 +88,7 @@ namespace SkyEye.Models
                 xymat = outxymat;
             }
 
-            var newxymat = xymat.SubMat(10, xymat.Rows - 20, (int)(xymat.Cols * 0.65), xymat.Cols - 12);
+            var newxymat = xymat.SubMat(4, xymat.Rows - 20, (int)(xymat.Cols * 0.63), xymat.Cols - 12);
 
             var xyenhance = new Mat();
             Cv2.DetailEnhance(newxymat, xyenhance);
@@ -109,6 +109,29 @@ namespace SkyEye.Models
 
             var edged = new Mat();
             Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+
+            var xypts = GetCoordPT2X1(edged);
+            var xmin = xypts[0].Min();
+            if (xmin < 6)
+            {
+                newxymat = xymat.SubMat(3, xymat.Rows - 20, (int)(xymat.Cols * 0.63-2.5), xymat.Cols - 12);
+
+                xyenhance = new Mat();
+                Cv2.DetailEnhance(newxymat, xyenhance);
+                xyenhance4x = new Mat();
+                Cv2.Resize(xyenhance, xyenhance4x, new Size(xyenhance.Width * 4, xyenhance.Height * 4));
+                Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+
+                denoisemat2 = new Mat();
+                Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat2, 10, 10, 7, 21);
+                xyenhgray = new Mat();
+                Cv2.CvtColor(denoisemat2, xyenhgray, ColorConversionCodes.BGR2GRAY);
+
+                blurred = new Mat();
+                Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
+                edged = new Mat();
+                Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+            }
 
             var rectlist = GetCharRect2X1(xyenhance4x, edged,  widthlow,  widthhigh, heightlow);
             cmatlist.Add(xyenhance);
@@ -235,7 +258,7 @@ namespace SkyEye.Models
                     }
                 }
 
-                if (wlist.Count > 8 && (ylist.Max() - ylist.Min()) > 0.6 * edged.Height)
+                if (wlist.Count > 16 && (ylist.Max() - ylist.Min()) > 0.6 * edged.Height)
                 { wptlist.AddRange(wlist); }
                 idx = idx + 15;
             }
@@ -255,7 +278,7 @@ namespace SkyEye.Models
                     }
                 }
 
-                if (hlist.Count > 8 && (xlist.Max() - xlist.Min()) > 0.6 * edged.Width)
+                if (hlist.Count > 16 && (xlist.Max() - xlist.Min()) > 0.65 * edged.Width)
                 { hptlist.AddRange(hlist); }
                 idx = idx + 15;
             }

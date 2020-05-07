@@ -85,5 +85,35 @@ namespace SkyEye.Models
             return 0.0;
         }
 
+        public static Dictionary<string, string> GetWaferFromSN(List<string> snlist)
+        {
+            var ret = new Dictionary<string, string>();
+            var sncond = "('" + string.Join("','", snlist) + "')";
+            var sql = @"select tco.ContainerName,dc.ParamValueString from [InsiteDB].[insite].[dc_IQC_InspectionResult] dc with(nolock)
+                        inner join insitedb.insite.Historymainline hml  with(nolock) on hml.HistoryMainlineId = dc.historymainlineid 
+                        inner join  InsiteDB.insite.container co (nolock) on co.containerid=hml.HistoryId
+                        inner join insitedb.insite.Product p with(nolock) on p.ProductId  = co.ProductId
+                        inner join insitedb.insite.IssueActualsHistory iah with(nolock) on iah.FromContainerId = co.ContainerId
+                        inner join  InsiteDB.insite.container tco (nolock) on iah.ToContainerId = tco.ContainerId
+                        where  tco.ContainerName in <sncond> and dc.[ParamValueString] like '%-%' and p.Description  like '%vcsel%' and dc.ParameterName = 'VendorLotNumber'";
+            sql = sql.Replace("<sncond>", sncond);
+            var dbret = DBUtility.ExeRealMESSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var sn = UT.O2S(line[0]).ToUpper();
+                var wf = UT.O2S(line[1]);
+                var wafer = wf;
+                var strs = wafer.Split(new string[] { "-" }, StringSplitOptions.RemoveEmptyEntries);
+                if (strs[0].Length == 6 && wafer.Length > 8)
+                { wafer = wafer.Substring(0, 9); }
+                else if(strs[0].Length == 5 && wafer.Length > 12)
+                { wafer = wafer.Substring(0, 13); }
+
+                if (!ret.ContainsKey(sn))
+                { ret.Add(sn, wafer); }
+            }
+            return ret;
+        }
+
     }
 }

@@ -146,3 +146,12 @@ CREATE TABLE [dbo].[GeneralOCRVM] (
 	[Appv_2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[Appv_3]   NVARCHAR (200) DEFAULT ('') NOT NULL
 );
+
+
+CREATE TABLE [dbo].[ModuleSNWaferMap] (
+	[SN]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[WaferNum]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Appv_1]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Appv_2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Appv_3]   NVARCHAR (200) DEFAULT ('') NOT NULL
+);

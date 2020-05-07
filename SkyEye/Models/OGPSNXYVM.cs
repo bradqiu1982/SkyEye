@@ -339,6 +339,7 @@ namespace SkyEye.Models
             Product = "";
             XConfidence = 1.0;
             YConfidence = 1.0;
+            ModuleWF = "";
         }
 
         public string MainImgKey { set; get; }
@@ -387,5 +388,7 @@ namespace SkyEye.Models
                 { return 2; }
             }
         }
+
+        public string ModuleWF { set; get; }
     }
 }

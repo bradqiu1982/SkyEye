@@ -691,15 +691,15 @@ namespace SkyEye.Models
 
                 ret.Add(new Rect((int)ycmin - 2, y0, 48, y1));
                 ret.Add(new Rect((int)ycmin + 53, y0, 48, y1));
-                ret.Add(new Rect((int)ycmin + 105, y0, 48, y1));
+                ret.Add(new Rect((int)ycmin + 110, y0, 48, y1));
 
-                if (((int)ycmin + 204) >= (edged.Cols - 1))
+                if (((int)ycmin + 211) >= (edged.Cols - 1))
                 {
-                    ret.Add(new Rect((int)ycmin + 156, y0, edged.Cols - (int)ycmin - 156, y1));
+                    ret.Add(new Rect((int)ycmin + 161, y0, edged.Cols - (int)ycmin - 161, y1));
                 }
                 else
                 {
-                    ret.Add(new Rect((int)ycmin + 156, y0, 48, y1));
+                    ret.Add(new Rect((int)ycmin + 161, y0, 50, y1));
                 }
 
                 cbond.Sort(delegate (Rect o1, Rect o2)
@@ -813,15 +813,15 @@ namespace SkyEye.Models
 
                 ret.Add(new Rect((int)ycmin - 2, y0, 48, y1));
                 ret.Add(new Rect((int)ycmin + 53, y0, 48, y1));
-                ret.Add(new Rect((int)ycmin + 105, y0, 48, y1));
+                ret.Add(new Rect((int)ycmin + 110, y0, 48, y1));
 
-                if (((int)ycmin + 204) >= (edged.Cols - 1))
+                if (((int)ycmin + 211) >= (edged.Cols - 1))
                 {
-                    ret.Add(new Rect((int)ycmin + 156, y0, edged.Cols - (int)ycmin - 156, y1));
+                    ret.Add(new Rect((int)ycmin + 161, y0, edged.Cols - (int)ycmin - 161, y1));
                 }
                 else
                 {
-                    ret.Add(new Rect((int)ycmin + 156, y0, 48, y1));
+                    ret.Add(new Rect((int)ycmin + 161, y0, 50, y1));
                 }
 
             }

@@ -291,6 +291,7 @@
                 $("#imghead").append(
                 '<tr>' +
                 '<th>Lot Num</th>' +
+                '<th>Wafer</th>' +
                 '<th>Product</th>' +
                 '<th>SN</th>' +
                 '<th>RAW Img</th>' +
@@ -311,6 +312,7 @@
                         $("#imgcontent").append(
                             '<tr class="' + val.Modified + '">' +
                             '<td>' + ocr.LotNum + '</td>' +
+                            '<td>' + val.ModuleWF + '</td>' +
                             '<td>' + ocr.Product + '</td>' +
                             '<td>' + val.SN + '</td>' +
                             '<td>' + rawimg + '</td>' +
@@ -442,6 +444,7 @@
                    appendstr += '<td>' + val.Y + '</td>'
                    appendstr += '<td>' + val.WaferNum + '</td>'
                    appendstr += '<td>' + val.Product + '</td>'
+                   appendstr += '<td>' + val.ModuleWF + '</td>'
                    appendstr += '</tr>';
 
                    $("#WaferTableID").append(appendstr);

@@ -544,6 +544,15 @@ namespace SkyEye.Controllers
                 { item.Product = lotproddict[item.WaferNum]; }
             }
 
+            var modulesnwfdict = ModuleSNWaferMap.GetSN2WF();
+            foreach (var item in alldata)
+            {
+                var key = item.SN.Split(new string[] { "_" }, StringSplitOptions.RemoveEmptyEntries)[0].ToUpper();
+                if (modulesnwfdict.ContainsKey(key)) {
+                    item.ModuleWF = modulesnwfdict[key];
+                }
+            }
+
             var ret = new JsonResult();
             ret.MaxJsonLength = Int32.MaxValue;
             ret.Data = new

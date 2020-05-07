@@ -191,12 +191,77 @@ namespace SkyEye.Controllers
                     {
                         OGPFatherImg.Update1x4SN(snlist, wafer);
                     }
-                    else
+                    else if (snlist.Count == 52)
                     {
                         OGPFatherImg.Update1x12SN(snlist, wafer);
                     }
 
-                    //OGPFatherImg.Update1x1SN(snlist, wafer,640);
+
+                    snfilelist = OGPFatherImg.GetSNFileData(wafer);
+                    var ret = new JsonResult();
+                    ret.MaxJsonLength = Int32.MaxValue;
+                    ret.Data = new
+                    {
+                        snfilelist = snfilelist,
+                        MSG = ""
+                    };
+                    return ret;
+                }
+                else
+                {
+                    var ret = new JsonResult();
+                    ret.MaxJsonLength = Int32.MaxValue;
+                    ret.Data = new
+                    {
+                        snfilelist = snfilelist,
+                        MSG = "the sn length is not correct"
+                    };
+                    return ret;
+                }
+            }
+            else
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    snfilelist = snfilelist,
+                    MSG = "the sn list count is not correct"
+                };
+                return ret;
+            }
+        }
+
+        public JsonResult UPDATEXYSNDataNew()
+        {
+            var marks = Request.Form["marks"];
+            List<string> snlist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+
+            var snfilelist = new List<object>();
+            if (snlist.Count == 11
+                || snlist.Count == 16
+                || snlist.Count == 47)
+            {
+                if (snlist[0].Length == 14 || snlist[0].Length == 18)
+                {
+                    var wafer = "";
+                    if (snlist[0].Length == 14)
+                    { wafer = snlist[0].Substring(0, 10); }
+                    else
+                    { wafer = snlist[0].Substring(0, 14); }
+
+                    if (snlist.Count == 11)
+                    {
+                        OGPFatherImg.Update1x1SN(snlist, wafer,352);
+                    }
+                    else if (snlist.Count == 16)
+                    {
+                        OGPFatherImg.Update1x4SN(snlist, wafer,128);
+                    }
+                    else if (snlist.Count == 47)
+                    {
+                        OGPFatherImg.Update1x12SN(snlist, wafer,94);
+                    }
 
                     snfilelist = OGPFatherImg.GetSNFileData(wafer);
                     var ret = new JsonResult();
