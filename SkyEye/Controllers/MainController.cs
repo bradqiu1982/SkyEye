@@ -351,6 +351,65 @@ namespace SkyEye.Controllers
             return ret;
         }
 
+        public ActionResult SpecialXYSN()
+        {
+            return View();
+        }
+
+        public JsonResult UPDATEXYSNDataSpecial()
+        {
+            var marks = Request.Form["marks"];
+            List<string> snlist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
+            var arrayzie = UT.O2I(Request.Form["arraysize"]);
+
+            var snfilelist = new List<object>();
+            if (snlist[0].Length == 14 || snlist[0].Length == 18)
+            {
+                var wafer = "";
+                if (snlist[0].Length == 14)
+                { wafer = snlist[0].Substring(0, 10); }
+                else
+                { wafer = snlist[0].Substring(0, 14); }
+
+                if (arrayzie == 1)
+                {
+                    var cnt = snlist.Count * 32;
+                    OGPFatherImg.Update1x1SN(snlist, wafer, cnt);
+                }
+                else if (arrayzie == 4)
+                {
+                    var cnt = snlist.Count * 8;
+                    OGPFatherImg.Update1x4SN(snlist, wafer, cnt);
+                }
+                else if (arrayzie == 12)
+                {
+                    var cnt = snlist.Count * 2;
+                    OGPFatherImg.Update1x12SN(snlist, wafer, cnt);
+                }
+
+                snfilelist = OGPFatherImg.GetSNFileData(wafer);
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    snfilelist = snfilelist,
+                    MSG = ""
+                };
+                return ret;
+            }
+            else
+            {
+                var ret = new JsonResult();
+                ret.MaxJsonLength = Int32.MaxValue;
+                ret.Data = new
+                {
+                    snfilelist = snfilelist,
+                    MSG = "the sn length is not correct"
+                };
+                return ret;
+            }
+        }
+
         //public ActionResult PostSNData()
         //{
         //    var updatesnobj = new List<object>();

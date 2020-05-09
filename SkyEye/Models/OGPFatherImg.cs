@@ -760,7 +760,7 @@ namespace SkyEye.Models
 
             var snidx = 0;
 
-            for (var idx = 0; idx < 160; idx++)
+            for (var idx = 0; idx < totaldies; idx++)
             {
                 var midx = idx % 8 + 1;
                 var sn = snlist[snidx] + ":::" + midx;

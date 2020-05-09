@@ -1,0 +1,59 @@
+﻿
+@{
+    ViewBag.Title = "SpecialXYSN";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    th, td {
+        text-align: center;
+    }
+</style>
+
+<script type="text/javascript" src="~/Scripts/XYSN.js"></script>
+<script type="text/javascript">
+    $(function(){
+        XYSNFUN.UPDATESPECSN();
+    })
+</script>
+
+<div class="row" style="height:90%!important">
+    <div class="col-xs-3 mark-lists">
+        <div class="marks-title">
+            <span>Input SN</span>
+            <div class="total-marks label-danger hide" id="total-marks">0</div>
+        </div>
+        <textarea class="form-control marks" id="marks"></textarea>
+        <div class="marks-submit">
+            
+            <div class="col-xs-3">
+                    <input class="form-control" type="text" value="ARRAY" readonly>
+            </div>
+            <div class="col-xs-5">
+                <select class="form-control" id="arraysize" name="arraysize">
+                    <option value="1">1</option>
+                    <option value="4" selected>4</option>
+                    <option value="12">12</option>
+                </select>
+            </div>
+            <div class="marks-op col-xs-4 ">
+                <input type="button" class="btn btn-success btn-marks-submit" id="btn-marks-submit" value="提交">
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-9 mark-detail">
+        <div class="mark-detail-op">
+        </div>
+        <table class="table  table-condensed" id="mywafertable">
+            <caption class="tb-caption">UPDATE VCSEL SN</caption>
+            <thead>
+                <tr>
+                    <th>SN</th>
+                    <th>FILENAME</th>
+                </tr>
+            </thead>
+            <tbody id="WaferTableID"></tbody>
+        </table>
+    </div>
+</div>
+
