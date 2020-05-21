@@ -288,6 +288,7 @@
     <Compile Include="Models\SonImg.cs" />
     <Compile Include="Models\UT.cs" />
     <Compile Include="Models\MoveDataBase.cs" />
+    <Compile Include="Models\WaterMark.cs" />
     <Compile Include="Models\WebLog.cs" />
     <Compile Include="Models\WebsiteToImage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

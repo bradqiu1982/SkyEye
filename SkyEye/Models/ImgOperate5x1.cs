@@ -14,6 +14,7 @@ namespace SkyEye.Models
             var ret = new List<Rect>();
 
             var edged = new Mat();
+            //10,100
             Cv2.Canny(blurred, edged, 50, 200, 3, cflag);
 
             //using (new Window("edged", edged))

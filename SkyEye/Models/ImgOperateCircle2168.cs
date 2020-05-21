@@ -70,6 +70,55 @@ namespace SkyEye.Models
             return false;
         }
 
+        public static void Cutx(string imgpath)
+        {
+            Mat src = Cv2.ImRead(imgpath, ImreadModes.Color);
+            var detectsize = GetDetectPoint(src);
+            var srcrealimg = src.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
+
+            var xyenhance = new Mat();
+            Cv2.DetailEnhance(srcrealimg, xyenhance);
+
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoisingColored(xyenhance, denoisemat, 10, 10, 7, 21);
+
+
+            var xyenhgray = new Mat();
+            Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
+
+            var blurred = new Mat();
+            Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
+
+            var edged = new Mat();
+            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+            using (new Window("edged", edged))
+            {
+                Cv2.WaitKey();
+            }
+
+            var high = srcrealimg.Height;
+            var minrad = (int)(high * 0.12) - 10;
+            var maxrad = (int)(high * 0.155) + 10;
+
+            var hl = 0.375 * high;
+            var hh = 0.625 * high;
+
+            ////edged.Rows / 8, 100, 70, 10, 800
+            var circles = Cv2.HoughCircles(xyenhgray, HoughMethods.Gradient, 1, xyenhgray.Rows / 4, 100, 70, minrad, maxrad);
+            foreach (var c in circles)
+            {
+                var centerh = (int)c.Center.Y;
+                if (centerh >= hl && centerh <= hh)
+                {
+                    Cv2.Circle(xyenhance, (int)c.Center.X, (int)c.Center.Y, (int)c.Radius, new Scalar(0, 255, 0), 3);
+                    using (new Window("srcimg", xyenhance))
+                    {
+                        Cv2.WaitKey();
+                    }
+                }
+            }
+        }
+
         //38,64,50,100,1.85,2.7,3.56,40,60
         public static List<Mat> CutCharRect(string file, int cwdlow, int cwdhigh, int chdlow, int chdhigh,double xc,double ylc,double yhc, double radlow, double radhigh)
         {
