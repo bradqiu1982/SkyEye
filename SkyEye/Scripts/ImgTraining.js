@@ -306,7 +306,7 @@
             });
         }
 
-        function recognizeogpxy() {
+        function recognizeogpxy(fixangle) {
             var wafernum = $('#wafernum').val().trim();
             var fpath = $('#imgfolder').val().trim();
 
@@ -330,7 +330,8 @@
 
             $.post('/OGPXY/OGPXYRecognize', {
                 fpath: fpath,
-                wafer: wafernum
+                wafer: wafernum,
+                fixangle: fixangle
             }, function (output) {
                 $.bootstrapLoading.end();
                 solverecognizeresult(output);
@@ -341,8 +342,14 @@
 
         $('body').on('click', '#btn-recognize', function () {
             $('#btn-recognize').attr('disabled', true);
-            recognizeogpxy();
+            recognizeogpxy("FALSE");
             $('#btn-recognize').removeAttr('disabled');
+        });
+
+        $('body').on('click', '#btn-recognangle', function () {
+            $('#btn-recognangle').attr('disabled', true);
+            recognizeogpxy("TRUE");
+            $('#btn-recognangle').removeAttr('disabled');
         });
 
         $('body').on('click', '#btn-review', function () {

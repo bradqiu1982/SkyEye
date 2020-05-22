@@ -52,10 +52,16 @@ namespace SkyEye.Models
             return ret;
         }
 
-        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh,int areahigh)
+        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh,int areahigh, bool fixangle = false)
         {
             var ret = new List<Rect>();
             Mat src = Cv2.ImRead(file, ImreadModes.Grayscale);
+            if (fixangle)
+            {
+                var angle = ImgPreOperate.GetAngle(file);
+                if (angle >= 0.7 && angle <= 359.3)
+                { src = ImgPreOperate.GetFixedAngleImg(src,angle); }
+            }
 
             var denoisemat = new Mat();
             Cv2.FastNlMeansDenoising(src, denoisemat, 10, 7, 21);
@@ -471,11 +477,18 @@ namespace SkyEye.Models
             return cmatlist;
         }
 
-        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh)
+        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle = false)
         {
             var cmatlist = new List<Mat>();
 
             Mat src = Cv2.ImRead(imgpath, ImreadModes.Color);
+            if (fixangle)
+            {
+                var angle = ImgPreOperate.GetAngle(imgpath);
+                if (angle >= 0.7 && angle <= 359.3)
+                { src = ImgPreOperate.GetFixedAngleImg(src, angle); }
+            }
+
             var xymat = src.SubMat(xyrect);
 
             var availableimgpt = GetDetectPoint(src);

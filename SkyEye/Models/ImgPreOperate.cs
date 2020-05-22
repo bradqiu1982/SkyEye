@@ -10,6 +10,49 @@ namespace SkyEye.Models
 {
     public class ImgPreOperate
     {
+
+        public static double GetAngle(string imgpath)
+        {
+            Mat srcimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+            var src = new Mat();
+            Cv2.CvtColor(srcimg, src, ColorConversionCodes.BGR2GRAY);
+
+            var blurred = new Mat();
+            Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
+
+            var edged = new Mat();
+            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+
+            var lines = Cv2.HoughLinesP(edged, 1, Math.PI / 180.0, 50, 80, 5);
+            foreach (var line in lines)
+            {
+                var degree = Math.Atan2((line.P2.Y - line.P1.Y), (line.P2.X - line.P1.X));
+                var d360 = (degree > 0 ? degree : (2 * Math.PI + degree)) * 360 / (2 * Math.PI);
+
+                if (d360 > 20 && d360 < 340)
+                { continue; }
+
+                //Cv2.Line(srcimg, line.P1, line.P2, new Scalar(0, 255, 0), 3);
+                //using (new Window("srcimg", srcimg))
+                //{
+                //    Cv2.WaitKey();
+                //}
+
+                if (d360 <= 4 || d360 >= 356)
+                { return d360; }
+            }
+            return 0;
+        }
+
+        public static Mat GetFixedAngleImg(Mat src, double angle)
+        {
+            var center = new Point2f(src.Width / 2, src.Height / 2);
+            var m = Cv2.GetRotationMatrix2D(center, angle, 1);
+            var outxymat = new Mat();
+            Cv2.WarpAffine(src, outxymat, m, new Size(src.Width, src.Height));
+            return outxymat;
+        }
+
         public static string FixImgAngle(string imgpath, Controller ctrl)
         {
             var ret = "";
@@ -22,7 +65,7 @@ namespace SkyEye.Models
             Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
 
             var edged = new Mat();
-            Cv2.Canny(blurred, edged, 50, 200, 3, true);
+            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
 
             var lines = Cv2.HoughLinesP(edged, 1, Math.PI / 180.0, 50, 80, 5);
             foreach (var line in lines)

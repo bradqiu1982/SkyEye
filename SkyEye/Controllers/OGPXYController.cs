@@ -205,6 +205,10 @@ namespace SkyEye.Controllers
         {
             var wafer = Request.Form["wafer"].Trim().Replace("\\", "").Replace("/", "");
             var folder = Request.Form["fpath"];
+            var fixangle = false;
+            var sfixangle = Request.Form["fixangle"];
+            if (sfixangle.Contains("TRUE"))
+            { fixangle = true; }
 
             var xylist = new List<OGPSNXYVM>();
             var ret = new JsonResult();
@@ -252,10 +256,10 @@ namespace SkyEye.Controllers
             }
 
             var caprev = "";
-            caprev = OGPFatherImg.GetPictureRev(samplepicture[0]);
+            caprev = OGPFatherImg.GetPictureRev(samplepicture[0], fixangle);
             if (string.IsNullOrEmpty(caprev))
             {
-                caprev = OGPFatherImg.GetPictureRev(samplepicture[1]);
+                caprev = OGPFatherImg.GetPictureRev(samplepicture[1], fixangle);
                 if (string.IsNullOrEmpty(caprev))
                 {
                     CleanWaferParseFile(wafer);
@@ -274,7 +278,7 @@ namespace SkyEye.Controllers
                 var fn = System.IO.Path.GetFileName(fs).ToUpper();
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
-                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this);
+                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, fixangle);
                     if (!string.IsNullOrEmpty(imgkey))
                     {
                         keylist.Add(imgkey);

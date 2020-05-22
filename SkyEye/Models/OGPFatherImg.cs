@@ -11,13 +11,13 @@ namespace SkyEye.Models
     public class OGPFatherImg
     {
 
-        public static string GetPictureRev(string imgpath)
+        public static string GetPictureRev(string imgpath,bool fixangle=false)
         {
             var xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000,50);
             if (xyrectlist.Count > 0)
             { return "OGP-small5x1"; }
 
-            xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
+            xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000,fixangle);
             if (xyrectlist.Count > 0)
             { return "OGP-rect5x1"; }
 
@@ -33,7 +33,7 @@ namespace SkyEye.Models
         }
         
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
-            , Dictionary<string, bool> probexymap,string caprev, Controller ctrl)
+            , Dictionary<string, bool> probexymap,string caprev, Controller ctrl, bool fixangle = false)
         {
             try
             {
@@ -50,10 +50,10 @@ namespace SkyEye.Models
                 }
                 else if (caprev.Contains("OGP-rect5x1"))
                 {
-                    var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
+                    var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000,fixangle);
                     if (xyrectlist.Count > 0)
                     {
-                        var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
+                        var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67, fixangle);
                         if (charmatlist.Count > 0)
                         {
                             using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
