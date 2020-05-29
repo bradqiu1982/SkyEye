@@ -33,7 +33,8 @@ namespace SkyEye.Models
                 var dict = new Dictionary<string, string>();
                 dict.Add("@LoadTimestamp", latesttime);
 
-                var sql = "select [Lot],[LoadTimestamp],[PC],[Product],[Path],[Employee] from [AIProjects].[dbo].[OGP_Ins_Online_Lot] where [LoadTimestamp] >= @LoadTimestamp";
+                var sql = @"select [Lot],[MoveOutTimeStamp],[PC],[Product],[Path],[Employee] from [AIProjects].[dbo].[OGP_Ins_Online_Lot]  
+                            where [MoveOutTimeStamp]  is not null and MoveOut is not null and [MoveOutTimeStamp] >= @LoadTimestamp and MoveOut=1";
                 var dbret = DBUtility.ExeMeOCRSqlWithRes(sql, dict);
                 foreach (var line in dbret)
                 {
