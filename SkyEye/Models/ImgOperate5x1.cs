@@ -673,6 +673,8 @@ namespace SkyEye.Models
             var ycmin = ycxlist.Min() - 3;
 
             var ret = new List<Rect>();
+            var wd = 48;
+            var rectrange = 25;
 
             if (cbond.Count > 0)
             {
@@ -692,20 +694,20 @@ namespace SkyEye.Models
 
                 if ((int)xcmax - 226 > 0)
                 {
-                    ret.Add(new Rect((int)xcmax - 226, y0, 48, y1));
+                    ret.Add(new Rect((int)xcmax - 226, y0, wd, y1));
                 }
                 else
                 {
-                    ret.Add(new Rect(0, y0, 48, y1));
+                    ret.Add(new Rect(0, y0, wd, y1));
                 }
 
-                ret.Add(new Rect((int)xcmax - 164, y0, 48, y1));
-                ret.Add(new Rect((int)xcmax - 110, y0, 48, y1));
-                ret.Add(new Rect((int)xcmax - 55, y0, 48, y1));
+                ret.Add(new Rect((int)xcmax - 164, y0, wd, y1));
+                ret.Add(new Rect((int)xcmax - 110, y0, wd, y1));
+                ret.Add(new Rect((int)xcmax - 55, y0, wd, y1));
 
-                ret.Add(new Rect((int)ycmin - 2, y0, 48, y1));
-                ret.Add(new Rect((int)ycmin + 53, y0, 48, y1));
-                ret.Add(new Rect((int)ycmin + 110, y0, 48, y1));
+                ret.Add(new Rect((int)ycmin - 2, y0, wd, y1));
+                ret.Add(new Rect((int)ycmin + 53, y0, wd, y1));
+                ret.Add(new Rect((int)ycmin + 110, y0, wd, y1));
 
                 if (((int)ycmin + 211) >= (edged.Cols - 1))
                 {
@@ -742,7 +744,7 @@ namespace SkyEye.Models
                 {
                     foreach (var item in filteredbond)
                     {
-                        if ((item.X > ret[idx].X - 24) && (item.X < ret[idx].X + 24))
+                        if ((item.X >= ret[idx].X - rectrange) && (item.X <= ret[idx].X + rectrange))
                         {
                             var currentrect = new Rect(item.X - 2, ret[idx].Y, item.Width + 4, ret[idx].Height);
                             if (idx == 0)
@@ -755,9 +757,9 @@ namespace SkyEye.Models
                                 currentrect = new Rect(item.X, ret[idx].Y, (edged.Width - item.Width - 4) > 0 ? (item.Width + 4) : (edged.Width - item.X - 1), ret[idx].Height);
                             }
 
-                            ret[idx] = currentrect;
+                            //ret[idx] = currentrect;
 
-                            if (!changedict.ContainsKey(idx))
+                            if (!changedict.ContainsKey(idx) && currentrect.Width < (wd+10))
                             {
                                 ret[idx] = currentrect;
                                 changedict.Add(idx, true);
@@ -771,7 +773,7 @@ namespace SkyEye.Models
                 {
                     foreach (var item in filteredbond)
                     {
-                        if ((item.X > ret[idx].X - 24) && (item.X < ret[idx].X + 24))
+                        if ((item.X >= ret[idx].X - rectrange) && (item.X <= ret[idx].X + rectrange))
                         {
                             if ((idx >= 0 && idx <= 2) || (idx >= 4 && idx <= 6))
                             {
@@ -781,7 +783,7 @@ namespace SkyEye.Models
                                     nextrect = new Rect(item.X + item.Width + 4, ret[idx].Y, (edged.Width - item.X - 2 * item.Width - 8) > 0 ? (item.Width + 4) : (edged.Width - item.X - item.Width - 4), ret[idx].Height);
                                 }
 
-                                if (!changedict.ContainsKey(idx + 1))
+                                if (!changedict.ContainsKey(idx + 1) && nextrect.Width < (wd + 10))
                                 {
                                     ret[idx + 1] = nextrect;
                                     changedict.Add(idx + 1, true);
@@ -796,7 +798,7 @@ namespace SkyEye.Models
                                     nextrect = new Rect((item.X - item.Width - 6) > 0 ? (item.X - item.Width - 6) : 0, ret[idx].Y, item.Width, ret[idx].Height);
                                 }
 
-                                if (!changedict.ContainsKey(idx - 1))
+                                if (!changedict.ContainsKey(idx - 1) && nextrect.Width < (wd + 10))
                                 {
                                     ret[idx - 1] = nextrect;
                                     changedict.Add(idx - 1, true);
@@ -814,20 +816,20 @@ namespace SkyEye.Models
 
                 if ((int)xcmax - 226 > 0)
                 {
-                    ret.Add(new Rect((int)xcmax - 226, y0, 48, y1));
+                    ret.Add(new Rect((int)xcmax - 226, y0, wd, y1));
                 }
                 else
                 {
-                    ret.Add(new Rect(0, y0, 48, y1));
+                    ret.Add(new Rect(0, y0, wd, y1));
                 }
 
-                ret.Add(new Rect((int)xcmax - 164, y0, 48, y1));
-                ret.Add(new Rect((int)xcmax - 110, y0, 48, y1));
-                ret.Add(new Rect((int)xcmax - 55, y0, 48, y1));
+                ret.Add(new Rect((int)xcmax - 164, y0, wd, y1));
+                ret.Add(new Rect((int)xcmax - 110, y0, wd, y1));
+                ret.Add(new Rect((int)xcmax - 55, y0, wd, y1));
 
-                ret.Add(new Rect((int)ycmin - 2, y0, 48, y1));
-                ret.Add(new Rect((int)ycmin + 53, y0, 48, y1));
-                ret.Add(new Rect((int)ycmin + 110, y0, 48, y1));
+                ret.Add(new Rect((int)ycmin - 2, y0, wd, y1));
+                ret.Add(new Rect((int)ycmin + 53, y0, wd, y1));
+                ret.Add(new Rect((int)ycmin + 110, y0, wd, y1));
 
                 if (((int)ycmin + 211) >= (edged.Cols - 1))
                 {
