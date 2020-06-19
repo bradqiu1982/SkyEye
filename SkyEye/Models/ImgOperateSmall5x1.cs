@@ -170,6 +170,21 @@ namespace SkyEye.Models
                 { ycmin = ycxlist.Min() - 47; }
             }
 
+            if (Math.Abs((ycmin - xmid) - (xmid - xcmax)) >= 14)
+            {
+                if ((ycmin - xmid) > (xmid - xcmax))
+                { ycmin = ycmin - 10; }
+                else
+                { xcmax = xcmax + 10; }
+            }
+            else if (Math.Abs((ycmin - xmid) - (xmid - xcmax)) >= 8)
+            {
+                if ((ycmin - xmid) > (xmid - xcmax))
+                { ycmin = ycmin - 5; }
+                else
+                { xcmax = xcmax + 5; }
+            }
+
             var ret = new List<Rect>();
 
             if (cbond.Count > 0)
@@ -183,6 +198,9 @@ namespace SkyEye.Models
                 var filteredbond = new List<Rect>();
                 foreach (var item in cbond)
                 {
+                    if (item.X <= 3)
+                    { continue; }
+
                     if (filteredbond.Count == 0)
                     {
                         filteredbond.Add(item);
