@@ -724,6 +724,9 @@ namespace SkyEye.Models
                 var filteredbond = new List<Rect>();
                 foreach (var item in cbond)
                 {
+                    if (item.X <= 3)
+                    { continue; }
+
                     if (filteredbond.Count == 0)
                     {
                         filteredbond.Add(item);

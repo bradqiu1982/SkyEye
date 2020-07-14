@@ -112,6 +112,46 @@ namespace SkyEye.Models
                 if (!ret.ContainsKey(sn))
                 { ret.Add(sn, wafer); }
             }
+
+            var leftsnlist = new List<string>();
+            foreach (var sn in snlist)
+            {
+                if (!ret.ContainsKey(sn.Trim().ToUpper()))
+                {
+                    leftsnlist.Add(sn.Trim());
+                }
+            }
+
+            if (leftsnlist.Count > 0)
+            {
+                sncond = "('" + string.Join("','", leftsnlist) + "')";
+                sql = @"select tco.ContainerName,dc.ParamValueString
+	                    from InsiteDB.insite.container fco (nolock) 
+	                    inner join insitedb.insite.IssueActualsHistory iah with(nolock) on iah.FromContainerId = fco.ContainerId
+	                    inner join  InsiteDB.insite.container tco (nolock) on iah.ToContainerId = tco.ContainerId
+	                    inner join insitedb.insite.Product p  (nolock) on p.ProductId  = fco.ProductId
+	                    inner join  InsiteDB.insite.container orgco (nolock) on orgco.ContainerName = fco.DateCode
+	                    inner join insitedb.insite.Historymainline hml  with(nolock) on hml.HistoryId = orgco.ContainerId
+	                    inner join InsiteDB.insite.dc_AOC_ManualInspection dc (nolock) on dc.historymainlineid = hml.historymainlineid
+	                     where tco.ContainerName in <sncond> and p.description like '%VCSEL%' and dc.ParameterName = 'Trace_ID' and dc.ParamValueString is not null";
+                sql = sql.Replace("<sncond>", sncond);
+                dbret = DBUtility.ExeRealMESSqlWithRes(sql);
+                foreach (var line in dbret)
+                {
+                    var sn = UT.O2S(line[0]).ToUpper();
+                    var wf = UT.O2S(line[1]);
+                    var wafer = wf;
+                    var strs = wafer.Split(new string[] { "-" }, StringSplitOptions.RemoveEmptyEntries);
+                    if (strs[0].Length == 6 && wafer.Length > 8)
+                    { wafer = wafer.Substring(0, 9); }
+                    else if (strs[0].Length == 5 && wafer.Length > 12)
+                    { wafer = wafer.Substring(0, 13); }
+
+                    if (!ret.ContainsKey(sn))
+                    { ret.Add(sn, wafer); }
+                }
+            }
+
             return ret;
         }
 
