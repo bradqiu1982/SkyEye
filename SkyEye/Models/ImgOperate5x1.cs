@@ -52,16 +52,20 @@ namespace SkyEye.Models
             return ret;
         }
 
-        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh,int areahigh, bool fixangle = false)
+        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh,int areahigh,bool checkcharimg, bool fixangle = false)
         {
             var ret = new List<Rect>();
-            Mat src = Cv2.ImRead(file, ImreadModes.Grayscale);
+
+            var srccolor = Cv2.ImRead(file, ImreadModes.Color);
             if (fixangle)
             {
                 var angle = ImgPreOperate.GetAngle(file);
                 if (angle >= 0.7 && angle <= 359.3)
-                { src = ImgPreOperate.GetFixedAngleImg(src,angle); }
+                { srccolor = ImgPreOperate.GetFixedAngleImg(srccolor, angle); }
             }
+
+            Mat src = new Mat();
+            Cv2.CvtColor(srccolor, src, ColorConversionCodes.BGR2GRAY);
 
             var denoisemat = new Mat();
             Cv2.FastNlMeansDenoising(src, denoisemat, 10, 7, 21);
@@ -83,6 +87,42 @@ namespace SkyEye.Models
             { ret.AddRange(truerect); }
             else
             { ret.AddRange(falserect); }
+
+            if (ret.Count > 0 && checkcharimg)
+            {
+                var charmat = srccolor.SubMat(ret[0]);
+                Cv2.DetailEnhance(charmat, charmat);
+                var charmat4x = new Mat();
+                Cv2.Resize(charmat, charmat4x, new Size(charmat.Width * 4, charmat.Height * 4));
+                Cv2.DetailEnhance(charmat4x, charmat4x);
+
+                var kaze = KAZE.Create();
+                var kazeDescriptors = new Mat();
+                KeyPoint[] kazeKeyPoints = null;
+                kaze.DetectAndCompute(charmat4x, null, out kazeKeyPoints, kazeDescriptors);
+                var hptlist = new List<KeyPoint>();
+                var cl = 0.3 * charmat4x.Height;
+                var ch = 0.7 * charmat4x.Height;
+                var rl = 60;
+                var rlh = charmat4x.Width * 0.3;
+                var rhl = charmat4x.Width * 0.7;
+                var rh = charmat4x.Width - 60;
+
+
+                foreach (var pt in kazeKeyPoints)
+                {
+                    if (pt.Pt.Y >= cl && pt.Pt.Y <= ch
+                        && ((pt.Pt.X >= rl && pt.Pt.X <= rlh) || (pt.Pt.X >= rhl && pt.Pt.X <= rh)))
+                    {
+                        hptlist.Add(pt);
+                    }
+                }
+
+                if (hptlist.Count < 180)
+                {
+                    return new List<Rect>();
+                }
+            }
 
             //var cannyflags = new List<bool>();
             //cannyflags.Add(false);
