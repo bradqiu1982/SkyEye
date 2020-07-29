@@ -13,25 +13,31 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>02/22/2013 08:43:40</publishTime>
     </File>
     <File Include="bin/App_global.asax.compiled">
-      <publishTime>05/28/2020 16:41:15</publishTime>
+      <publishTime>07/20/2020 13:54:28</publishTime>
     </File>
     <File Include="bin/App_global.asax.dll">
-      <publishTime>05/28/2020 16:41:15</publishTime>
+      <publishTime>07/20/2020 13:54:27</publishTime>
     </File>
     <File Include="bin/CsvHelper.dll">
       <publishTime>12/06/2019 16:25:26</publishTime>
     </File>
     <File Include="bin/dll/x64/OpenCvSharpExtern.dll">
-      <publishTime>01/08/2020 00:19:38</publishTime>
+      <publishTime>02/08/2020 02:37:30</publishTime>
     </File>
     <File Include="bin/dll/x64/opencv_videoio_ffmpeg420_64.dll">
-      <publishTime>01/08/2020 00:17:10</publishTime>
+      <publishTime>02/08/2020 02:34:52</publishTime>
+    </File>
+    <File Include="bin/dll/x64/opencv_videoio_ffmpeg430_64.dll">
+      <publishTime>04/04/2020 08:19:30</publishTime>
     </File>
     <File Include="bin/dll/x86/OpenCvSharpExtern.dll">
-      <publishTime>01/08/2020 00:24:10</publishTime>
+      <publishTime>02/08/2020 02:43:46</publishTime>
     </File>
     <File Include="bin/dll/x86/opencv_videoio_ffmpeg420.dll">
-      <publishTime>01/08/2020 00:17:12</publishTime>
+      <publishTime>02/08/2020 02:34:54</publishTime>
+    </File>
+    <File Include="bin/dll/x86/opencv_videoio_ffmpeg430.dll">
+      <publishTime>04/04/2020 14:16:10</publishTime>
     </File>
     <File Include="bin/DocumentFormat.OpenXml.dll">
       <publishTime>03/12/2019 23:55:14</publishTime>
@@ -106,22 +112,25 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/12/2018 19:32:30</publishTime>
     </File>
     <File Include="bin/OpenCvSharp.Blob.dll">
-      <publishTime>01/08/2020 00:19:58</publishTime>
+      <publishTime>02/08/2020 02:39:02</publishTime>
     </File>
     <File Include="bin/OpenCvSharp.dll">
-      <publishTime>01/08/2020 00:19:56</publishTime>
+      <publishTime>02/08/2020 02:38:58</publishTime>
     </File>
     <File Include="bin/OpenCvSharp.Extensions.dll">
-      <publishTime>01/08/2020 00:19:58</publishTime>
+      <publishTime>02/08/2020 02:39:10</publishTime>
     </File>
     <File Include="bin/OpenCvSharp.UserInterface.dll">
       <publishTime>01/08/2020 00:19:58</publishTime>
     </File>
     <File Include="bin/OpenCvSharpExtern.dll">
-      <publishTime>01/12/2020 09:41:24</publishTime>
+      <publishTime>07/20/2020 13:43:43</publishTime>
     </File>
     <File Include="bin/opencv_videoio_ffmpeg420_64.dll">
-      <publishTime>01/12/2020 09:41:24</publishTime>
+      <publishTime>07/20/2020 13:43:42</publishTime>
+    </File>
+    <File Include="bin/opencv_videoio_ffmpeg430_64.dll">
+      <publishTime>05/29/2020 13:16:53</publishTime>
     </File>
     <File Include="bin/Owin.dll">
       <publishTime>11/27/2012 13:00:52</publishTime>
@@ -133,7 +142,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>03/13/2019 16:34:53</publishTime>
     </File>
     <File Include="bin/SkyEye.dll">
-      <publishTime>05/28/2020 16:40:40</publishTime>
+      <publishTime>07/20/2020 13:52:32</publishTime>
     </File>
     <File Include="bin/System.IO.FileSystem.Primitives.dll">
       <publishTime>11/05/2016 04:56:08</publishTime>
@@ -143,6 +152,9 @@ by editing this MSBuild file. In order to learn more about this please visit htt
     </File>
     <File Include="bin/System.Net.Http.Formatting.dll">
       <publishTime>11/28/2018 13:00:36</publishTime>
+    </File>
+    <File Include="bin/System.Runtime.CompilerServices.Unsafe.dll">
+      <publishTime>02/21/2020 03:58:04</publishTime>
     </File>
     <File Include="bin/System.ValueTuple.dll">
       <publishTime>05/15/2018 13:29:52</publishTime>
@@ -1516,16 +1528,22 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/28/2018 10:16:47</publishTime>
     </File>
     <File Include="dll/x64/OpenCvSharpExtern.dll">
-      <publishTime>01/08/2020 00:19:38</publishTime>
+      <publishTime>02/08/2020 02:37:30</publishTime>
     </File>
     <File Include="dll/x64/opencv_videoio_ffmpeg420_64.dll">
-      <publishTime>01/08/2020 00:17:10</publishTime>
+      <publishTime>02/08/2020 02:34:52</publishTime>
+    </File>
+    <File Include="dll/x64/opencv_videoio_ffmpeg430_64.dll">
+      <publishTime>04/04/2020 08:19:30</publishTime>
     </File>
     <File Include="dll/x86/OpenCvSharpExtern.dll">
-      <publishTime>01/08/2020 00:24:10</publishTime>
+      <publishTime>02/08/2020 02:43:46</publishTime>
     </File>
     <File Include="dll/x86/opencv_videoio_ffmpeg420.dll">
-      <publishTime>01/08/2020 00:17:12</publishTime>
+      <publishTime>02/08/2020 02:34:54</publishTime>
+    </File>
+    <File Include="dll/x86/opencv_videoio_ffmpeg430.dll">
+      <publishTime>04/04/2020 14:16:10</publishTime>
     </File>
     <File Include="favicon.ico">
       <publishTime>06/28/2018 09:14:13</publishTime>
@@ -1546,10 +1564,10 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/28/2018 16:58:51</publishTime>
     </File>
     <File Include="packages.config">
-      <publishTime>02/02/2020 14:58:18</publishTime>
+      <publishTime>07/20/2020 13:40:59</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>05/28/2020 16:40:53</publishTime>
+      <publishTime>07/20/2020 13:53:34</publishTime>
     </File>
     <File Include="Scripts/ajaxfileupload.js">
       <publishTime>06/28/2018 10:27:19</publishTime>
@@ -1846,7 +1864,7 @@ by editing this MSBuild file. In order to learn more about this please visit htt
       <publishTime>06/28/2018 09:14:13</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>05/22/2020 15:43:52</publishTime>
+      <publishTime>07/20/2020 13:52:35</publishTime>
     </File>
   </ItemGroup>
 </Project>

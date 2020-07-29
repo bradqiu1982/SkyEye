@@ -42,6 +42,61 @@ namespace SkyEye.Models
             { rects.AddRange(frects); }
             else if (trects.Count > 0)
             { rects.AddRange(trects); }
+
+            if (rects.Count == 0)
+            { return new List<Rect>(); }
+
+            var coormat = srcenhance.SubMat(rects[0]);
+            if (rects[0].Height > rects[0].Width)
+            {
+                var outxymat = new Mat();
+                Cv2.Transpose(coormat, outxymat);
+                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                Cv2.Transpose(outxymat, outxymat);
+                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                Cv2.Transpose(outxymat, outxymat);
+                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                coormat = outxymat;
+            }
+
+            Cv2.DetailEnhance(coormat, coormat);
+
+            var coormatresize = new Mat();
+            Cv2.Resize(coormat, coormatresize, new Size(coormat.Cols * 4, coormat.Rows * 4), 0, 0, InterpolationFlags.Linear);
+
+            var charmat4x = coormatresize.Clone();
+            var kaze = KAZE.Create();
+            var kazeDescriptors = new Mat();
+            KeyPoint[] kazeKeyPoints = null;
+            kaze.DetectAndCompute(charmat4x, null, out kazeKeyPoints, kazeDescriptors);
+            var hptlist = new List<KeyPoint>();
+            var cl = 0.3 * charmat4x.Height;
+            var ch = 0.7 * charmat4x.Height;
+            var rl = 60;
+            var rlh = charmat4x.Width * 0.3;
+            var rhl = charmat4x.Width * 0.7;
+            var rh = charmat4x.Width - 60;
+
+            foreach (var pt in kazeKeyPoints)
+            {
+                if (pt.Pt.Y >= cl && pt.Pt.Y <= ch
+                    && ((pt.Pt.X >= rl && pt.Pt.X <= rlh) || (pt.Pt.X >= rhl && pt.Pt.X <= rh)))
+                {
+                    hptlist.Add(pt);
+                }
+            }
+
+            if (hptlist.Count < 100)
+            {
+                return new List<Rect>();
+                //var dstKaze = new Mat();
+                //Cv2.DrawKeypoints(charmat4x, hptlist.ToArray(), dstKaze);
+                //using (new Window("less point dstKaze", dstKaze))
+                //{
+                //    Cv2.WaitKey();
+                //}
+            }
+
             return rects;
         }
 
