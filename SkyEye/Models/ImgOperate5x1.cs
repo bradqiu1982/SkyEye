@@ -118,7 +118,7 @@ namespace SkyEye.Models
                     }
                 }
 
-                if (hptlist.Count < 180)
+                if (hptlist.Count < 140)
                 {
                     return new List<Rect>();
                 }
