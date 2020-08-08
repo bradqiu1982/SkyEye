@@ -124,50 +124,6 @@ namespace SkyEye.Models
                 }
             }
 
-            //var cannyflags = new List<bool>();
-            //cannyflags.Add(false);
-            //cannyflags.Add(true);
-            //foreach (var cflag in cannyflags)
-            //{
-            //    var edged = new Mat();
-            //    Cv2.Canny(blurred, edged, 50, 200, 3, cflag);
-
-            //    //using (new Window("edged", edged))
-            //    //{
-            //    //    Cv2.WaitKey();
-            //    //}
-
-            //    var outmat = new Mat();
-            //    var ids = OutputArray.Create(outmat);
-            //    var cons = new Mat[] { };
-            //    Cv2.FindContours(edged, out cons, ids, RetrievalModes.List, ContourApproximationModes.ApproxSimple);
-            //    var conslist = cons.ToList();
-
-            //    foreach (var item in conslist)
-            //    {
-            //        var rect = Cv2.BoundingRect(item);
-            //        var a = rect.Width * rect.Height;
-            //        var whrate = (double)rect.Width / (double)rect.Height;
-            //        if (rect.Height >= heighlow && rect.Height <= heighhigh
-            //            && whrate > ratelow && whrate < ratehigh && a < areahigh)
-            //        {
-            //            if (ret.Count > 0)
-            //            {
-            //                if (a > ret[0].Width * ret[0].Height)
-            //                {
-            //                    ret.Clear();
-            //                    ret.Add(rect);
-            //                }
-            //            }
-            //            else
-            //            { ret.Add(rect); }
-            //        }
-            //    }//end foreach
-
-            //    if (ret.Count > 0)
-            //    { break; }
-            //}//end forea
-
             src.Dispose();
             return ret;
         }
@@ -686,6 +642,306 @@ namespace SkyEye.Models
 
             return cmatlist;
         }
+
+        public static List<Rect> GetNew5x1Rect(Mat edged, Mat xyenhance4x)
+        {
+            var hl = GetHeighLow(edged);
+            var hh = GetHeighHigh(edged);
+            if (hl < 6)
+            { hl = 10; }
+            if (hh > edged.Height - 6)
+            { hh = edged.Height - 10; }
+
+            var dcl = (int)(hl + (hh - hl) * 0.1);
+            var dch = (int)(hh - (hh - hl) * 0.1);
+            var xxh = GetXXHigh(edged, dcl, dch);
+            var yxl = GetYXLow(edged, dcl, dch);
+            if (xxh == -1 || yxl == -1)
+            {
+                var xlist = GetCoordWidthPT1(xyenhance4x, edged);
+                var xmid = (xlist.Max() + xlist.Min()) / 2;
+                var xcxlist = new List<double>();
+                var ycxlist = new List<double>();
+                foreach (var x in xlist)
+                {
+                    if (x < xmid)
+                    { xcxlist.Add(x); }
+                    else
+                    { ycxlist.Add(x); }
+                }
+                xxh = (int)xcxlist.Max() + 2;
+                yxl = (int)ycxlist.Min() - 2;
+            }
+
+            var rectlist = new List<Rect>();
+
+            var xxlist = GetXSplitList(edged, xxh, hl, hh);
+            var flist = (List<int>)xxlist[0];
+            var slist = (List<int>)xxlist[1];
+            var y = hl - 2;
+            var h = hh - hl + 4;
+
+            if (slist.Count == 3)
+            {
+                var fntw = (int)flist.Average();
+                rectlist.Add(new Rect(slist[2] - fntw - 3, y, fntw + 1, h));
+                rectlist.Add(new Rect(slist[2] - 3, y, slist[1] - slist[2], h));
+                rectlist.Add(new Rect(slist[1] - 3, y, slist[0] - slist[1], h));
+                rectlist.Add(new Rect(slist[0] - 3, y, xxh - slist[0] + 2, h));
+            }
+            else
+            {
+                if ((int)xxh - 226 > 0)
+                { rectlist.Add(new Rect(xxh - 226, y, 48, h)); }
+                else
+                { rectlist.Add(new Rect(0, y, 48, h)); }
+                rectlist.Add(new Rect(xxh - 164, y, 48, h));
+                rectlist.Add(new Rect(xxh - 110, y, 48, h));
+                rectlist.Add(new Rect(xxh - 55, y, 48, h));
+            }
+
+            var yxlist = GetYSplitList(edged, yxl, hl, hh);
+            flist = (List<int>)yxlist[0];
+            slist = (List<int>)yxlist[1];
+            if (slist.Count == 3)
+            {
+                var fntw = (int)flist.Average();
+                rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
+                rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
+                rectlist.Add(new Rect(slist[1] + 3, y, slist[2] - slist[1], h));
+                rectlist.Add(new Rect(slist[2] + 3, y, fntw, h));
+            }
+            else
+            {
+                rectlist.Add(new Rect(yxl - 2, y, 48, h));
+                rectlist.Add(new Rect(yxl + 53, y, 48, h));
+                rectlist.Add(new Rect(yxl + 110, y, 48, h));
+                if ((yxl + 211) >= (edged.Cols - 1))
+                { rectlist.Add(new Rect(yxl + 161, y, edged.Cols - yxl - 161, h)); }
+                else
+                { rectlist.Add(new Rect(yxl + 161, y, 50, h)); }
+            }
+            return rectlist;
+        }
+
+        public static int GetHeighLow(Mat edged)
+        {
+            var cheighxl = (int)(edged.Width * 0.20);
+            var cheighxh = (int)(edged.Width * 0.33);
+            var cheighyl = (int)(edged.Width * 0.66);
+            var cheighyh = (int)(edged.Width * 0.79);
+
+            var xhl = 0;
+            var yhl = 0;
+            var ymidx = (int)(edged.Height * 0.5);
+            for (var idx = ymidx; idx > 10; idx = idx - 2)
+            {
+                if (xhl == 0)
+                {
+                    var snapmat = edged.SubMat(idx - 2, idx, cheighxl, cheighxh);
+                    var cnt = snapmat.CountNonZero();
+                    if (cnt < 3)
+                    {
+                        xhl = idx;
+                    }
+                }
+
+                if (yhl == 0)
+                {
+                    var snapmat = edged.SubMat(idx - 2, idx, cheighyl, cheighyh);
+                    var cnt = snapmat.CountNonZero();
+                    if (cnt < 3)
+                    {
+                        yhl = idx;
+                    }
+                }
+            }
+
+            var hl = xhl;
+            if (yhl > hl)
+            { hl = yhl; }
+
+            return hl;
+        }
+
+        public static int GetHeighHigh(Mat edged)
+        {
+            var cheighxl = (int)(edged.Width * 0.20);
+            var cheighxh = (int)(edged.Width * 0.33);
+            var cheighyl = (int)(edged.Width * 0.66);
+            var cheighyh = (int)(edged.Width * 0.79);
+
+            var xhh = 0;
+            var yhh = 0;
+            var ymidx = (int)(edged.Height * 0.5);
+            for (var idx = ymidx; idx < edged.Height - 10; idx = idx + 2)
+            {
+                if (xhh == 0)
+                {
+                    var snapmat = edged.SubMat(idx, idx + 2, cheighxl, cheighxh);
+                    var cnt = snapmat.CountNonZero();
+                    if (cnt < 3)
+                    {
+                        xhh = idx;
+                    }
+                }
+
+                if (yhh == 0)
+                {
+                    var snapmat = edged.SubMat(idx, idx + 2, cheighyl, cheighyh);
+                    var cnt = snapmat.CountNonZero();
+                    if (cnt < 3)
+                    {
+                        yhh = idx;
+                    }
+                }
+            }
+
+            var hh = 0;
+            if (xhh > ymidx && yhh > ymidx)
+            {
+                if (yhh < xhh)
+                { hh = yhh; }
+                else
+                { hh = xhh; }
+            }
+            else if (xhh > ymidx)
+            { hh = xhh; }
+            else if (yhh > ymidx)
+            { hh = yhh; }
+            else
+            { hh = edged.Height - 10; }
+            return hh;
+        }
+
+        public static int GetXXHigh(Mat edged, int dcl, int dch)
+        {
+            var wml = (int)(edged.Width * 0.35);
+
+            for (var idx = wml; idx > wml / 2; idx = idx - 2)
+            {
+                var snapmat = edged.SubMat(dcl, dch, idx - 2, idx);
+                var cnt = snapmat.CountNonZero();
+                if (cnt > 3)
+                {
+                    return idx;
+                }
+            }
+
+            return -1;
+        }
+
+        public static int GetYXLow(Mat edged, int dcl, int dch)
+        {
+            var wml = (int)(edged.Width * 0.35);
+            var wmh = (int)(edged.Width * 0.65);
+
+            for (var idx = wmh; idx < (wmh + wml / 2); idx = idx + 2)
+            {
+                var snapmat = edged.SubMat(dcl, dch, idx, idx + 2);
+                var cnt = snapmat.CountNonZero();
+                if (cnt > 3)
+                {
+                    return idx;
+                }
+            }
+            return -1;
+        }
+
+        public static int GetXDirectSplit(Mat edged, int start, int end, int dcl, int dch)
+        {
+            for (var idx = start; idx > end; idx = idx - 2)
+            {
+                var snapmat = edged.SubMat(dcl, dch, idx - 2, idx);
+                var cnt = snapmat.CountNonZero();
+                if (cnt < 2)
+                {
+                    return idx;
+                }
+            }
+            return -1;
+        }
+
+        public static int GetYDirectSplit(Mat edged, int start, int end, int dcl, int dch)
+        {
+            for (var idx = start; idx < end; idx = idx + 2)
+            {
+                var snapmat = edged.SubMat(dcl, dch, idx, idx + 2);
+                var cnt = snapmat.CountNonZero();
+                if (cnt < 2)
+                {
+                    return idx;
+                }
+            }
+            return -1;
+        }
+
+        public static List<object> GetXSplitList(Mat edged, int xxh, int hl, int hh)
+        {
+            var ret = new List<object>();
+            var flist = new List<int>();
+            var slist = new List<int>();
+            ret.Add(flist);
+            ret.Add(slist);
+
+            var fntw = (int)(edged.Width * 0.333 * 0.25);
+
+            var spx1 = GetXDirectSplit(edged, xxh - 20, xxh - 20 - fntw, hl, hh);
+            if (spx1 == -1) { return ret; }
+            fntw = xxh - spx1 + 1;
+            if (fntw >= 18 && fntw < 40)
+            { spx1 = xxh - 48; fntw = 48; }
+            flist.Add(fntw); slist.Add(spx1);
+
+            var spx2 = GetXDirectSplit(edged, spx1 - 21, spx1 - 21 - fntw, hl, hh);
+            if (spx2 == -1) { return ret; }
+            fntw = spx1 - spx2;
+            if (fntw >= 18 && fntw < 40)
+            { spx2 = spx1 - 48; fntw = 48; }
+            flist.Add(fntw); slist.Add(spx2);
+
+            var spx3 = GetXDirectSplit(edged, spx2 - 21, spx2 - 21 - fntw, hl, hh);
+            if (spx3 == -1) { return ret; }
+            fntw = spx2 - spx3;
+            if (fntw >= 18 && fntw < 40)
+            { spx3 = spx2 - 48; fntw = 48; }
+            flist.Add(fntw); slist.Add(spx3);
+
+            return ret;
+        }
+        public static List<object> GetYSplitList(Mat edged, int yxl, int hl, int hh)
+        {
+            var ret = new List<object>();
+            var flist = new List<int>();
+            var slist = new List<int>();
+            ret.Add(flist);
+            ret.Add(slist);
+
+            var fntw = (int)(edged.Width * 0.333 * 0.25);
+
+            var spy1 = GetYDirectSplit(edged, yxl + 20, yxl + 20 + fntw, hl, hh);
+            if (spy1 == -1) { return ret; }
+            fntw = spy1 - yxl + 1;
+            if (fntw >= 18 && fntw < 40)
+            { spy1 = yxl + 48; fntw = 48; }
+            flist.Add(fntw); slist.Add(spy1);
+
+            var spy2 = GetYDirectSplit(edged, spy1 + 21, spy1 + 21 + fntw, hl, hh);
+            if (spy2 == -1) { return ret; }
+            fntw = spy2 - spy1 + 1;
+            if (fntw >= 18 && fntw < 40)
+            { spy2 = spy1 + 48; fntw = 48; }
+            flist.Add(fntw); slist.Add(spy2);
+
+            var spy3 = GetYDirectSplit(edged, spy2 + 20, spy2 + 20 + fntw, hl, hh);
+            if (spy3 == -1) { return ret; }
+            fntw = spy3 - spy2 + 1;
+            if (fntw >= 18 && fntw < 40)
+            { spy3 = spy2 + 48; fntw = 48; }
+            flist.Add(fntw); slist.Add(spy3);
+            return ret;
+        }
+
 
 
         public static List<Rect> Get5x1Rect(Mat blurred, Mat edged, Mat xyenhance4)
