@@ -462,5 +462,599 @@ namespace SkyEye.Models
             return ret;
         }
 
+
+        public void Runcircle2168(string imgpath, List<double> ratelist, List<double> radlist)
+        {
+            Mat srccolor = Cv2.ImRead(imgpath, ImreadModes.Color);
+
+            //var angle = GetAngle(imgpath);
+            //if (angle >= 0.7 && angle <= 359.3)
+            //{
+            //    var center = new Point2f(srccolor.Width / 2, srccolor.Height / 2);
+            //    var m = Cv2.GetRotationMatrix2D(center, angle, 1);
+            //    var outxymat = new Mat();
+            //    Cv2.WarpAffine(srccolor, outxymat, m, new Size(srccolor.Width, srccolor.Height));
+            //    srccolor = outxymat;
+            //}
+
+            var detectsize = GetDetectPoint(srccolor);
+            var srcrealimg = srccolor.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
+
+            var srcgray = new Mat();
+            Cv2.CvtColor(srcrealimg, srcgray, ColorConversionCodes.BGR2GRAY);
+            var srcblurred = new Mat();
+            Cv2.GaussianBlur(srcgray, srcblurred, new Size(5, 5), 0);
+            var srcedged = new Mat();
+            Cv2.AdaptiveThreshold(srcblurred, srcedged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+
+            var circles = Cv2.HoughCircles(srcgray, HoughMethods.Gradient, 1, srcgray.Rows / 4, 100, 80, 30, 70);
+
+            var lowbond = srcrealimg.Height * 0.25;
+            var upbond = srcrealimg.Height * 0.75;
+            var mid = srcrealimg.Height * 0.5;
+
+            var filtercircles = new List<CircleSegment>();
+            foreach (var c in circles)
+            {
+                if (c.Center.Y > lowbond && c.Center.Y < upbond)
+                {
+                    filtercircles.Add(c);
+                }
+            }
+
+            if (filtercircles.Count > 0)
+            {
+                var CP = filtercircles[0];
+                var hg = srcrealimg.Height;
+
+                var lines = Cv2.HoughLinesP(srcedged, 1, Math.PI / 180.0, 50, 80, 5);
+                var filterline = new List<LineSegmentPoint>();
+                foreach (var line in lines)
+                {
+                    var degree = Math.Atan2((line.P2.Y - line.P1.Y), (line.P2.X - line.P1.X));
+                    var d360 = (degree > 0 ? degree : (2 * Math.PI + degree)) * 360 / (2 * Math.PI);
+                    var xlen = line.P2.X - line.P1.X;
+                    if (xlen > 180 && xlen < 240
+                        && (d360 <= 4 || d360 >= 356)
+                        && ((line.P1.Y > 30 && line.P1.Y < 100) || (line.P1.Y < hg - 30 && line.P1.Y > hg - 100)))
+                    {
+                        filterline.Add(line);
+                    }
+                }
+
+                if (filterline.Count > 0)
+                {
+                    var coormat = new Mat();
+                    var boundy = filterline[0].P1.Y;
+                    var midx = (int)CP.Center.X;
+                    if (CP.Center.Y > mid)
+                    {
+                        var colstart = midx - 120;
+                        var colend = midx + 120;
+                        var rowstart = boundy + 3;
+                        var rowend = boundy + 58;
+                        coormat = srcrealimg.SubMat(rowstart, rowend, colstart, colend);
+                    }
+                    else
+                    {
+                        var colstart = midx - 120;
+                        var colend = midx + 120;
+                        var rowstart = boundy - 58;
+                        var rowend = boundy - 3;
+                        coormat = srcrealimg.SubMat(rowstart, rowend, colstart, colend);
+                        var outxymat = new Mat();
+                        Cv2.Transpose(coormat, outxymat);
+                        Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                        Cv2.Transpose(outxymat, outxymat);
+                        Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                        coormat = outxymat;
+                    }
+
+                    using (new Window("coormat", coormat))
+                    {
+                        Cv2.WaitKey();
+                    }
+
+                    var charmatlist = Get2168MatList(coormat);
+                    var idx = 0;
+                    foreach (var cm in charmatlist)
+                    {
+                        if (idx == 0)
+                        { idx++; continue; }
+
+                        var tcm = new Mat();
+                        cm.ConvertTo(tcm, MatType.CV_32FC1);
+                        var tcmresize = new Mat();
+                        Cv2.Resize(tcm, tcmresize, new Size(50, 50), 0, 0, InterpolationFlags.Linear);
+
+                        using (new Window("cmresize1" + idx, tcmresize))
+                        {
+                            Cv2.WaitKey();
+                        }
+
+                        idx++;
+                    }//end foreach
+                }//end line
+            }//end circle
+        }
+
+        private static List<Mat> Get2168MatList(Mat coordmat)
+        {
+            var cmatlist = new List<Mat>();
+
+            var xyenhance = coordmat;
+            //var xyenhance = new Mat();
+            //Cv2.DetailEnhance(coordmat, xyenhance);
+
+            var xyenhance4x = new Mat();
+            Cv2.Resize(xyenhance, xyenhance4x, new Size(xyenhance.Width * 4, xyenhance.Height * 4));
+
+            //Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+
+            var xyenhgray = new Mat();
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
+
+
+            var blurred = new Mat();
+            Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
+
+            var edged = new Mat();
+            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+            using (new Window("edged", edged))
+            {
+                Cv2.WaitKey();
+            }
+
+            var rectlist = Get2168Rect(edged, xyenhance4x);
+
+            cmatlist.Add(xyenhance);
+
+            foreach (var rect in rectlist)
+            {
+                if (rect.X < 0 || rect.Y < 0
+                || ((rect.X + rect.Width) > edged.Width)
+                || ((rect.Y + rect.Height) > edged.Height))
+                {
+                    cmatlist.Clear();
+                    return cmatlist;
+                }
+
+                cmatlist.Add(edged.SubMat(rect));
+            }
+
+            return cmatlist;
+        }
+
+        public static List<Rect> Get2168Rect(Mat edged, Mat xyenhance4x)
+        {
+            var hl = GetHeighLow2168(edged);
+            var hh = GetHeighHigh2168(edged);
+
+
+            var dcl = hl;//(int)(hl + (hh - hl) * 0.1);
+            var dch = hh;//(int)(hh - (hh - hl) * 0.1);
+            var xxh = GetXXHigh2168(edged, dcl, dch);
+            var yxl = GetYXLow2168(edged, dcl, dch);
+
+            if (xxh == -1 || yxl == -1)
+            {
+                var xlist = GetCoordWidthPT2168(xyenhance4x, edged);
+                var xmid = (xlist.Max() + xlist.Min()) / 2;
+                var xcxlist = new List<double>();
+                var ycxlist = new List<double>();
+                foreach (var x in xlist)
+                {
+                    if (x < xmid)
+                    { xcxlist.Add(x); }
+                    else
+                    { ycxlist.Add(x); }
+                }
+                xxh = (int)xcxlist.Max() + 2;
+                yxl = (int)ycxlist.Min() - 2;
+            }
+
+            var rectlist = new List<Rect>();
+
+            var xxlist = GetXSplitList2168(edged, xxh, hl, hh);
+            var flist = (List<int>)xxlist[0];
+            var slist = (List<int>)xxlist[1];
+            var y = hl - 2;
+            var h = hh - hl + 4;
+
+            if (slist.Count == 3)
+            {
+                var fntw = (int)flist.Average();
+                var left = slist[2] - fntw - 10;
+                if (left < 0) { left = 1; }
+                rectlist.Add(new Rect(left, y, fntw + 4, h));
+                rectlist.Add(new Rect(slist[2] - 6, y, slist[1] - slist[2] + 2, h));
+                rectlist.Add(new Rect(slist[1] - 6, y, slist[0] - slist[1] + 2, h));
+                rectlist.Add(new Rect(slist[0] - 3, y, xxh - slist[0] + 8, h));
+            }
+            else if (slist.Count == 2)
+            {
+                var fntw = (int)flist.Average();
+                var left = slist[1] - 2 * fntw - 4;
+                if (left < 0) { left = 1; }
+                rectlist.Add(new Rect(left, y, fntw + 1, h));
+                rectlist.Add(new Rect(slist[1] - fntw - 3, y, fntw + 1, h));
+                rectlist.Add(new Rect(slist[1] - 3, y, slist[0] - slist[1], h));
+                rectlist.Add(new Rect(slist[0] - 3, y, xxh - slist[0] + 2, h));
+            }
+            else
+            {
+                if ((int)xxh - 226 > 0)
+                { rectlist.Add(new Rect(xxh - 226, y, 48, h)); }
+                else
+                { rectlist.Add(new Rect(0, y, 48, h)); }
+                rectlist.Add(new Rect(xxh - 164, y, 48, h));
+                rectlist.Add(new Rect(xxh - 110, y, 48, h));
+                rectlist.Add(new Rect(xxh - 55, y, 48, h));
+            }
+
+            var yxlist = GetYSplitList2168(edged, yxl, hl, hh);
+            flist = (List<int>)yxlist[0];
+            slist = (List<int>)yxlist[1];
+            if (slist.Count == 4)
+            {
+                rectlist.Add(new Rect(yxl - 3, y, slist[0] - yxl + 6, h));
+                rectlist.Add(new Rect(slist[0] + 5, y, slist[1] - slist[0] + 4, h));
+                rectlist.Add(new Rect(slist[1] + 5, y, slist[2] - slist[1] + 4, h));
+                rectlist.Add(new Rect(slist[2] + 6, y, slist[3] - slist[2] + 8, h));
+            }
+            else if (slist.Count == 3)
+            {
+                var fntw = (int)flist.Average();
+                rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
+                rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
+                rectlist.Add(new Rect(slist[1] + 3, y, slist[2] - slist[1], h));
+                var left = slist[2] + 3;
+                if (left + fntw > edged.Width)
+                { left = edged.Width - fntw - 2; }
+                rectlist.Add(new Rect(left, y, fntw, h));
+            }
+            else if (slist.Count == 2)
+            {
+                var fntw = (int)flist.Average();
+                rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
+                rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
+                rectlist.Add(new Rect(slist[0] + fntw + 3, y, fntw + 1, h));
+                var left = slist[0] + 2 * fntw + 4;
+                if (left + fntw + 1 > edged.Width)
+                { left = edged.Width - fntw - 3; }
+                rectlist.Add(new Rect(left, y, fntw + 1, h));
+            }
+            else
+            {
+                rectlist.Add(new Rect(yxl - 2, y, 48, h));
+                rectlist.Add(new Rect(yxl + 53, y, 48, h));
+                rectlist.Add(new Rect(yxl + 110, y, 48, h));
+                if ((yxl + 211) >= (edged.Cols - 1))
+                { rectlist.Add(new Rect(yxl + 161, y, edged.Cols - yxl - 161, h)); }
+                else
+                { rectlist.Add(new Rect(yxl + 161, y, 50, h)); }
+            }
+            return rectlist;
+        }
+
+        private static List<double> GetCoordWidthPT2168(Mat mat, Mat edged)
+        {
+
+            var ret = new List<List<double>>();
+            var kaze = KAZE.Create();
+            var kazeDescriptors = new Mat();
+            KeyPoint[] kazeKeyPoints = null;
+            kaze.DetectAndCompute(edged, null, out kazeKeyPoints, kazeDescriptors);
+
+            var hl = 0.25 * mat.Height;
+            var hh = 0.75 * mat.Height;
+            var wl = 10;
+            var wh = mat.Width - 10;
+            var hptlist = new List<KeyPoint>();
+            foreach (var pt in kazeKeyPoints)
+            {
+                if (pt.Pt.Y >= hl && pt.Pt.Y <= hh
+                    && pt.Pt.X >= wl && pt.Pt.X <= wh)
+                {
+                    hptlist.Add(pt);
+                }
+            }
+
+            //var wptlist = hptlist;
+
+            var wptlist = new List<KeyPoint>();
+            for (var idx = 15; idx < mat.Width;)
+            {
+                var ylist = new List<double>();
+
+                var wlist = new List<KeyPoint>();
+                foreach (var pt in hptlist)
+                {
+                    if (pt.Pt.X >= (idx - 15) && pt.Pt.X < idx)
+                    {
+                        wlist.Add(pt);
+                        ylist.Add(pt.Pt.Y);
+                    }
+                }
+
+                if (wlist.Count > 8 && (ylist.Max() - ylist.Min()) > 0.25 * mat.Height)
+                { wptlist.AddRange(wlist); }
+                idx = idx + 15;
+            }
+
+            var xlist = new List<double>();
+            if (wptlist.Count() == 0)
+            {
+                return xlist;
+            }
+
+            foreach (var pt in wptlist)
+            {
+                xlist.Add(pt.Pt.X);
+            }
+
+            var xlength = xlist.Max() - xlist.Min();
+            var coordlength = 0.336 * xlength;
+            var xmin = xlist.Min() + coordlength;
+            var xmax = xlist.Max() - coordlength;
+
+            var xyptlist = new List<KeyPoint>();
+            foreach (var pt in wptlist)
+            {
+                if (pt.Pt.X <= xmin || pt.Pt.X >= xmax)
+                {
+                    xyptlist.Add(pt);
+                }
+            }
+
+            var dstKaze = new Mat();
+            Cv2.DrawKeypoints(mat, xyptlist.ToArray(), dstKaze);
+
+            using (new Window("dstKaze", dstKaze))
+            {
+                Cv2.WaitKey();
+            }
+
+            xlist.Clear();
+            foreach (var pt in xyptlist)
+            {
+                xlist.Add(pt.Pt.X);
+            }
+
+            return xlist;
+        }
+
+        public static int GetHeighLow2168(Mat edged)
+        {
+            var cheighxl = (int)(edged.Width * 0.15);
+            var cheighxh = (int)(edged.Width * 0.33);
+            var cheighyl = (int)(edged.Width * 0.66);
+            var cheighyh = (int)(edged.Width * 0.84);
+
+            var xhl = 0;
+            var yhl = 0;
+            var ymidx = (int)(edged.Height * 0.5);
+            for (var idx = ymidx; idx > 10; idx = idx - 2)
+            {
+                if (xhl == 0)
+                {
+                    var snapmat = edged.SubMat(idx - 2, idx, cheighxl, cheighxh);
+                    var cnt = snapmat.CountNonZero();
+                    if (cnt < 3)
+                    {
+                        xhl = idx;
+                    }
+                }
+
+                if (yhl == 0)
+                {
+                    var snapmat = edged.SubMat(idx - 2, idx, cheighyl, cheighyh);
+                    var cnt = snapmat.CountNonZero();
+                    if (cnt < 3)
+                    {
+                        yhl = idx;
+                    }
+                }
+            }
+
+            var hl = xhl;
+            if (yhl > hl)
+            { hl = yhl; }
+
+            return hl;
+        }
+
+        public static int GetHeighHigh2168(Mat edged)
+        {
+            var cheighxl = (int)(edged.Width * 0.15);
+            var cheighxh = (int)(edged.Width * 0.33);
+            var cheighyl = (int)(edged.Width * 0.66);
+            var cheighyh = (int)(edged.Width * 0.84);
+
+            var xhh = 0;
+            var yhh = 0;
+            var ymidx = (int)(edged.Height * 0.5);
+            for (var idx = ymidx; idx < edged.Height - 10; idx = idx + 2)
+            {
+                if (xhh == 0)
+                {
+                    var snapmat = edged.SubMat(idx, idx + 2, cheighxl, cheighxh);
+                    var cnt = snapmat.CountNonZero();
+                    if (cnt < 3)
+                    {
+                        xhh = idx;
+                    }
+                }
+
+                if (yhh == 0)
+                {
+                    var snapmat = edged.SubMat(idx, idx + 2, cheighyl, cheighyh);
+                    var cnt = snapmat.CountNonZero();
+                    if (cnt < 3)
+                    {
+                        yhh = idx;
+                    }
+                }
+            }
+
+            var hh = 0;
+            if (xhh > ymidx && yhh > ymidx)
+            {
+                if (yhh < xhh)
+                { hh = yhh; }
+                else
+                { hh = xhh; }
+            }
+            else if (xhh > ymidx)
+            { hh = xhh; }
+            else if (yhh > ymidx)
+            { hh = yhh; }
+            else
+            { hh = edged.Height - 10; }
+            return hh;
+        }
+
+        public static int GetXXHigh2168(Mat edged, int dcl, int dch)
+        {
+            var wml = (int)(edged.Width * 0.25);
+            var wmh = (int)(edged.Width * 0.5);
+
+            for (var idx = wmh; idx > wml; idx = idx - 2)
+            {
+                var snapmat = edged.SubMat(dcl, dch, idx - 2, idx);
+                var cnt = snapmat.CountNonZero();
+                if (cnt > 3)
+                {
+                    return idx;
+                }
+            }
+
+            return -1;
+        }
+
+        public static int GetYXLow2168(Mat edged, int dcl, int dch)
+        {
+            var wml = (int)(edged.Width * 0.5);
+            var wmh = (int)(edged.Width * 0.75);
+
+            for (var idx = wml; idx < wmh; idx = idx + 2)
+            {
+                var snapmat = edged.SubMat(dcl, dch, idx, idx + 2);
+                var cnt = snapmat.CountNonZero();
+                if (cnt > 3)
+                {
+                    return idx;
+                }
+            }
+            return -1;
+        }
+
+        public static int GetXDirectSplit2168(Mat edged, int start, int end, int dcl, int dch)
+        {
+            for (var idx = start; idx > end; idx = idx - 2)
+            {
+                var snapmat = edged.SubMat(dcl, dch, idx - 2, idx);
+                var cnt = snapmat.CountNonZero();
+                if (cnt < 2)
+                {
+                    return idx;
+                }
+            }
+            return -1;
+        }
+
+        public static int GetYDirectSplit2168(Mat edged, int start, int end, int dcl, int dch)
+        {
+            for (var idx = start; idx < end; idx = idx + 2)
+            {
+                var snapmat = edged.SubMat(dcl, dch, idx, idx + 2);
+                var cnt = snapmat.CountNonZero();
+                if (cnt < 2)
+                {
+                    return idx;
+                }
+            }
+            return -1;
+        }
+
+        public static List<object> GetXSplitList2168(Mat edged, int xxh, int hl, int hh)
+        {
+            var offset = 50;
+            var ret = new List<object>();
+            var flist = new List<int>();
+            var slist = new List<int>();
+            ret.Add(flist);
+            ret.Add(slist);
+
+            var fntw = (int)(edged.Width * 0.333 * 0.25);
+
+            var spx1 = GetXDirectSplit2168(edged, xxh - 20, xxh - 20 - fntw, hl, hh);
+            if (spx1 == -1) { return ret; }
+            fntw = xxh - spx1 + 1;
+            if (fntw >= 18 && fntw < 38)
+            { spx1 = xxh - offset; fntw = offset; }
+            flist.Add(fntw); slist.Add(spx1);
+
+            var spx2 = GetXDirectSplit2168(edged, spx1 - 28, spx1 - 28 - fntw, hl, hh);
+            if (spx2 == -1) { return ret; }
+            fntw = spx1 - spx2;
+            if (fntw >= 18 && fntw < 38)
+            { spx2 = spx1 - offset; fntw = offset; }
+            flist.Add(fntw); slist.Add(spx2);
+
+            var spx3 = GetXDirectSplit2168(edged, spx2 - 28, spx2 - 28 - fntw, hl, hh);
+            if (spx3 == -1) { return ret; }
+            fntw = spx2 - spx3;
+            if (fntw >= 18 && fntw < 38)
+            { spx3 = spx2 - offset; fntw = offset; }
+            flist.Add(fntw); slist.Add(spx3);
+
+            return ret;
+        }
+        public static List<object> GetYSplitList2168(Mat edged, int yxl, int hl, int hh)
+        {
+            var offset = 50;
+            var ret = new List<object>();
+            var flist = new List<int>();
+            var slist = new List<int>();
+            ret.Add(flist);
+            ret.Add(slist);
+
+            var fntw = (int)(edged.Width * 0.333 * 0.25);
+
+            var spy1 = GetYDirectSplit2168(edged, yxl + 28, yxl + 28 + fntw, hl, hh);
+            if (spy1 == -1) { return ret; }
+            fntw = spy1 - yxl + 1;
+            if (fntw >= 18 && fntw < 38)
+            { spy1 = yxl + offset; fntw = offset; }
+            flist.Add(fntw); slist.Add(spy1);
+
+            var spy2 = GetYDirectSplit2168(edged, spy1 + 28, spy1 + 28 + fntw, hl, hh);
+            if (spy2 == -1) { return ret; }
+            fntw = spy2 - spy1 + 1;
+            if (fntw >= 18 && fntw < 38)
+            { spy2 = spy1 + offset; fntw = offset; }
+            flist.Add(fntw); slist.Add(spy2);
+
+            var spy3 = GetYDirectSplit2168(edged, spy2 + 28, spy2 + 28 + fntw, hl, hh);
+            if (spy3 == -1) { return ret; }
+            fntw = spy3 - spy2 + 1;
+            if (fntw >= 18 && fntw < 38)
+            { spy3 = spy2 + offset; fntw = offset; }
+            flist.Add(fntw); slist.Add(spy3);
+
+            var spy4 = GetYDirectSplit2168(edged, spy3 + 28, edged.Width - 10, (int)(hl + 0.1 * (hh - hl)), (int)(hh - 0.1 * (hh - hl)));
+            if (spy4 == -1) { return ret; }
+            fntw = spy4 - spy3 + 1;
+            if (fntw < 40)
+            { return ret; }
+            flist.Add(fntw); slist.Add(spy4);
+
+            return ret;
+        }
+
+
     }
 }
