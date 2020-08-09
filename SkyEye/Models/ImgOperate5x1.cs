@@ -643,6 +643,7 @@ namespace SkyEye.Models
             return cmatlist;
         }
 
+
         public static List<Rect> GetNew5x1Rect(Mat edged, Mat xyenhance4x)
         {
             var hl = GetHeighLow(edged);
@@ -684,8 +685,20 @@ namespace SkyEye.Models
             if (slist.Count == 3)
             {
                 var fntw = (int)flist.Average();
-                rectlist.Add(new Rect(slist[2] - fntw - 3, y, fntw + 1, h));
+                var left = slist[2] - fntw - 3;
+                if (left < 0) { left = 1; }
+                rectlist.Add(new Rect(left, y, fntw + 1, h));
                 rectlist.Add(new Rect(slist[2] - 3, y, slist[1] - slist[2], h));
+                rectlist.Add(new Rect(slist[1] - 3, y, slist[0] - slist[1], h));
+                rectlist.Add(new Rect(slist[0] - 3, y, xxh - slist[0] + 2, h));
+            }
+            else if (slist.Count == 2)
+            {
+                var fntw = (int)flist.Average();
+                var left = slist[1] - 2 * fntw - 4;
+                if (left < 0) { left = 1; }
+                rectlist.Add(new Rect(left, y, fntw + 1, h));
+                rectlist.Add(new Rect(slist[1] - fntw - 3, y, fntw + 1, h));
                 rectlist.Add(new Rect(slist[1] - 3, y, slist[0] - slist[1], h));
                 rectlist.Add(new Rect(slist[0] - 3, y, xxh - slist[0] + 2, h));
             }
@@ -703,13 +716,34 @@ namespace SkyEye.Models
             var yxlist = GetYSplitList(edged, yxl, hl, hh);
             flist = (List<int>)yxlist[0];
             slist = (List<int>)yxlist[1];
-            if (slist.Count == 3)
+            if (slist.Count == 4)
+            {
+                rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
+                rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
+                rectlist.Add(new Rect(slist[1] + 3, y, slist[2] - slist[1], h));
+                rectlist.Add(new Rect(slist[2] + 3, y, slist[3] - slist[2], h));
+            }
+            else if (slist.Count == 3)
             {
                 var fntw = (int)flist.Average();
                 rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
                 rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
                 rectlist.Add(new Rect(slist[1] + 3, y, slist[2] - slist[1], h));
-                rectlist.Add(new Rect(slist[2] + 3, y, fntw, h));
+                var left = slist[2] + 3;
+                if (left + fntw > edged.Width)
+                { left = edged.Width - fntw - 2; }
+                rectlist.Add(new Rect(left, y, fntw, h));
+            }
+            else if (slist.Count == 2)
+            {
+                var fntw = (int)flist.Average();
+                rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
+                rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
+                rectlist.Add(new Rect(slist[0] + fntw + 3, y, fntw + 1, h));
+                var left = slist[0] + 2 * fntw + 4;
+                if (left + fntw + 1 > edged.Width)
+                { left = edged.Width - fntw - 3; }
+                rectlist.Add(new Rect(left, y, fntw + 1, h));
             }
             else
             {
@@ -763,7 +797,6 @@ namespace SkyEye.Models
 
             return hl;
         }
-
         public static int GetHeighHigh(Mat edged)
         {
             var cheighxl = (int)(edged.Width * 0.20);
@@ -830,7 +863,6 @@ namespace SkyEye.Models
 
             return -1;
         }
-
         public static int GetYXLow(Mat edged, int dcl, int dch)
         {
             var wml = (int)(edged.Width * 0.35);
@@ -861,7 +893,6 @@ namespace SkyEye.Models
             }
             return -1;
         }
-
         public static int GetYDirectSplit(Mat edged, int start, int end, int dcl, int dch)
         {
             for (var idx = start; idx < end; idx = idx + 2)
@@ -878,6 +909,7 @@ namespace SkyEye.Models
 
         public static List<object> GetXSplitList(Mat edged, int xxh, int hl, int hh)
         {
+            var offset = 50;
             var ret = new List<object>();
             var flist = new List<int>();
             var slist = new List<int>();
@@ -890,27 +922,28 @@ namespace SkyEye.Models
             if (spx1 == -1) { return ret; }
             fntw = xxh - spx1 + 1;
             if (fntw >= 18 && fntw < 40)
-            { spx1 = xxh - 48; fntw = 48; }
+            { spx1 = xxh - offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spx1);
 
             var spx2 = GetXDirectSplit(edged, spx1 - 21, spx1 - 21 - fntw, hl, hh);
             if (spx2 == -1) { return ret; }
             fntw = spx1 - spx2;
             if (fntw >= 18 && fntw < 40)
-            { spx2 = spx1 - 48; fntw = 48; }
+            { spx2 = spx1 - offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spx2);
 
             var spx3 = GetXDirectSplit(edged, spx2 - 21, spx2 - 21 - fntw, hl, hh);
             if (spx3 == -1) { return ret; }
             fntw = spx2 - spx3;
             if (fntw >= 18 && fntw < 40)
-            { spx3 = spx2 - 48; fntw = 48; }
+            { spx3 = spx2 - offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spx3);
 
             return ret;
         }
         public static List<object> GetYSplitList(Mat edged, int yxl, int hl, int hh)
         {
+            var offset = 50;
             var ret = new List<object>();
             var flist = new List<int>();
             var slist = new List<int>();
@@ -923,25 +956,32 @@ namespace SkyEye.Models
             if (spy1 == -1) { return ret; }
             fntw = spy1 - yxl + 1;
             if (fntw >= 18 && fntw < 40)
-            { spy1 = yxl + 48; fntw = 48; }
+            { spy1 = yxl + offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spy1);
 
             var spy2 = GetYDirectSplit(edged, spy1 + 21, spy1 + 21 + fntw, hl, hh);
             if (spy2 == -1) { return ret; }
             fntw = spy2 - spy1 + 1;
             if (fntw >= 18 && fntw < 40)
-            { spy2 = spy1 + 48; fntw = 48; }
+            { spy2 = spy1 + offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spy2);
 
             var spy3 = GetYDirectSplit(edged, spy2 + 20, spy2 + 20 + fntw, hl, hh);
             if (spy3 == -1) { return ret; }
             fntw = spy3 - spy2 + 1;
             if (fntw >= 18 && fntw < 40)
-            { spy3 = spy2 + 48; fntw = 48; }
+            { spy3 = spy2 + offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spy3);
+
+            var spy4 = GetYDirectSplit(edged, spy3 + 20, edged.Width - 10, (int)(hl + 0.1 * (hh - hl)), (int)(hh - 0.1 * (hh - hl)));
+            if (spy4 == -1) { return ret; }
+            fntw = spy4 - spy3 + 1;
+            if (fntw < 45)
+            { return ret; }
+            flist.Add(fntw); slist.Add(spy4);
+
             return ret;
         }
-
 
 
         public static List<Rect> Get5x1Rect(Mat blurred, Mat edged, Mat xyenhance4)
