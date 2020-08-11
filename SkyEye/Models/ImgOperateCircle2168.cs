@@ -467,15 +467,15 @@ namespace SkyEye.Models
         {
             Mat srccolor = Cv2.ImRead(imgpath, ImreadModes.Color);
 
-            //var angle = GetAngle(imgpath);
-            //if (angle >= 0.7 && angle <= 359.3)
-            //{
-            //    var center = new Point2f(srccolor.Width / 2, srccolor.Height / 2);
-            //    var m = Cv2.GetRotationMatrix2D(center, angle, 1);
-            //    var outxymat = new Mat();
-            //    Cv2.WarpAffine(srccolor, outxymat, m, new Size(srccolor.Width, srccolor.Height));
-            //    srccolor = outxymat;
-            //}
+            var angle = GetAngle2168(imgpath);
+            if (angle >= 0.7 && angle <= 359.3)
+            {
+                var center = new Point2f(srccolor.Width / 2, srccolor.Height / 2);
+                var m = Cv2.GetRotationMatrix2D(center, angle, 1);
+                var outxymat = new Mat();
+                Cv2.WarpAffine(srccolor, outxymat, m, new Size(srccolor.Width, srccolor.Height));
+                srccolor = outxymat;
+            }
 
             var detectsize = GetDetectPoint(srccolor);
             var srcrealimg = srccolor.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
@@ -491,7 +491,7 @@ namespace SkyEye.Models
 
             var lowbond = srcrealimg.Height * 0.25;
             var upbond = srcrealimg.Height * 0.75;
-            var mid = srcrealimg.Height * 0.5;
+            var midbond = srcrealimg.Height * 0.5;
 
             var filtercircles = new List<CircleSegment>();
             foreach (var c in circles)
@@ -527,12 +527,29 @@ namespace SkyEye.Models
                     var coormat = new Mat();
                     var boundy = filterline[0].P1.Y;
                     var midx = (int)CP.Center.X;
-                    if (CP.Center.Y > mid)
+                    if (CP.Center.Y > midbond)
                     {
                         var colstart = midx - 120;
                         var colend = midx + 120;
                         var rowstart = boundy + 3;
                         var rowend = boundy + 58;
+
+                        if (colstart < 0 || colend > srcrealimg.Width)
+                        {
+                            if (srcrealimg.Width - midx > midx)
+                            {
+                                colstart = 1;
+                                colend = 2 * midx - 1;
+                            }
+                            else
+                            {
+                                colstart = 2 * midx - srcrealimg.Width + 1;
+                                colend = srcrealimg.Width - 1;
+                            }
+                            rowstart = boundy + 3;
+                            rowend = boundy + 46;
+                        }
+
                         coormat = srcrealimg.SubMat(rowstart, rowend, colstart, colend);
                     }
                     else
@@ -541,6 +558,23 @@ namespace SkyEye.Models
                         var colend = midx + 120;
                         var rowstart = boundy - 58;
                         var rowend = boundy - 3;
+
+                        if (colstart < 0 || colend > srcrealimg.Width)
+                        {
+                            if (srcrealimg.Width - midx > midx)
+                            {
+                                colstart = 1;
+                                colend = 2 * midx - 1;
+                            }
+                            else
+                            {
+                                colstart = 2 * midx - srcrealimg.Width + 1;
+                                colend = srcrealimg.Width - 1;
+                            }
+                            rowstart = boundy - 46;
+                            rowend = boundy - 3;
+                        }
+
                         coormat = srcrealimg.SubMat(rowstart, rowend, colstart, colend);
                         var outxymat = new Mat();
                         Cv2.Transpose(coormat, outxymat);
@@ -660,8 +694,8 @@ namespace SkyEye.Models
             var xxlist = GetXSplitList2168(edged, xxh, hl, hh);
             var flist = (List<int>)xxlist[0];
             var slist = (List<int>)xxlist[1];
-            var y = hl - 2;
-            var h = hh - hl + 4;
+            var y = hl - 3;
+            var h = hh - hl + 6;
 
             if (slist.Count == 3)
             {
@@ -676,22 +710,22 @@ namespace SkyEye.Models
             else if (slist.Count == 2)
             {
                 var fntw = (int)flist.Average();
-                var left = slist[1] - 2 * fntw - 4;
+                var left = slist[1] - 2 * fntw - 10;
                 if (left < 0) { left = 1; }
-                rectlist.Add(new Rect(left, y, fntw + 1, h));
-                rectlist.Add(new Rect(slist[1] - fntw - 3, y, fntw + 1, h));
-                rectlist.Add(new Rect(slist[1] - 3, y, slist[0] - slist[1], h));
-                rectlist.Add(new Rect(slist[0] - 3, y, xxh - slist[0] + 2, h));
+                rectlist.Add(new Rect(left, y, fntw + 4, h));
+                rectlist.Add(new Rect(slist[1] - fntw - 6, y, fntw + 1, h));
+                rectlist.Add(new Rect(slist[1] - 6, y, slist[0] - slist[1], h));
+                rectlist.Add(new Rect(slist[0] - 3, y, xxh - slist[0] + 8, h));
             }
             else
             {
                 if ((int)xxh - 226 > 0)
-                { rectlist.Add(new Rect(xxh - 226, y, 48, h)); }
+                { rectlist.Add(new Rect(xxh - 226, y, 56, h)); }
                 else
-                { rectlist.Add(new Rect(0, y, 48, h)); }
-                rectlist.Add(new Rect(xxh - 164, y, 48, h));
-                rectlist.Add(new Rect(xxh - 110, y, 48, h));
-                rectlist.Add(new Rect(xxh - 55, y, 48, h));
+                { rectlist.Add(new Rect(0, y, 56, h)); }
+                rectlist.Add(new Rect(xxh - 174, y, 56, h));
+                rectlist.Add(new Rect(xxh - 112, y, 56, h));
+                rectlist.Add(new Rect(xxh - 54, y, 56, h));
             }
 
             var yxlist = GetYSplitList2168(edged, yxl, hl, hh);
@@ -707,34 +741,34 @@ namespace SkyEye.Models
             else if (slist.Count == 3)
             {
                 var fntw = (int)flist.Average();
-                rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
-                rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
-                rectlist.Add(new Rect(slist[1] + 3, y, slist[2] - slist[1], h));
-                var left = slist[2] + 3;
-                if (left + fntw > edged.Width)
-                { left = edged.Width - fntw - 2; }
-                rectlist.Add(new Rect(left, y, fntw, h));
+                rectlist.Add(new Rect(yxl - 3, y, slist[0] - yxl + 6, h));
+                rectlist.Add(new Rect(slist[0] + 5, y, slist[1] - slist[0] + 4, h));
+                rectlist.Add(new Rect(slist[1] + 5, y, slist[2] - slist[1] + 4, h));
+                var left = slist[2] + 5;
+                if (left + fntw + 4 > edged.Width)
+                { left = edged.Width - fntw - 4; }
+                rectlist.Add(new Rect(left, y, fntw + 4, h));
             }
             else if (slist.Count == 2)
             {
                 var fntw = (int)flist.Average();
-                rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
-                rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
-                rectlist.Add(new Rect(slist[0] + fntw + 3, y, fntw + 1, h));
-                var left = slist[0] + 2 * fntw + 4;
-                if (left + fntw + 1 > edged.Width)
-                { left = edged.Width - fntw - 3; }
-                rectlist.Add(new Rect(left, y, fntw + 1, h));
+                rectlist.Add(new Rect(yxl - 3, y, slist[0] - yxl + 6, h));
+                rectlist.Add(new Rect(slist[0] + 5, y, slist[1] - slist[0] + 4, h));
+                rectlist.Add(new Rect(slist[1] + 5, y, fntw + 4, h));
+                var left = slist[1] + fntw + 12;
+                if (left + fntw + 4 > edged.Width)
+                { left = edged.Width - fntw - 4; }
+                rectlist.Add(new Rect(left, y, fntw + 4, h));
             }
             else
             {
-                rectlist.Add(new Rect(yxl - 2, y, 48, h));
-                rectlist.Add(new Rect(yxl + 53, y, 48, h));
-                rectlist.Add(new Rect(yxl + 110, y, 48, h));
-                if ((yxl + 211) >= (edged.Cols - 1))
-                { rectlist.Add(new Rect(yxl + 161, y, edged.Cols - yxl - 161, h)); }
+                rectlist.Add(new Rect(yxl - 2, y, 56, h));
+                rectlist.Add(new Rect(yxl + 54, y, 56, h));
+                rectlist.Add(new Rect(yxl + 113, y, 56, h));
+                if ((yxl + 226) >= (edged.Cols - 1))
+                { rectlist.Add(new Rect(yxl + 170, y, edged.Cols - yxl - 170, h)); }
                 else
-                { rectlist.Add(new Rect(yxl + 161, y, 50, h)); }
+                { rectlist.Add(new Rect(yxl + 170, y, 54, h)); }
             }
             return rectlist;
         }
@@ -1055,6 +1089,43 @@ namespace SkyEye.Models
             return ret;
         }
 
+        private double GetAngle2168(string imgpath)
+        {
+            Mat srcimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+            var src = new Mat();
+            Cv2.CvtColor(srcimg, src, ColorConversionCodes.BGR2GRAY);
 
+            var blurred = new Mat();
+            Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
+            var edged = new Mat();
+            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+
+            //using (new Window("edged", edged))
+            //{
+            //    Cv2.WaitKey();
+            //}
+            var hg = srcimg.Height;
+            var lines = Cv2.HoughLinesP(edged, 1, Math.PI / 180.0, 50, 80, 5);
+            foreach (var line in lines)
+            {
+                var degree = Math.Atan2((line.P2.Y - line.P1.Y), (line.P2.X - line.P1.X));
+                var d360 = (degree > 0 ? degree : (2 * Math.PI + degree)) * 360 / (2 * Math.PI);
+                if (d360 > 20 && d360 < 340)
+                { continue; }
+
+                if (d360 <= 4 || d360 >= 356)
+                {
+
+                    var xlen = line.P2.X - line.P1.X;
+                    if (xlen > 180 && xlen < 240
+                        && ((line.P1.Y > 30 && line.P1.Y < 100) || (line.P1.Y < hg - 30 && line.P1.Y > hg - 100)))
+                    {
+                        return d360;
+                    }
+                }
+            }
+
+            return 0;
+        }
     }
 }

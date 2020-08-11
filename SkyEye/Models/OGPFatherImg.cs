@@ -38,7 +38,7 @@ namespace SkyEye.Models
         }
         
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
-            , Dictionary<string, bool> probexymap,string caprev, Controller ctrl, bool fixangle = false)
+            , Dictionary<string, bool> probexymap,string caprev, Controller ctrl, bool fixangle = false,bool newalg = false)
         {
             try
             {
@@ -83,7 +83,7 @@ namespace SkyEye.Models
                     var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000,false,fixangle);
                     if (xyrectlist.Count > 0)
                     {
-                        var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67, fixangle);
+                        var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67, fixangle,newalg);
                         if (charmatlist.Count > 0)
                         {
                             using (var kmode = KMode.GetTrainedMode(caprev, ctrl))

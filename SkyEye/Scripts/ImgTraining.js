@@ -306,9 +306,22 @@
             });
         }
 
-        function recognizeogpxy(fixangle) {
+        function recognizeogpxy() {
             var wafernum = $('#wafernum').val().trim();
             var fpath = $('#imgfolder').val().trim();
+            var alg = $('#alg').val();
+
+            var fixangle = 'FALSE';
+            var newalg = 'FALSE';
+
+            if (alg == 'gen')
+            { }
+            else if (alg == 'genangle')
+            { fixangle = 'TRUE'; }
+            else if (alg == 'newalg')
+            { newalg = 'TRUE'; }
+            else if (alg == 'newalgangle')
+            { fixangle = 'TRUE'; newalg = 'TRUE'; }
 
             if (fpath == '' || wafernum == '')
             { alert('Please input the share folder path of the images and the wafer number!'); return false; }
@@ -331,7 +344,8 @@
             $.post('/OGPXY/OGPXYRecognize', {
                 fpath: fpath,
                 wafer: wafernum,
-                fixangle: fixangle
+                fixangle: fixangle,
+                newalg: newalg
             }, function (output) {
                 $.bootstrapLoading.end();
                 solverecognizeresult(output);
@@ -342,15 +356,15 @@
 
         $('body').on('click', '#btn-recognize', function () {
             $('#btn-recognize').attr('disabled', true);
-            recognizeogpxy("FALSE");
+            recognizeogpxy();
             $('#btn-recognize').removeAttr('disabled');
         });
 
-        $('body').on('click', '#btn-recognangle', function () {
-            $('#btn-recognangle').attr('disabled', true);
-            recognizeogpxy("TRUE");
-            $('#btn-recognangle').removeAttr('disabled');
-        });
+        //$('body').on('click', '#btn-recognangle', function () {
+        //    $('#btn-recognangle').attr('disabled', true);
+        //    recognizeogpxy("TRUE");
+        //    $('#btn-recognangle').removeAttr('disabled');
+        //});
 
         $('body').on('click', '#btn-review', function () {
             comparingogpxy();

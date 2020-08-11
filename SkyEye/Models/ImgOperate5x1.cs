@@ -473,7 +473,7 @@ namespace SkyEye.Models
             return cmatlist;
         }
 
-        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle = false)
+        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle,bool newalg)
         {
             var cmatlist = new List<Mat>();
 
@@ -520,7 +520,12 @@ namespace SkyEye.Models
             var edged = new Mat();
             Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
 
-            var crectlist = Get5x1Rect(blurred, edged, xyenhance4x);
+            var crectlist = new List<Rect>();
+            if (newalg)
+            { crectlist = GetNew5x1Rect(edged, xyenhance4x); }
+            else
+            { crectlist = Get5x1Rect(blurred, edged, xyenhance4x); }
+                
 
             if (crectlist.Count > 0)
             {
@@ -739,11 +744,11 @@ namespace SkyEye.Models
                 var fntw = (int)flist.Average();
                 rectlist.Add(new Rect(yxl - 1, y, slist[0] - yxl + 2, h));
                 rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0], h));
-                rectlist.Add(new Rect(slist[0] + fntw + 3, y, fntw + 1, h));
-                var left = slist[0] + 2 * fntw + 4;
-                if (left + fntw + 1 > edged.Width)
-                { left = edged.Width - fntw - 3; }
-                rectlist.Add(new Rect(left, y, fntw + 1, h));
+                rectlist.Add(new Rect(slist[1] + 3, y, fntw + 2, h));
+                var left = slist[1] + fntw + 3;
+                if (left + fntw + 4 > edged.Width)
+                { left = edged.Width - fntw - 4; }
+                rectlist.Add(new Rect(left, y, fntw + 2, h));
             }
             else
             {

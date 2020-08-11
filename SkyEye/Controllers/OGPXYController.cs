@@ -205,10 +205,16 @@ namespace SkyEye.Controllers
         {
             var wafer = Request.Form["wafer"].Trim().Replace("\\", "").Replace("/", "");
             var folder = Request.Form["fpath"];
+
             var fixangle = false;
             var sfixangle = Request.Form["fixangle"];
             if (sfixangle.Contains("TRUE"))
             { fixangle = true; }
+
+            var newalg = false;
+            var snewalg = Request.Form["newalg"];
+            if (snewalg.Contains("TRUE"))
+            { newalg = true; }
 
             var xylist = new List<OGPSNXYVM>();
             var ret = new JsonResult();
@@ -278,7 +284,7 @@ namespace SkyEye.Controllers
                 var fn = System.IO.Path.GetFileName(fs).ToUpper();
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
-                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, fixangle);
+                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, fixangle,newalg);
                     if (!string.IsNullOrEmpty(imgkey))
                     {
                         keylist.Add(imgkey);
