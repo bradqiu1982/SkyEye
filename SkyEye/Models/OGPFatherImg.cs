@@ -30,7 +30,7 @@ namespace SkyEye.Models
             if (xyrectlist.Count > 0)
             { return "OGP-rect2x1"; }
 
-            var circle2168 = ImgOperateCircle2168.Detect2168Revision(imgpath, 149, 175, 45.5, 53, 1.85, 2.7, 3.56);
+            var circle2168 = ImgOperateCircle2168.Detect2168Revision(imgpath);
             if (circle2168)
             { return "OGP-circle2168"; }
 
@@ -116,7 +116,7 @@ namespace SkyEye.Models
                 }
                 else if (caprev.Contains("OGP-circle2168"))
                 {
-                    var charmatlist = ImgOperateCircle2168.CutCharRect(imgpath, 38, 64, 50, 100, 1.85, 2.7, 3.56,40,60);
+                    var charmatlist = ImgOperateCircle2168.CutCharRect(imgpath);
                     if (charmatlist.Count > 0)
                     {
                         using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
