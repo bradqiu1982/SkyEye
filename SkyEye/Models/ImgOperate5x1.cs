@@ -132,10 +132,14 @@ namespace SkyEye.Models
         private static List<List<double>> GetDetectPoint(Mat mat)
         {
             var ret = new List<List<double>>();
+
+            var xyenhance = new Mat();
+            Cv2.DetailEnhance(mat, xyenhance);
+
             var kaze = KAZE.Create();
             var kazeDescriptors = new Mat();
             KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(mat, null, out kazeKeyPoints, kazeDescriptors);
+            kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
             var xlist = new List<double>();
             var ylist = new List<double>();
             foreach (var pt in kazeKeyPoints)

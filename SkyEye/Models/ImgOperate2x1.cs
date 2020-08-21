@@ -78,7 +78,7 @@ namespace SkyEye.Models
             var xymat = srcrealimg.SubMat(xyrect);
             var srcmidy = (detectsize[1].Max() + detectsize[1].Min()) / 2;
 
-            if (xyrect.Y < srcmidy)
+            if ((xyrect.Y + (xyrect.Height / 2)) < srcmidy)
             {
                 var outxymat = new Mat();
                 Cv2.Transpose(xymat, outxymat);
@@ -313,10 +313,14 @@ namespace SkyEye.Models
         private static List<List<double>> GetDetectPoint(Mat mat)
         {
             var ret = new List<List<double>>();
+
+            var xyenhance = new Mat();
+            Cv2.DetailEnhance(mat, xyenhance);
+
             var kaze = KAZE.Create();
             var kazeDescriptors = new Mat();
             KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(mat, null, out kazeKeyPoints, kazeDescriptors);
+            kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
 
             var wptlist = new List<KeyPoint>();
             for (var idx = 20; idx < mat.Width;)
