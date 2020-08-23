@@ -672,10 +672,14 @@ namespace SkyEye.Models
 
             var xyenhance = coordmat;
 
-            if (ylen < 190)
+            //if (ylen < 190)
             {
                 xyenhance = new Mat();
                 Cv2.DetailEnhance(coordmat, xyenhance);
+
+                var denoisemat1 = new Mat();
+                Cv2.FastNlMeansDenoisingColored(xyenhance, denoisemat1, 10, 10, 7, 21);
+                xyenhance = denoisemat1;
             }
 
             var xyenhance4x = new Mat();
@@ -699,8 +703,6 @@ namespace SkyEye.Models
             //}
 
             var rectlist = Get2168Rect(edged, xyenhance4x);
-            if (ylen < 190)
-            {  Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 9, 5); }
 
             cmatlist.Add(xyenhance);
             foreach (var rect in rectlist)
@@ -927,7 +929,7 @@ namespace SkyEye.Models
 
             var xhl = 0;
             var yhl = 0;
-            var ymidx = (int)(edged.Height * 0.5);
+            var ymidx = (int)(edged.Height * 0.4);
             for (var idx = ymidx; idx > 10; idx = idx - 2)
             {
                 if (xhl == 0)
@@ -967,7 +969,7 @@ namespace SkyEye.Models
 
             var xhh = 0;
             var yhh = 0;
-            var ymidx = (int)(edged.Height * 0.5);
+            var ymidx = (int)(edged.Height * 0.4);
             for (var idx = ymidx; idx < edged.Height - 10; idx = idx + 2)
             {
                 if (xhh == 0)
@@ -1045,28 +1047,40 @@ namespace SkyEye.Models
 
         private static int GetXDirectSplit2168(Mat edged, int start, int end, int dcl, int dch)
         {
+            var ret = -1;
             for (var idx = start; idx > end; idx = idx - 2)
             {
                 var snapmat = edged.SubMat(dcl, dch, idx - 2, idx);
                 var cnt = snapmat.CountNonZero();
                 if (cnt < 2)
                 {
-                    return idx;
+                    if (ret == -1)
+                    { ret = idx; }
+                    else
+                    { return ret; }
                 }
+                else
+                { ret = -1; }
             }
             return -1;
         }
 
         private static int GetYDirectSplit2168(Mat edged, int start, int end, int dcl, int dch)
         {
+            var ret = -1;
             for (var idx = start; idx < end; idx = idx + 2)
             {
                 var snapmat = edged.SubMat(dcl, dch, idx, idx + 2);
                 var cnt = snapmat.CountNonZero();
                 if (cnt < 2)
                 {
-                    return idx;
+                    if (ret == -1)
+                    { ret = idx; }
+                    else
+                    { return ret; }
                 }
+                else
+                { ret = -1; }
             }
             return -1;
         }
