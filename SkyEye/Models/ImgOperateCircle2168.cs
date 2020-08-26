@@ -1068,7 +1068,7 @@ namespace SkyEye.Models
             return -1;
         }
 
-        public static int GetXDirectSplit2168(Mat edged, int start, int end, int dcl, int dch, int previous)
+        private static int GetXDirectSplit2168(Mat edged, int start, int end, int dcl, int dch, int previous)
         {
             var ret = -1;
             for (var idx = start; idx > end; idx = idx - 2)
@@ -1092,7 +1092,7 @@ namespace SkyEye.Models
             return -1;
         }
 
-        public static int GetYDirectSplit2168(Mat edged, int start, int end, int dcl, int dch, int previous)
+        private static int GetYDirectSplit2168(Mat edged, int start, int end, int dcl, int dch, int previous)
         {
             var ret = -1;
             for (var idx = start; idx < end; idx = idx + 2)
@@ -1116,7 +1116,7 @@ namespace SkyEye.Models
             return -1;
         }
 
-        public static List<object> GetXSplitList2168(Mat edged, int xxh, int hl, int hh)
+        private static List<object> GetXSplitList2168(Mat edged, int xxh, int hl, int hh)
         {
             var offset = 50;
             var ret = new List<object>();
@@ -1150,7 +1150,7 @@ namespace SkyEye.Models
 
             return ret;
         }
-        public static List<object> GetYSplitList2168(Mat edged, int yxl, int hl, int hh)
+        private static List<object> GetYSplitList2168(Mat edged, int yxl, int hl, int hh)
         {
             var offset = 50;
             var ret = new List<object>();
