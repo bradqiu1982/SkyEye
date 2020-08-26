@@ -434,18 +434,21 @@ namespace SkyEye.Models
         //    return xlist.Max() - xlist.Min();
         //}
 
-        public static bool Detect2168Revision(string imgpath)
+        public static bool Detect2168Revision(string imgpath,bool fixangle)
         {
             Mat srccolor = Cv2.ImRead(imgpath, ImreadModes.Color);
 
-            var angle = GetAngle2168(imgpath);
-            if (angle >= 0.7 && angle <= 359.3)
+            if (fixangle)
             {
-                var center = new Point2f(srccolor.Width / 2, srccolor.Height / 2);
-                var m = Cv2.GetRotationMatrix2D(center, angle, 1);
-                var outxymat = new Mat();
-                Cv2.WarpAffine(srccolor, outxymat, m, new Size(srccolor.Width, srccolor.Height));
-                srccolor = outxymat;
+                var angle = GetAngle2168(imgpath);
+                if (angle >= 0.7 && angle <= 359.3)
+                {
+                    var center = new Point2f(srccolor.Width / 2, srccolor.Height / 2);
+                    var m = Cv2.GetRotationMatrix2D(center, angle, 1);
+                    var outxymat = new Mat();
+                    Cv2.WarpAffine(srccolor, outxymat, m, new Size(srccolor.Width, srccolor.Height));
+                    srccolor = outxymat;
+                }
             }
 
             var detectsize = GetDetectPoint(srccolor);
@@ -489,7 +492,7 @@ namespace SkyEye.Models
                     if (CP.Center.Y < midbond)
                     { ylen = line.P1.Y - CP.Center.Y; }
 
-                    if (xlen >= 180 && xlen < 240
+                    if (xlen >= 166 && xlen < 240
                         && (d360 <= 4 || d360 >= 356)
                         && (ylen >= 170 && ylen <= 210))
                     {
@@ -504,18 +507,21 @@ namespace SkyEye.Models
             return false;
         }
 
-        public static List<Mat> CutCharRect(string imgpath)
+        public static List<Mat> CutCharRect(string imgpath,bool fixangle)
         {
             Mat srccolor = Cv2.ImRead(imgpath, ImreadModes.Color);
 
-            var angle = GetAngle2168(imgpath);
-            if (angle >= 0.7 && angle <= 359.3)
+            if (fixangle)
             {
-                var center = new Point2f(srccolor.Width / 2, srccolor.Height / 2);
-                var m = Cv2.GetRotationMatrix2D(center, angle, 1);
-                var outxymat = new Mat();
-                Cv2.WarpAffine(srccolor, outxymat, m, new Size(srccolor.Width, srccolor.Height));
-                srccolor = outxymat;
+                var angle = GetAngle2168(imgpath);
+                if (angle >= 0.7 && angle <= 359.3)
+                {
+                    var center = new Point2f(srccolor.Width / 2, srccolor.Height / 2);
+                    var m = Cv2.GetRotationMatrix2D(center, angle, 1);
+                    var outxymat = new Mat();
+                    Cv2.WarpAffine(srccolor, outxymat, m, new Size(srccolor.Width, srccolor.Height));
+                    srccolor = outxymat;
+                }
             }
 
             var detectsize = GetDetectPoint(srccolor);
@@ -559,7 +565,7 @@ namespace SkyEye.Models
                     if (CP.Center.Y < midbond)
                     { ylen = line.P1.Y - CP.Center.Y; }
 
-                    if (xlen >= 170 && xlen < 240
+                    if (xlen >= 166 && xlen < 240
                         && (d360 <= 4 || d360 >= 356)
                         && (ylen >= 170 && ylen <= 210))
                     {
@@ -684,6 +690,7 @@ namespace SkyEye.Models
 
             var xyenhance4x = new Mat();
             Cv2.Resize(xyenhance, xyenhance4x, new Size(xyenhance.Width * 4, xyenhance.Height * 4));
+            Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
             var xyenhgray = new Mat();
             var denoisemat = new Mat();
@@ -754,8 +761,8 @@ namespace SkyEye.Models
             var xxlist = GetXSplitList2168(edged, xxh, hl, hh);
             var flist = (List<int>)xxlist[0];
             var slist = (List<int>)xxlist[1];
-            var y = hl - 3;
-            var h = hh - hl + 6;
+            var y = hl - 5;
+            var h = hh - hl + 7;
 
             if (slist.Count == 3)
             {
@@ -1012,8 +1019,10 @@ namespace SkyEye.Models
 
         private static int GetXXHigh2168(Mat edged, int dcl, int dch)
         {
+            var ret = -1;
+            var tm = 0;
             var wml = (int)(edged.Width * 0.25);
-            var wmh = (int)(edged.Width * 0.5 - 40);
+            var wmh = (int)(edged.Width * 0.5);
 
             for (var idx = wmh; idx > wml; idx = idx - 2)
             {
@@ -1021,8 +1030,14 @@ namespace SkyEye.Models
                 var cnt = snapmat.CountNonZero();
                 if (cnt > 3)
                 {
-                    return idx;
+                    tm++;
+                    if (ret == -1)
+                    { ret = idx; }
+                    else if (ret != -1 && tm > 8)
+                    { return ret; }
                 }
+                else
+                { ret = -1; tm = 0; }
             }
 
             return -1;
@@ -1030,7 +1045,9 @@ namespace SkyEye.Models
 
         private static int GetYXLow2168(Mat edged, int dcl, int dch)
         {
-            var wml = (int)(edged.Width * 0.5 + 40);
+            var ret = -1;
+            var tm = 0;
+            var wml = (int)(edged.Width * 0.5);
             var wmh = (int)(edged.Width * 0.75);
 
             for (var idx = wml; idx < wmh; idx = idx + 2)
@@ -1039,13 +1056,19 @@ namespace SkyEye.Models
                 var cnt = snapmat.CountNonZero();
                 if (cnt > 3)
                 {
-                    return idx;
+                    tm++;
+                    if (ret == -1)
+                    { ret = idx; }
+                    else if (ret != -1 && tm > 8)
+                    { return ret; }
                 }
+                else
+                { ret = -1; tm = 0; }
             }
             return -1;
         }
 
-        private static int GetXDirectSplit2168(Mat edged, int start, int end, int dcl, int dch)
+        public static int GetXDirectSplit2168(Mat edged, int start, int end, int dcl, int dch, int previous)
         {
             var ret = -1;
             for (var idx = start; idx > end; idx = idx - 2)
@@ -1055,7 +1078,11 @@ namespace SkyEye.Models
                 if (cnt < 2)
                 {
                     if (ret == -1)
-                    { ret = idx; }
+                    {
+                        ret = idx;
+                        if (previous - idx >= 48)
+                        { return ret; }
+                    }
                     else
                     { return ret; }
                 }
@@ -1065,7 +1092,7 @@ namespace SkyEye.Models
             return -1;
         }
 
-        private static int GetYDirectSplit2168(Mat edged, int start, int end, int dcl, int dch)
+        public static int GetYDirectSplit2168(Mat edged, int start, int end, int dcl, int dch, int previous)
         {
             var ret = -1;
             for (var idx = start; idx < end; idx = idx + 2)
@@ -1075,7 +1102,11 @@ namespace SkyEye.Models
                 if (cnt < 2)
                 {
                     if (ret == -1)
-                    { ret = idx; }
+                    {
+                        ret = idx;
+                        if (idx - previous >= 48)
+                        { return ret; }
+                    }
                     else
                     { return ret; }
                 }
@@ -1085,7 +1116,7 @@ namespace SkyEye.Models
             return -1;
         }
 
-        private static List<object> GetXSplitList2168(Mat edged, int xxh, int hl, int hh)
+        public static List<object> GetXSplitList2168(Mat edged, int xxh, int hl, int hh)
         {
             var offset = 50;
             var ret = new List<object>();
@@ -1096,21 +1127,21 @@ namespace SkyEye.Models
 
             var fntw = (int)(edged.Width * 0.333 * 0.25);
 
-            var spx1 = GetXDirectSplit2168(edged, xxh - 20, xxh - 20 - fntw, hl, hh);
+            var spx1 = GetXDirectSplit2168(edged, xxh - 20, xxh - 20 - fntw, hl, hh, xxh);
             if (spx1 == -1) { return ret; }
             fntw = xxh - spx1 + 1;
             if (fntw >= 18 && fntw < 38)
             { spx1 = xxh - offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spx1);
 
-            var spx2 = GetXDirectSplit2168(edged, spx1 - 28, spx1 - 28 - fntw, hl, hh);
+            var spx2 = GetXDirectSplit2168(edged, spx1 - 28, spx1 - 28 - fntw, hl, hh, spx1);
             if (spx2 == -1) { return ret; }
             fntw = spx1 - spx2;
             if (fntw >= 18 && fntw < 38)
             { spx2 = spx1 - offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spx2);
 
-            var spx3 = GetXDirectSplit2168(edged, spx2 - 28, spx2 - 28 - fntw, hl, hh);
+            var spx3 = GetXDirectSplit2168(edged, spx2 - 28, spx2 - 28 - fntw, hl, hh, spx2);
             if (spx3 == -1) { return ret; }
             fntw = spx2 - spx3;
             if (fntw >= 18 && fntw < 38)
@@ -1119,7 +1150,7 @@ namespace SkyEye.Models
 
             return ret;
         }
-        private static List<object> GetYSplitList2168(Mat edged, int yxl, int hl, int hh)
+        public static List<object> GetYSplitList2168(Mat edged, int yxl, int hl, int hh)
         {
             var offset = 50;
             var ret = new List<object>();
@@ -1130,28 +1161,28 @@ namespace SkyEye.Models
 
             var fntw = (int)(edged.Width * 0.333 * 0.25);
 
-            var spy1 = GetYDirectSplit2168(edged, yxl + 28, yxl + 28 + fntw, hl, hh);
+            var spy1 = GetYDirectSplit2168(edged, yxl + 28, yxl + 28 + fntw, hl, hh, yxl);
             if (spy1 == -1) { return ret; }
             fntw = spy1 - yxl + 1;
             if (fntw >= 18 && fntw < 38)
             { spy1 = yxl + offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spy1);
 
-            var spy2 = GetYDirectSplit2168(edged, spy1 + 28, spy1 + 28 + fntw, hl, hh);
+            var spy2 = GetYDirectSplit2168(edged, spy1 + 28, spy1 + 28 + fntw, hl, hh, spy1);
             if (spy2 == -1) { return ret; }
             fntw = spy2 - spy1 + 1;
             if (fntw >= 18 && fntw < 38)
             { spy2 = spy1 + offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spy2);
 
-            var spy3 = GetYDirectSplit2168(edged, spy2 + 28, spy2 + 28 + fntw, hl, hh);
+            var spy3 = GetYDirectSplit2168(edged, spy2 + 28, spy2 + 28 + fntw, hl, hh, spy2);
             if (spy3 == -1) { return ret; }
             fntw = spy3 - spy2 + 1;
             if (fntw >= 18 && fntw < 38)
             { spy3 = spy2 + offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spy3);
 
-            var spy4 = GetYDirectSplit2168(edged, spy3 + 28, edged.Width - 10, (int)(hl + 0.1 * (hh - hl)), (int)(hh - 0.1 * (hh - hl)));
+            var spy4 = GetYDirectSplit2168(edged, spy3 + 28, edged.Width - 10, hl, hh, spy3);
             if (spy4 == -1) { return ret; }
             fntw = spy4 - spy3 + 1;
             if (fntw < 40)
@@ -1161,9 +1192,130 @@ namespace SkyEye.Models
             return ret;
         }
 
+
+        //private static int GetXDirectSplit2168(Mat edged, int start, int end, int dcl, int dch)
+        //{
+        //    var ret = -1;
+        //    for (var idx = start; idx > end; idx = idx - 2)
+        //    {
+        //        var snapmat = edged.SubMat(dcl, dch, idx - 2, idx);
+        //        var cnt = snapmat.CountNonZero();
+        //        if (cnt < 2)
+        //        {
+        //            if (ret == -1)
+        //            { ret = idx; }
+        //            else
+        //            { return ret; }
+        //        }
+        //        else
+        //        { ret = -1; }
+        //    }
+        //    return -1;
+        //}
+
+        //private static int GetYDirectSplit2168(Mat edged, int start, int end, int dcl, int dch)
+        //{
+        //    var ret = -1;
+        //    for (var idx = start; idx < end; idx = idx + 2)
+        //    {
+        //        var snapmat = edged.SubMat(dcl, dch, idx, idx + 2);
+        //        var cnt = snapmat.CountNonZero();
+        //        if (cnt < 2)
+        //        {
+        //            if (ret == -1)
+        //            { ret = idx; }
+        //            else
+        //            { return ret; }
+        //        }
+        //        else
+        //        { ret = -1; }
+        //    }
+        //    return -1;
+        //}
+
+        //private static List<object> GetXSplitList2168(Mat edged, int xxh, int hl, int hh)
+        //{
+        //    var offset = 50;
+        //    var ret = new List<object>();
+        //    var flist = new List<int>();
+        //    var slist = new List<int>();
+        //    ret.Add(flist);
+        //    ret.Add(slist);
+
+        //    var fntw = (int)(edged.Width * 0.333 * 0.25);
+
+        //    var spx1 = GetXDirectSplit2168(edged, xxh - 20, xxh - 20 - fntw, hl, hh);
+        //    if (spx1 == -1) { return ret; }
+        //    fntw = xxh - spx1 + 1;
+        //    if (fntw >= 18 && fntw < 38)
+        //    { spx1 = xxh - offset; fntw = offset; }
+        //    flist.Add(fntw); slist.Add(spx1);
+
+        //    var spx2 = GetXDirectSplit2168(edged, spx1 - 28, spx1 - 28 - fntw, hl, hh);
+        //    if (spx2 == -1) { return ret; }
+        //    fntw = spx1 - spx2;
+        //    if (fntw >= 18 && fntw < 38)
+        //    { spx2 = spx1 - offset; fntw = offset; }
+        //    flist.Add(fntw); slist.Add(spx2);
+
+        //    var spx3 = GetXDirectSplit2168(edged, spx2 - 28, spx2 - 28 - fntw, hl, hh);
+        //    if (spx3 == -1) { return ret; }
+        //    fntw = spx2 - spx3;
+        //    if (fntw >= 18 && fntw < 38)
+        //    { spx3 = spx2 - offset; fntw = offset; }
+        //    flist.Add(fntw); slist.Add(spx3);
+
+        //    return ret;
+        //}
+        //private static List<object> GetYSplitList2168(Mat edged, int yxl, int hl, int hh)
+        //{
+        //    var offset = 50;
+        //    var ret = new List<object>();
+        //    var flist = new List<int>();
+        //    var slist = new List<int>();
+        //    ret.Add(flist);
+        //    ret.Add(slist);
+
+        //    var fntw = (int)(edged.Width * 0.333 * 0.25);
+
+        //    var spy1 = GetYDirectSplit2168(edged, yxl + 28, yxl + 28 + fntw, hl, hh);
+        //    if (spy1 == -1) { return ret; }
+        //    fntw = spy1 - yxl + 1;
+        //    if (fntw >= 18 && fntw < 38)
+        //    { spy1 = yxl + offset; fntw = offset; }
+        //    flist.Add(fntw); slist.Add(spy1);
+
+        //    var spy2 = GetYDirectSplit2168(edged, spy1 + 28, spy1 + 28 + fntw, hl, hh);
+        //    if (spy2 == -1) { return ret; }
+        //    fntw = spy2 - spy1 + 1;
+        //    if (fntw >= 18 && fntw < 38)
+        //    { spy2 = spy1 + offset; fntw = offset; }
+        //    flist.Add(fntw); slist.Add(spy2);
+
+        //    var spy3 = GetYDirectSplit2168(edged, spy2 + 28, spy2 + 28 + fntw, hl, hh);
+        //    if (spy3 == -1) { return ret; }
+        //    fntw = spy3 - spy2 + 1;
+        //    if (fntw >= 18 && fntw < 38)
+        //    { spy3 = spy2 + offset; fntw = offset; }
+        //    flist.Add(fntw); slist.Add(spy3);
+
+        //    var spy4 = GetYDirectSplit2168(edged, spy3 + 28, edged.Width - 10, hl, hh);
+        //    if (spy4 == -1) { return ret; }
+        //    fntw = spy4 - spy3 + 1;
+        //    if (fntw < 40)
+        //    { return ret; }
+        //    flist.Add(fntw); slist.Add(spy4);
+
+        //    return ret;
+        //}
+
         private static double GetAngle2168(string imgpath)
         {
             Mat srcimg = Cv2.ImRead(imgpath, ImreadModes.Color);
+
+            var detectsize = GetDetectPoint(srcimg);
+            srcimg = srcimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
+
             var src = new Mat();
             Cv2.CvtColor(srcimg, src, ColorConversionCodes.BGR2GRAY);
 
