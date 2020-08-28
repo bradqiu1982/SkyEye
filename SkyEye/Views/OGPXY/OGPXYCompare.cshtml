@@ -29,22 +29,28 @@
 </div>
 
 <div class="row form-group">
-    <div class="col-xs-1"></div>
     <div class="col-xs-2"><input class="form-control" type="text" value="Image Folder" readonly></div>
     <div class="col-xs-8"><input class="form-control" type="text" id="imgfolder" name="imgfolder"></div>
-    <div class="col-xs-1"></div>
+    <div class="col-xs-2"></div>
 </div>
 
 <div class="row form-group">
-    <div class="col-xs-1"></div>
     <div class="col-xs-2"><input class="form-control" type="text" value="Wafer Number" readonly></div>
-    <div class="col-xs-3"><input class="form-control" type="text" id="wafernum" name="wafernum"></div>
+    <div class="col-xs-2"><input class="form-control" type="text" id="wafernum" name="wafernum"></div>
     <div class="col-xs-2">
         <select class="form-control" id="alg" name="alg">
             <option selected value="gen">经典算法</option>
             <option value="genangle">经典算法角度</option>
             <option value="newalg">新算法</option>
             <option value="newalgangle">新算法角度</option>
+        </select>
+    </div>
+    <div class="col-xs-2">
+        <select class="form-control" id="vtype" name="vtype">
+            <option selected value="auto">自识别坐标类型</option>
+            <option value="6inch">6英寸新坐标</option>
+            <option value="4inch">4英寸经典</option>
+            <option value="iivi">II-VI坐标</option>
         </select>
     </div>
     <div class="col-xs-2"><button class="btn btn-success" id="btn-recognize" name="btn-recognize">RECOGNIZE WAFER</button></div>

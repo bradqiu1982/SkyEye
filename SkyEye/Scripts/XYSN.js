@@ -253,6 +253,7 @@
             $('#marks').val(cur_marks.join('\n'));
 
             var arraysize = $('#arraysize').val();
+            var ocrnum = $('#ocrnum').val();
 
             var options = {
                 loadingTips: "Data Loading.....",
@@ -267,7 +268,8 @@
             $.post('/Main/UPDATEXYSNDataSpecial',
            {
                marks: JSON.stringify(cur_marks),
-               arraysize: arraysize
+               arraysize: arraysize,
+               ocrnum: ocrnum
            }, function (output) {
 
                $.bootstrapLoading.end();

@@ -358,18 +358,27 @@ namespace SkyEye.Controllers
 
         public JsonResult UPDATEXYSNDataSpecial()
         {
+            var ocrnum = Request.Form["ocrnum"];
             var marks = Request.Form["marks"];
             List<string> snlist = (List<string>)Newtonsoft.Json.JsonConvert.DeserializeObject(marks, (new List<string>()).GetType());
             var arrayzie = UT.O2I(Request.Form["arraysize"]);
 
             var snfilelist = new List<object>();
-            if (snlist[0].Length == 14 || snlist[0].Length == 18)
+            if (snlist[0].Length == 11 || snlist[0].Length == 14 || snlist[0].Length == 18)
             {
                 var wafer = "";
-                if (snlist[0].Length == 14)
-                { wafer = snlist[0].Substring(0, 10); }
+
+                if (!string.IsNullOrEmpty(ocrnum))
+                {
+                    wafer = ocrnum;
+                }
                 else
-                { wafer = snlist[0].Substring(0, 14); }
+                {
+                    if (snlist[0].Length == 14)
+                    { wafer = snlist[0].Substring(0, 10); }
+                    else
+                    { wafer = snlist[0].Substring(0, 14); }
+                }
 
                 if (arrayzie == 1)
                 {

@@ -26,17 +26,34 @@ namespace SkyEye.Models
             if (xyrectlist.Count > 0)
             { return "OGP-small5x1"; }
 
-            xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
-            if (xyrectlist.Count > 0)
-            { return "OGP-rect2x1"; }
-
             var circle2168 = ImgOperateCircle2168.Detect2168Revision(imgpath, fixangle);
             if (circle2168)
             { return "OGP-circle2168"; }
 
+            xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+            if (xyrectlist.Count > 0)
+            { return "OGP-rect2x1"; }
+
             return string.Empty;
         }
-        
+
+        public static string GetPicture4inchRev(string imgpath, bool fixangle = false)
+        {
+            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000, true, fixangle);
+            if (xyrectlist.Count > 0)
+            { return "OGP-rect5x1"; }
+
+            xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000, 50);
+            if (xyrectlist.Count > 0)
+            { return "OGP-small5x1"; }
+
+            xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+            if (xyrectlist.Count > 0)
+            { return "OGP-rect2x1"; }
+
+            return string.Empty;
+        }
+
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
             , Dictionary<string, bool> probexymap,string caprev, Controller ctrl, bool fixangle = false,bool newalg = false)
         {

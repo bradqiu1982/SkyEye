@@ -8,6 +8,18 @@
     th, td {
         text-align: center;
     }
+
+.mark-lists {
+    height: 80%;
+}
+
+.marks {
+    width: 100%;
+    height: 90% !important;
+    max-height: 100%;
+    max-width: 100%;
+    font-size: 18px;
+}
 </style>
 
 <script type="text/javascript" src="~/Scripts/XYSN.js"></script>
@@ -18,18 +30,21 @@
 </script>
 
 <div class="row" style="height:90%!important">
-    <div class="col-xs-3 mark-lists">
+    <div class="col-xs-4 mark-lists">
+        <div class="marks-title">
+            <div class="col-xs-4"><span>OCR-NUM</span></div>
+            <div class="col-xs-8"><input class="form-control" type="text" id="ocrnum" name="ocrnum"></div>
+        </div>
         <div class="marks-title">
             <span>Input SN</span>
             <div class="total-marks label-danger hide" id="total-marks">0</div>
         </div>
         <textarea class="form-control marks" id="marks"></textarea>
         <div class="marks-submit">
-            
-            <div class="col-xs-3">
-                    <input class="form-control" type="text" value="ARRAY" readonly>
+            <div class="col-xs-4">
+                <label class="form-control">ARRAY</label>
             </div>
-            <div class="col-xs-5">
+            <div class="col-xs-4">
                 <select class="form-control" id="arraysize" name="arraysize">
                     <option value="1">1</option>
                     <option value="4" selected>4</option>
@@ -41,7 +56,7 @@
             </div>
         </div>
     </div>
-    <div class="col-xs-9 mark-detail">
+    <div class="col-xs-8 mark-detail">
         <div class="mark-detail-op">
         </div>
         <table class="table  table-condensed" id="mywafertable">

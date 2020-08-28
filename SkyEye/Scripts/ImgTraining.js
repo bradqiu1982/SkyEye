@@ -310,6 +310,7 @@
             var wafernum = $('#wafernum').val().trim();
             var fpath = $('#imgfolder').val().trim();
             var alg = $('#alg').val();
+            var vtype = $('#vtype').val();
 
             var fixangle = 'FALSE';
             var newalg = 'FALSE';
@@ -345,7 +346,8 @@
                 fpath: fpath,
                 wafer: wafernum,
                 fixangle: fixangle,
-                newalg: newalg
+                newalg: newalg,
+                vtype: vtype
             }, function (output) {
                 $.bootstrapLoading.end();
                 solverecognizeresult(output);

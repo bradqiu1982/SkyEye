@@ -205,6 +205,7 @@ namespace SkyEye.Controllers
         {
             var wafer = Request.Form["wafer"].Trim().Replace("\\", "").Replace("/", "");
             var folder = Request.Form["fpath"];
+            var vtype = Request.Form["vtype"];
 
             var fixangle = false;
             var sfixangle = Request.Form["fixangle"];
@@ -262,20 +263,41 @@ namespace SkyEye.Controllers
             }
 
             var caprev = "";
-            caprev = OGPFatherImg.GetPictureRev(samplepicture[0], fixangle);
-            if (string.IsNullOrEmpty(caprev))
+
+            if (string.IsNullOrEmpty(vtype) || vtype.Contains("auto"))
             {
-                caprev = OGPFatherImg.GetPictureRev(samplepicture[1], fixangle);
+                caprev = OGPFatherImg.GetPictureRev(samplepicture[0], fixangle);
                 if (string.IsNullOrEmpty(caprev))
                 {
-                    CleanWaferParseFile(wafer);
-                    ret.Data = new
-                    {
-                        xylist = xylist,
-                        MSG = "Failed to get revsion from sample pictures!"
-                    };
-                    return ret;
+                    caprev = OGPFatherImg.GetPictureRev(samplepicture[1], fixangle);
                 }
+            }
+            else if (vtype.Contains("4inch"))
+            {
+                caprev = OGPFatherImg.GetPicture4inchRev(samplepicture[0], fixangle);
+                if (string.IsNullOrEmpty(caprev))
+                {
+                    caprev = OGPFatherImg.GetPicture4inchRev(samplepicture[1], fixangle);
+                }
+            }
+            else if (vtype.Contains("6inch"))
+            {
+                caprev = "OGP-circle2168";
+            }
+            else if (vtype.Contains("iivi"))
+            {
+                caprev = "OGP-iivi";
+            }
+
+            if (string.IsNullOrEmpty(caprev))
+            {
+                CleanWaferParseFile(wafer);
+                ret.Data = new
+                {
+                    xylist = xylist,
+                    MSG = "Failed to get revsion from sample pictures!"
+                };
+                return ret;
             }
 
             var keylist = new List<string>();
