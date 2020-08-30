@@ -73,7 +73,7 @@ namespace SkyEye.Models
                 var xcoordy = (int)(ccl.Center.Y - 53);
                 var ycoordx = (int)(ccl.Center.X + 7);
                 var ycoordy = (int)(ccl.Center.Y - 259);
-                if (ycoordy < 0) { ycoordy = 12; }
+                if (ycoordy < 0) { ycoordy = 3; }
                 var markx = (int)(ccl.Center.X + 123);
                 var marky = (int)(ccl.Center.Y - 125);
 
