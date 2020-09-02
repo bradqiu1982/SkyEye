@@ -73,5 +73,34 @@ namespace SkyEye.Models
             }
         }
 
+        //add SVM support
+        public static OpenCvSharp.ML.SVM GetTrainedSMode(string caprev, Controller ctrl)
+        {
+            var traindatas = GetTrainData(caprev, ctrl);
+            var samplex = new Mat();
+            var samples = new Mat();
+            samplex.ConvertTo(samples, MatType.CV_32FC1);
+            var respmatx = new Mat();
+            var respmat = new Mat();
+            respmatx.ConvertTo(respmat, MatType.CV_32SC1);
+
+            foreach (var item in traindatas)
+            {
+                var tcmresizex = Mat.ImDecode(Convert.FromBase64String(item.TrainingImg), ImreadModes.Grayscale);
+                var tcmresize = new Mat();
+                tcmresizex.ConvertTo(tcmresize, MatType.CV_32FC1);
+                var stcm = tcmresize.Reshape(1, 1);
+                samples.PushBack(stcm);
+                respmat.PushBack(item.ImgVal);
+            }
+
+            var smode = OpenCvSharp.ML.SVM.Create();
+            smode.Type = OpenCvSharp.ML.SVM.Types.CSvc;
+            smode.KernelType = OpenCvSharp.ML.SVM.KernelTypes.Linear;
+            smode.TermCriteria = TermCriteria.Both(5000, 0.000001);
+            smode.Train(samples, OpenCvSharp.ML.SampleTypes.RowSample, respmat);
+            return smode;
+        }
+
     }
 }
