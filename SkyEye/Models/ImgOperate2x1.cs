@@ -63,7 +63,57 @@ namespace SkyEye.Models
 
             }//end foreach
 
+            if (ret.Count > 0)
+            {
+                var coord = srcrealimg.SubMat(ret[0]);
+                var midx = (int)(coord.Width / 2);
+                var midy = (int)(coord.Height / 2);
+                var checkregion = coord.SubMat(midy - 15, midy + 15, midx - 20, midx + 20);
+                var ck = CheckRegion2x1(checkregion);
+                if (ck)
+                { return ret; }
+                else
+                { return new List<Rect>(); }
+            }
+
             return ret;
+        }
+
+        public static bool CheckRegion2x1(Mat checkregion)
+        {
+            var xyenhance = new Mat();
+            Cv2.DetailEnhance(checkregion, xyenhance);
+
+            var denoisemat1 = new Mat();
+            Cv2.FastNlMeansDenoisingColored(xyenhance, denoisemat1, 10, 10, 7, 21);
+            xyenhance = denoisemat1;
+
+            var xyenhance4x = new Mat();
+            Cv2.Resize(xyenhance, xyenhance4x, new Size(xyenhance.Width * 4, xyenhance.Height * 4));
+            Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+
+            var xyenhgray = new Mat();
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
+
+            var blurred = new Mat();
+            Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
+
+            var edged = new Mat();
+            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+
+            for (var idx = 0; idx < edged.Width - 3; idx = idx + 3)
+            {
+                var snapmat = edged.SubMat(0, edged.Height, idx, idx + 3);
+                var cnt = snapmat.CountNonZero();
+                if (cnt > 65)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         //40,56,65

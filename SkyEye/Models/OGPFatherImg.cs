@@ -27,7 +27,7 @@ namespace SkyEye.Models
             { return "OGP-small5x1"; }
 
             var circle2168 = ImgOperateCircle2168.Detect2168Revision(imgpath, fixangle);
-            if (circle2168)
+            if (!string.IsNullOrEmpty(circle2168))
             { return "OGP-circle2168"; }
 
             xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);

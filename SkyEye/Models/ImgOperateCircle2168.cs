@@ -434,7 +434,44 @@ namespace SkyEye.Models
         //    return xlist.Max() - xlist.Min();
         //}
 
-        public static bool Detect2168Revision(string imgpath,bool fixangle)
+        public static string CheckRegion(Mat checkregion)
+        {
+            var xyenhance = new Mat();
+            Cv2.DetailEnhance(checkregion, xyenhance);
+
+            var denoisemat1 = new Mat();
+            Cv2.FastNlMeansDenoisingColored(xyenhance, denoisemat1, 10, 10, 7, 21);
+            xyenhance = denoisemat1;
+
+            var xyenhance4x = new Mat();
+            Cv2.Resize(xyenhance, xyenhance4x, new Size(xyenhance.Width * 4, xyenhance.Height * 4));
+            Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+
+            var xyenhgray = new Mat();
+            var denoisemat = new Mat();
+            Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
+
+            var blurred = new Mat();
+            Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
+
+            var edged = new Mat();
+            Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+
+            for (var idx = 1; idx < edged.Height - 3; idx = idx + 3)
+            {
+                var snapmat = edged.SubMat(idx, idx + 3, 0, edged.Width);
+                var cnt = snapmat.CountNonZero();
+                if (cnt > 200)
+                {
+                    return "";
+                }
+            }
+
+            return "OGP-circle2168";
+        }
+
+        public static string Detect2168Revision(string imgpath,bool fixangle)
         {
             Mat srccolor = Cv2.ImRead(imgpath, ImreadModes.Color);
 
@@ -501,10 +538,36 @@ namespace SkyEye.Models
                 }
 
                 if (filterline.Count > 0)
-                { return true; }
-            }
+                {
+                    var checkregion = new Mat();
+                    var ylist = new List<int>();
+                    foreach (var p in filterline)
+                    { ylist.Add(p.P1.Y); ylist.Add(p.P2.Y); }
+                    var boundy = (int)ylist.Average();
+                    var midx = (int)CP.Center.X;
 
-            return false;
+                    if (CP.Center.Y > midbond)
+                    {
+                        var colstart = midx - 15;
+                        var colend = midx + 15;
+                        var rowstart = boundy + 15;
+                        var rowend = boundy + 40;
+                        checkregion = srcrealimg.SubMat(rowstart, rowend, colstart, colend);
+                    }
+                    else
+                    {
+                        var colstart = midx - 15;
+                        var colend = midx + 15;
+                        var rowstart = boundy - 40;
+                        var rowend = boundy - 15;
+                        checkregion = srcrealimg.SubMat(rowstart, rowend, colstart, colend);
+                    }
+
+                    return CheckRegion(checkregion);
+                }//end if
+            }//end if
+
+            return "";
         }
 
         public static List<Mat> CutCharRect(string imgpath,bool fixangle)
