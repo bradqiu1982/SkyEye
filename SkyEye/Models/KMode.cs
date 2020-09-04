@@ -102,5 +102,48 @@ namespace SkyEye.Models
             return smode;
         }
 
+        public static Mat GetOneHot(int val)
+        {
+            var res = new int[] { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+            var idx = val - 48;
+            if (idx >= 0 && idx <= 9)
+            { res[idx] = 1; }
+            return new Mat(1, 10, MatType.CV_32FC1, res);
+        }
+
+        public static OpenCvSharp.ML.ANN_MLP GetTrainedANNMode(string caprev)
+        {
+            var traindatas = AITrainingData.GetTrainingData(caprev); ;
+            var samplex = new Mat();
+            var samples = new Mat();
+            samplex.ConvertTo(samples, MatType.CV_32FC1);
+            var respmatx = new Mat();
+            var respmat = new Mat();
+            respmatx.ConvertTo(respmat, MatType.CV_32FC1);
+
+            foreach (var item in traindatas)
+            {
+                var tcmresizex = Mat.ImDecode(Convert.FromBase64String(item.TrainingImg), ImreadModes.Grayscale);
+                var tcmresize = new Mat();
+                tcmresizex.ConvertTo(tcmresize, MatType.CV_32FC1);
+                var stcm = tcmresize.Reshape(0, 1);
+                samples.PushBack(stcm);
+                respmat.PushBack(GetOneHot(item.ImgVal).Reshape(0, 1));
+            }
+
+            var smode = OpenCvSharp.ML.ANN_MLP.Create();
+
+            var layarray = new int[] { 2500, 200, 10 };
+            var laysize = InputArray.Create(layarray);
+            smode.SetLayerSizes(laysize);
+
+            smode.BackpropWeightScale = 0.0001;
+
+            smode.TermCriteria = new TermCriteria(CriteriaType.MaxIter, 200, 0.000001);
+            smode.Train(samples, OpenCvSharp.ML.SampleTypes.RowSample, respmat);
+
+            return smode;
+        }
+
     }
 }

@@ -599,8 +599,8 @@ namespace SkyEye.Models
 
             var circles = Cv2.HoughCircles(srcgray, HoughMethods.Gradient, 1, srcgray.Rows / 4, 100, 80, 30, 70);
 
-            var lowbond = srcrealimg.Height * 0.25;
-            var upbond = srcrealimg.Height * 0.75;
+            var lowbond = srcrealimg.Height * 0.2;
+            var upbond = srcrealimg.Height * 0.8;
             var midbond = srcrealimg.Height * 0.5;
 
             var filtercircles = new List<CircleSegment>();
@@ -628,7 +628,7 @@ namespace SkyEye.Models
                     if (CP.Center.Y < midbond)
                     { ylen = line.P1.Y - CP.Center.Y; }
 
-                    if (xlen >= 166 && xlen < 240
+                    if (xlen > 150 && xlen < 240  //xlen >= 166 && xlen < 240
                         && (d360 <= 4 || d360 >= 356)
                         && (ylen >= 170 && ylen <= 210))
                     {
