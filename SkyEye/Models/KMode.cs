@@ -133,7 +133,8 @@ namespace SkyEye.Models
 
             var smode = OpenCvSharp.ML.ANN_MLP.Create();
 
-            var layarray = new int[] { 2500, 200, 10 };
+            var hide = (int)Math.Sqrt(50*50*10);
+            var layarray = new int[] { 50*50, hide,hide,hide, 10 };
             var laysize = InputArray.Create(layarray);
             smode.SetLayerSizes(laysize);
 

@@ -163,7 +163,7 @@ namespace SkyEye.Models
             Cv2.FastNlMeansDenoisingColored(coorenhance, denoisemat2, 10, 10, 7, 21);
             Cv2.CvtColor(denoisemat2, coorgray, ColorConversionCodes.BGR2GRAY);
 
-            Cv2.GaussianBlur(coorgray, blurred, new Size(5, 5), 0);
+            Cv2.GaussianBlur(coorgray, blurred, new Size(13, 13), 2.6);
 
             var edged = new Mat();
             Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
