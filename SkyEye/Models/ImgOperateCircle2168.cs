@@ -824,8 +824,8 @@ namespace SkyEye.Models
             var xxlist = GetXSplitList2168(edged, xxh, hl, hh);
             var flist = (List<int>)xxlist[0];
             var slist = (List<int>)xxlist[1];
-            var y = hl - 5;
-            var h = hh - hl + 7;
+            var y = hl - 7;
+            var h = hh - hl + 9;
 
             if (slist.Count == 3)
             {
