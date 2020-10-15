@@ -762,7 +762,7 @@ namespace SkyEye.Models
 
 
             var blurred = new Mat();
-            Cv2.GaussianBlur(xyenhgray, blurred, new Size(5, 5), 0);
+            Cv2.GaussianBlur(xyenhgray, blurred, new Size(7, 7), 0);
 
             var edged = new Mat();
             Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
@@ -817,6 +817,20 @@ namespace SkyEye.Models
                 }
                 xxh = (int)xcxlist.Max() + 2;
                 yxl = (int)ycxlist.Min() - 2;
+            }
+            else
+            {
+                //avoid contamination at coord center
+                var wml = edged.Width / 2;
+                var xdist = wml - xxh;
+                var ydist = yxl - wml;
+                if (Math.Abs(xdist - ydist) > 60)
+                {
+                    if (xdist > ydist)
+                    { yxl = wml + xdist; }
+                    else
+                    { xxh = wml - ydist; }
+                }
             }
 
             var rectlist = new List<Rect>();
