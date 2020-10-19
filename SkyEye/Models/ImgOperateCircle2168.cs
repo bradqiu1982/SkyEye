@@ -824,7 +824,7 @@ namespace SkyEye.Models
                 var wml = edged.Width / 2;
                 var xdist = wml - xxh;
                 var ydist = yxl - wml;
-                if (Math.Abs(xdist - ydist) > 60)
+                if (Math.Abs(xdist - ydist) > 90)
                 {
                     if (xdist > ydist)
                     { yxl = wml + xdist; }
