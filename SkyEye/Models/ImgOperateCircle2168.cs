@@ -1458,9 +1458,28 @@ namespace SkyEye.Models
                 idx = idx + 20;
             }
 
+            var hptlist = new List<KeyPoint>();
+            for (var idx = 20; idx < mat.Height;)
+            {
+                var xwlist = new List<double>();
+                var wlist = new List<KeyPoint>();
+                foreach (var pt in wptlist)
+                {
+                    if (pt.Pt.Y >= (idx - 20) && pt.Pt.Y < idx)
+                    {
+                        wlist.Add(pt);
+                        xwlist.Add(pt.Pt.X);
+                    }
+                }
+
+                if (wlist.Count >= 2 && (xwlist.Max() - xwlist.Min()) > 0.3 * mat.Width)
+                { hptlist.AddRange(wlist); }
+                idx = idx + 20;
+            }
+
             var xlist = new List<double>();
             var ylist = new List<double>();
-            foreach (var pt in wptlist)
+            foreach (var pt in hptlist)
             {
                 xlist.Add(pt.Pt.X);
                 ylist.Add(pt.Pt.Y);
