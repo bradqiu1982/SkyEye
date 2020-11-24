@@ -821,16 +821,16 @@ namespace SkyEye.Models
             else
             {
                 //avoid contamination at coord center
-                var wml = edged.Width / 2;
-                var xdist = wml - xxh;
-                var ydist = yxl - wml;
-                if (Math.Abs(xdist - ydist) > 90)
-                {
-                    if (xdist > ydist)
-                    { yxl = wml + xdist; }
-                    else
-                    { xxh = wml - ydist; }
-                }
+                //var wml = edged.Width / 2;
+                //var xdist = wml - xxh;
+                //var ydist = yxl - wml;
+                //if (Math.Abs(xdist - ydist) > 90)
+                //{
+                //    if (xdist > ydist)
+                //    { yxl = wml + xdist; }
+                //    else
+                //    { xxh = wml - ydist; }
+                //}
             }
 
             var rectlist = new List<Rect>();
