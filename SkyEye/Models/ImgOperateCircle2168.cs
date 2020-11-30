@@ -791,6 +791,46 @@ namespace SkyEye.Models
             return cmatlist;
         }
 
+        private static List<Mat> Get2168MatList1(Mat coordmat, int ylen)
+        {
+            var cmatlist = new List<Mat>();
+
+            var xyenhance = coordmat;
+            var xyenhance4x = new Mat();
+            Cv2.Resize(xyenhance, xyenhance4x, new Size(xyenhance.Width * 4, xyenhance.Height * 4));
+            Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+
+            var lowspec = new Scalar(23, 0, 0);
+            //var highspec = new Scalar(100, 67, 65);
+            var highspec = new Scalar(143, 63, 56);
+            var coordrgb = new Mat();
+            Cv2.CvtColor(xyenhance4x, coordrgb, ColorConversionCodes.BGR2RGB);
+            var edged = coordrgb.InRange(lowspec, highspec);
+
+            //using (new Window("edged", edged))
+            //{
+            //    Cv2.WaitKey();
+            //}
+
+            var rectlist = Get2168Rect(edged, xyenhance4x);
+
+            cmatlist.Add(xyenhance);
+            foreach (var rect in rectlist)
+            {
+                if (rect.X < 0 || rect.Y < 0
+                || ((rect.X + rect.Width) > edged.Width)
+                || ((rect.Y + rect.Height) > edged.Height))
+                {
+                    cmatlist.Clear();
+                    return cmatlist;
+                }
+
+                cmatlist.Add(edged.SubMat(rect));
+            }
+
+            return cmatlist;
+        }
+
         private static List<Rect> Get2168Rect(Mat edged, Mat xyenhance4x)
         {
             var hl = GetHeighLow2168(edged);
@@ -878,9 +918,9 @@ namespace SkyEye.Models
             if (slist.Count == 4)
             {
                 rectlist.Add(new Rect(yxl - 3, y, slist[0] - yxl + 6, h));
-                rectlist.Add(new Rect(slist[0] + 5, y, slist[1] - slist[0] + 4, h));
-                rectlist.Add(new Rect(slist[1] + 5, y, slist[2] - slist[1] + 4, h));
-                rectlist.Add(new Rect(slist[2] + 6, y, slist[3] - slist[2] + 8, h));
+                rectlist.Add(new Rect(slist[0] + 3, y, slist[1] - slist[0] + 3, h));
+                rectlist.Add(new Rect(slist[1] + 3, y, slist[2] - slist[1] + 3, h));
+                rectlist.Add(new Rect(slist[2] + 3, y, slist[3] - slist[2] + 4, h));
             }
             else if (slist.Count == 3)
             {

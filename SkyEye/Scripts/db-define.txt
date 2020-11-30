@@ -155,3 +155,19 @@ CREATE TABLE [dbo].[ModuleSNWaferMap] (
 	[Appv_2]   NVARCHAR (200) DEFAULT ('') NOT NULL,
 	[Appv_3]   NVARCHAR (200) DEFAULT ('') NOT NULL
 );
+
+
+ CREATE TABLE [SkyEyeOCR] (
+	[ID]   INT  IDENTITY (1,1) NOT NULL,
+	[Project]   NVARCHAR (200) DEFAULT ('') NOT NULL, // it comes from image share folder name, can be used as a query condition
+	[SN]   NVARCHAR (200) DEFAULT ('') NOT NULL, //it comes from image name, can be used as query condition
+	[VCSELType]   NVARCHAR (200) DEFAULT ('') NOT NULL, // ZURICH,SHERMAN 6 INCH,COGA,SONY
+	[CoordImage]   NVARCHAR (MAX) DEFAULT ('') NOT NULL, //base64 encode coordinate image
+	[X]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Y]   NVARCHAR (200) DEFAULT ('') NOT NULL,
+	[Accuracy]   [INT] DEFAULT (1) NOT NULL, // Accuracy confidence level 0~100
+	[Appv_1]   NVARCHAR (200) DEFAULT ('') NOT NULL, //backup column
+	[Appv_2]   NVARCHAR (200) DEFAULT ('') NOT NULL, //backup column
+	[Appv_3]   NVARCHAR (200) DEFAULT ('') NOT NULL  //backup column
+	);
+

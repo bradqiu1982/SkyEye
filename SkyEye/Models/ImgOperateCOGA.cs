@@ -11,10 +11,10 @@ namespace SkyEye.Models
         public void RunCOGA(string imgpath, List<double> ratelist)
         {
             Mat srcrealimg = Cv2.ImRead(imgpath, ImreadModes.Color);
-            using (new Window("original", srcrealimg))
-            {
-                Cv2.WaitKey();
-            }
+            //using (new Window("original", srcrealimg))
+            //{
+            //    Cv2.WaitKey();
+            //}
 
             Cv2.DetailEnhance(srcrealimg, srcrealimg);
             var denoisemat = new Mat();
@@ -200,10 +200,10 @@ namespace SkyEye.Models
                             coordmat = outxymat;
                         }
 
-                        using (new Window("coordmat", coordmat))
-                        {
-                            Cv2.WaitKey();
-                        }
+                        //using (new Window("coordmat", coordmat))
+                        //{
+                        //    Cv2.WaitKey();
+                        //}
 
                         Cv2.DetailEnhance(coordmat, coordmat);
 

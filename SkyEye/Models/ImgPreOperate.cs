@@ -120,5 +120,74 @@ namespace SkyEye.Models
             return string.Empty;
         }
 
+        public static List<List<double>> GetDetectPoint(Mat mat)
+        {
+            var ret = new List<List<double>>();
+            var xyenhance = new Mat();
+            Cv2.DetailEnhance(mat, xyenhance);
+            var kaze = KAZE.Create();
+            var kazeDescriptors = new Mat();
+            KeyPoint[] kazeKeyPoints = null;
+            kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
+
+            var wptlist = new List<KeyPoint>();
+            for (var idx = 20; idx < mat.Width;)
+            {
+                var yhlist = new List<double>();
+                var wlist = new List<KeyPoint>();
+                foreach (var pt in kazeKeyPoints)
+                {
+                    if (pt.Pt.X >= (idx - 20) && pt.Pt.X < idx)
+                    {
+                        wlist.Add(pt);
+                        yhlist.Add(pt.Pt.Y);
+                    }
+                }
+
+                if (wlist.Count > 10 && (yhlist.Max() - yhlist.Min()) > 0.3 * mat.Height)
+                { wptlist.AddRange(wlist); }
+                idx = idx + 20;
+            }
+
+            var hptlist = new List<KeyPoint>();
+            for (var idx = 20; idx < mat.Height;)
+            {
+                var xwlist = new List<double>();
+                var wlist = new List<KeyPoint>();
+                foreach (var pt in wptlist)
+                {
+                    if (pt.Pt.Y >= (idx - 20) && pt.Pt.Y < idx)
+                    {
+                        wlist.Add(pt);
+                        xwlist.Add(pt.Pt.X);
+                    }
+                }
+
+                if (wlist.Count >= 2 && (xwlist.Max() - xwlist.Min()) > 0.3 * mat.Width)
+                { hptlist.AddRange(wlist); }
+                idx = idx + 20;
+            }
+
+            var xlist = new List<double>();
+            var ylist = new List<double>();
+            foreach (var pt in hptlist)
+            {
+                xlist.Add(pt.Pt.X);
+                ylist.Add(pt.Pt.Y);
+            }
+            ret.Add(xlist);
+            ret.Add(ylist);
+
+            //var dstKaze = new Mat();
+            //Cv2.DrawKeypoints(mat, wptlist, dstKaze);
+
+            //using (new Window("dstKazexx", dstKaze))
+            //{
+            //    Cv2.WaitKey();
+            //}
+
+            return ret;
+        }
+
     }
 }

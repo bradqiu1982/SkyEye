@@ -18,6 +18,10 @@ namespace SkyEye.Models
             if (xyrectlist.Count > 0)
             { return "OGP-rect5x1"; }
 
+            var alen10g = ImgOperateA10G.DetectA10GRevision(imgpath);
+            if (!string.IsNullOrEmpty(alen10g))
+            { return "OGP-A10G"; }
+
             var iividetect = ImgOperateIIVI.DetectIIVI(imgpath, 115, 140, 3.0, 4.3);
             if (iividetect)
             { return "OGP-iivi"; }
@@ -42,6 +46,10 @@ namespace SkyEye.Models
             var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000, true, fixangle);
             if (xyrectlist.Count > 0)
             { return "OGP-rect5x1"; }
+
+            var alen10g = ImgOperateA10G.DetectA10GRevision(imgpath);
+            if (!string.IsNullOrEmpty(alen10g))
+            { return "OGP-A10G"; }
 
             xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000, 50);
             if (xyrectlist.Count > 0)
@@ -69,20 +77,20 @@ namespace SkyEye.Models
                             return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
                         }
                     }
-                    else
-                    {
-                        Mat rawimg1 = Cv2.ImRead(imgpath, ImreadModes.Color);
-                        var fimg1 = new OGPFatherImg();
-                        fimg1.WaferNum = wafer;
-                        fimg1.SN = Path.GetFileNameWithoutExtension(imgpath);
-                        fimg1.MainImgKey = GetUniqKey();
-                        fimg1.RAWImgURL = WriteRawImg(rawimg1, fimg1.MainImgKey, ctrl);
-                        fimg1.CaptureImg = "";
-                        fimg1.CaptureRev = caprev;
-                        fimg1.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                        fimg1.StoreFailData();
-                        return string.Empty;
-                    }
+                    //else
+                    //{
+                    //    Mat rawimg1 = Cv2.ImRead(imgpath, ImreadModes.Color);
+                    //    var fimg1 = new OGPFatherImg();
+                    //    fimg1.WaferNum = wafer;
+                    //    fimg1.SN = Path.GetFileNameWithoutExtension(imgpath);
+                    //    fimg1.MainImgKey = GetUniqKey();
+                    //    fimg1.RAWImgURL = WriteRawImg(rawimg1, fimg1.MainImgKey, ctrl);
+                    //    fimg1.CaptureImg = "";
+                    //    fimg1.CaptureRev = caprev;
+                    //    fimg1.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                    //    fimg1.StoreFailData();
+                    //    return string.Empty;
+                    //}
                 }
                 else if (caprev.Contains("OGP-small5x1"))
                 {
@@ -134,6 +142,17 @@ namespace SkyEye.Models
                 else if (caprev.Contains("OGP-circle2168"))
                 {
                     var charmatlist = ImgOperateCircle2168.CutCharRect(imgpath,fixangle);
+                    if (charmatlist.Count > 0)
+                    {
+                        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                        {
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                        }
+                    }
+                }
+                else if (caprev.Contains("OGP-A10G"))
+                {
+                    var charmatlist = ImgOperateA10G.CutCharRect(imgpath);
                     if (charmatlist.Count > 0)
                     {
                         using (var kmode = KMode.GetTrainedMode(caprev, ctrl))

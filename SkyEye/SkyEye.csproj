@@ -275,6 +275,7 @@
     <Compile Include="Models\GeneralOCRVM.cs" />
     <Compile Include="Models\ImgOperate2x1.cs" />
     <Compile Include="Models\ImgOperate5x1.cs" />
+    <Compile Include="Models\ImgOperateA10G.cs" />
     <Compile Include="Models\ImgOperateCircle2168.cs" />
     <Compile Include="Models\ImgOperateCOGA.cs" />
     <Compile Include="Models\ImgOperateIIVI.cs" />
