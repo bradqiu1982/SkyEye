@@ -155,61 +155,59 @@ namespace SkyEye.Models
             //    Cv2.WaitKey();
             //}
 
-            var xmin = (int)xlist.Min();
-            var split1x = GetSplitX(xymat, xmin + 80, xmin + 130);
-            var split2x = GetSplitX(xymat, xmin + 174, xmin + 230);
 
             var h0 = (int)ylist.Min() - 3;
             if (h0 < 0) { h0 = 0; }
             var h1 = (int)ylist.Max() + 3;
             if (h1 - h0 > 158) { h1 = h0 + 158; }
             if (h1 > xymat.Height) { h1 = xymat.Height - 1; }
-            var x0 = xmin - 3;
-            if (x0 < 0) { x0 = 0; }
+
+
+            var xmax = (int)xlist.Max();
+            var split2x = GetSplitX(xymat, xmax - 150, xmax - 30,h0,h1);
+            var split1x = GetSplitX(xymat, (xmax - 250) < 0 ? 0 : (xmax - 250), xmax - 140,h0,h1);
 
             if (split1x != 0 && split2x != 0)
             {
+                var fontwd = xymat.Width - split2x;
+                var x0 = split1x - fontwd;
+                if (x0 < 0) { x0 = 0; }
                 charlist.Add(xymat.SubMat(h0, h1, x0, split1x));
                 charlist.Add(xymat.SubMat(h0, h1, split1x, split2x));
                 charlist.Add(xymat.SubMat(h0, h1, split2x, xymat.Width - 3));
             }
-            else if (split1x != 0)
-            {
-                var wmid = split1x;
-                var wd = wmid - x0;
-                charlist.Add(xymat.SubMat(h0, h1, x0, x0 + wd));
-                charlist.Add(xymat.SubMat(h0, h1, wmid, wmid + wd));
-                charlist.Add(xymat.SubMat(h0, h1, wmid + wd, xymat.Width - 3));
-            }
             else if (split2x != 0)
             {
-                var x1 = (x0 + split2x) / 2;
+                var fontwd = xymat.Width - split2x;
+                var x1 = split2x - fontwd;
+                var x0 = split2x - 2 * fontwd;
+                if (x0 < 0) { x0 = 0; }
+
                 charlist.Add(xymat.SubMat(h0, h1, x0, x1));
                 charlist.Add(xymat.SubMat(h0, h1, x1, split2x));
                 charlist.Add(xymat.SubMat(h0, h1, split2x, xymat.Width - 3));
             }
             else
             {
-                charlist.Add(xymat.SubMat(h0, h1, x0, x0 + 100));
-                charlist.Add(xymat.SubMat(h0, h1, x0 + 98, x0 + 204));
-                charlist.Add(xymat.SubMat(h0, h1, x0 + 202, xymat.Width - 3));
+                var x0 = xymat.Width - 304;
+                if (x0 < 0) { x0 = 0; }
+                charlist.Add(xymat.SubMat(h0, h1, x0, xymat.Width - 204));
+                charlist.Add(xymat.SubMat(h0, h1, xymat.Width - 204, xymat.Width - 103));
+                charlist.Add(xymat.SubMat(h0, h1, xymat.Width - 103, xymat.Width - 3));
             }
             return charlist;
-
         }
 
-        public static int GetSplitX(Mat xymat, int snapstart, int snapend)
+        public static int GetSplitX(Mat xymat, int snapstart, int snapend, int h0, int h1)
         {
             bool hassplit = false;
             var wtob = 0;
             var btow = 0;
             var previouscolor = 1;
 
-            var eh = xymat.Height;
-
-            for (var sidx = snapstart; sidx < snapend; sidx++)
+            for (var sidx = snapend; sidx > snapstart;)
             {
-                var snapmat = xymat.SubMat(0, eh, sidx, sidx + 2);
+                var snapmat = xymat.SubMat(h0, h1, sidx, sidx + 2);
                 var cnt = snapmat.CountNonZero();
                 if (cnt < 2)
                 {
@@ -230,6 +228,8 @@ namespace SkyEye.Models
                     }
                     previouscolor = 1;
                 }
+
+                sidx = sidx - 2;
             }
 
             if (hassplit && wtob != 0 && btow != 0)

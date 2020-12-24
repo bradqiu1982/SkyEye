@@ -254,6 +254,8 @@
 
             var arraysize = $('#arraysize').val();
             var ocrnum = $('#ocrnum').val();
+            if (ocrnum == '')
+            { alert("Please input OCR Number!"); return false;}
 
             var options = {
                 loadingTips: "Data Loading.....",
