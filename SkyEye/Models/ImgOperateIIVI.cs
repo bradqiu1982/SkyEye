@@ -164,10 +164,27 @@ namespace SkyEye.Models
 
 
             var xmax = (int)xlist.Max();
-            var split2x = GetSplitX(xymat, xmax - 150, xmax - 30,h0,h1);
-            var split1x = GetSplitX(xymat, (xmax - 250) < 0 ? 0 : (xmax - 250), xmax - 140,h0,h1);
 
-            if (split1x != 0 && split2x != 0)
+            var start = xmax - 150; var end = xmax - 30;
+            var split2x = GetSplitX(xymat, start, end, h0, h1);
+
+            start = xmax - 140; end = (xmax - 250) < 0 ? 0 : (xmax - 250);
+            if (split2x != -1)
+            { start = split2x - 150; end = split2x - 40; }
+            var split1x = GetSplitX(xymat, start, end, h0, h1);
+
+            start = xmax - 260; end = (xmax - 380) < 0 ? 0 : (xmax - 380);
+            if (split1x != -1)
+            { start = split1x - 150; end = split1x - 40; }
+            var split0x = GetSplitX(xymat, start, end, h0, h1);
+
+            if (split1x != -1 && split2x != -1 && split0x != -1)
+            {
+                charlist.Add(xymat.SubMat(h0, h1, split0x, split1x));
+                charlist.Add(xymat.SubMat(h0, h1, split1x, split2x));
+                charlist.Add(xymat.SubMat(h0, h1, split2x, xymat.Width - 3));
+            }
+            else if (split1x != 0 && split2x != 0)
             {
                 var fontwd = xymat.Width - split2x;
                 var x0 = split1x - fontwd;
@@ -200,43 +217,65 @@ namespace SkyEye.Models
 
         public static int GetSplitX(Mat xymat, int snapstart, int snapend, int h0, int h1)
         {
-            bool hassplit = false;
-            var wtob = 0;
-            var btow = 0;
-            var previouscolor = 1;
-
+            var ret = -1;
+            var tm = 0;
             for (var sidx = snapend; sidx > snapstart;)
             {
                 var snapmat = xymat.SubMat(h0, h1, sidx, sidx + 2);
                 var cnt = snapmat.CountNonZero();
-                if (cnt < 2)
+                if (cnt < 3)
                 {
-                    hassplit = true;
-                    if (previouscolor == 1)
-                    {
-                        previouscolor = 0;
-                        wtob = sidx;
-                    }
-                    previouscolor = 0;
+                    if (ret != -1 && tm == 1)
+                    { return sidx; }
+                    else
+                    { ret = sidx; tm = 1; }
                 }
                 else
-                {
-                    if (previouscolor == 0)
-                    {
-                        btow = sidx;
-                        break;
-                    }
-                    previouscolor = 1;
-                }
-
+                { tm = 0; }
                 sidx = sidx - 2;
             }
-
-            if (hassplit && wtob != 0 && btow != 0)
-            { return (wtob + btow) / 2; }
-
-            return 0;
+            return -1;
         }
+
+        //public static int GetSplitX_old(Mat xymat, int snapstart, int snapend, int h0, int h1)
+        //{
+        //    bool hassplit = false;
+        //    var wtob = 0;
+        //    var btow = 0;
+        //    var previouscolor = 1;
+
+        //    for (var sidx = snapend; sidx > snapstart;)
+        //    {
+        //        var snapmat = xymat.SubMat(h0, h1, sidx, sidx + 2);
+        //        var cnt = snapmat.CountNonZero();
+        //        if (cnt < 2)
+        //        {
+        //            hassplit = true;
+        //            if (previouscolor == 1)
+        //            {
+        //                previouscolor = 0;
+        //                wtob = sidx;
+        //            }
+        //            previouscolor = 0;
+        //        }
+        //        else
+        //        {
+        //            if (previouscolor == 0)
+        //            {
+        //                btow = sidx;
+        //                break;
+        //            }
+        //            previouscolor = 1;
+        //        }
+
+        //        sidx = sidx - 2;
+        //    }
+
+        //    if (hassplit && wtob != 0 && btow != 0)
+        //    { return (wtob + btow) / 2; }
+
+        //    return 0;
+        //}
 
         public static Mat GetEnhanceEdge(Mat xymat)
         {
