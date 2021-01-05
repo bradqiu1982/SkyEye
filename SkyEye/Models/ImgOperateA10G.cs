@@ -52,7 +52,14 @@ namespace SkyEye.Models
         {
             Mat srccolor = Cv2.ImRead(imgpath, ImreadModes.Color);
             var detectsize = ImgPreOperate.GetDetectPoint(srccolor);
-            var srcrealimg = srccolor.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
+
+            var wd = (int)detectsize[0].Max() - (int)detectsize[0].Min();
+            var ht = (int)detectsize[1].Max() - (int)detectsize[1].Min();
+            var wdrate = (double)wd / (double)srccolor.Width;
+            var htrate = (double)ht / (double)srccolor.Height;
+            var srcrealimg = srccolor;
+            if (wdrate >= 0.6 && htrate >= 0.6)
+            { srcrealimg = srccolor.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max()); }
 
             var srcgray = new Mat();
             Cv2.CvtColor(srcrealimg, srcgray, ColorConversionCodes.BGR2GRAY);
@@ -83,8 +90,8 @@ namespace SkyEye.Models
                 {
                     var coordmat = new Mat();
 
-                    var xl = largecircle.Center.X - largecircle.Radius - 30;
-                    var xh = largecircle.Center.X + largecircle.Radius + 30;
+                    var xl = largecircle.Center.X - largecircle.Radius - 33;
+                    var xh = largecircle.Center.X + largecircle.Radius + 33;
                     if (largecircle.Center.Y < smallcircle.Center.Y)
                     {//pos
                         var yh = largecircle.Center.Y - largecircle.Radius - 19;
@@ -124,8 +131,11 @@ namespace SkyEye.Models
             Cv2.Resize(coordmat, xyenhance4x, new Size(coordmat.Width * 4, coordmat.Height * 4));
             Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
-            var lowspec = new Scalar(152, 113, 72);
-            var highspec = new Scalar(216, 174, 162);
+            //var lowspec = new Scalar(152, 113, 72);
+            //var highspec = new Scalar(216, 174, 162);
+
+            var lowspec = new Scalar(210, 120, 100);
+            var highspec = new Scalar(255, 240, 220);
 
             var coordhsv = new Mat();
             Cv2.CvtColor(xyenhance4x, coordhsv, ColorConversionCodes.BGR2RGB);
@@ -135,6 +145,14 @@ namespace SkyEye.Models
             //{
             //    Cv2.WaitKey();
             //}
+
+            var maskcnt = mask.CountNonZero();
+            if (maskcnt < 15000)
+            {
+                lowspec = new Scalar(152, 113, 72);
+                highspec = new Scalar(216, 174, 162);
+                mask = coordhsv.InRange(lowspec, highspec);
+            }
 
             var rectlist = Get10GRect(mask);
 
@@ -215,7 +233,12 @@ namespace SkyEye.Models
                 rectlist.Add(new Rect(yxl - 3, y, slist[0] - yxl + 6, h));
                 rectlist.Add(new Rect(slist[0] + 5, y, slist[1] - slist[0] + 4, h));
                 rectlist.Add(new Rect(slist[1] + 5, y, slist[2] - slist[1] + 4, h));
-                rectlist.Add(new Rect(slist[2] + 6, y, slist[3] - slist[2] + 8, h));
+
+                var st = slist[2] + 6;
+                var wd = slist[3] - slist[2] + 8;
+                if ((st + wd) > edged.Width - 1)
+                { wd = edged.Width - 1 - st; }
+                rectlist.Add(new Rect(slist[2] + 6, y, wd, h));
             }
             else if (slist.Count == 3)
             {
@@ -332,6 +355,7 @@ namespace SkyEye.Models
             fntw = spx2 - spx3;
             if (fntw >= 18 && fntw < 35)
             { spx3 = spx2 - offset; fntw = offset; }
+            if (spx3 < 0) { spx3 = 6; }
             flist.Add(fntw); slist.Add(spx3);
 
             return ret;
@@ -369,7 +393,7 @@ namespace SkyEye.Models
             { spy3 = spy2 + offset; fntw = offset; }
             flist.Add(fntw); slist.Add(spy3);
 
-            var spy4 = GetYDirectSplit10G(edged, spy3 + 28, edged.Width - 10, hl, hh, spy3);
+            var spy4 = GetYDirectSplit10G(edged, spy3 + 28, edged.Width-2, hl, hh, spy3);
             if (spy4 == -1) { return ret; }
             fntw = spy4 - spy3 + 1;
             if (fntw < 40)
