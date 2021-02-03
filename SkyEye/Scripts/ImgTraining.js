@@ -312,6 +312,18 @@
             var alg = $('#alg').val();
             var vtype = $('#vtype').val();
 
+            var wafer = '';
+            if (wafernum.length > 13)
+            { wafer = wafernum.substr(0, 13); }
+            else if (wafernum.length > 9)
+            { wafer = wafernum.substr(0, 9); }
+            else if (wafernum.length > 6)
+            { wafer = wafernum.substr(0, 6); }
+            else
+            { alert('the length of wafer number seems wrong'); return false;}
+            if (fpath.indexOf(wafer) == -1)
+            { alert('wafer number failed to match its OGP path'); return false; }
+
             var fixangle = 'FALSE';
             var newalg = 'FALSE';
 
