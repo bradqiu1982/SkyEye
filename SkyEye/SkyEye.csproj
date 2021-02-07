@@ -866,6 +866,7 @@
     <Content Include="Views\OGPXY\OCRAudit.cshtml" />
     <Content Include="Views\OGPXY\OCRQuery.cshtml" />
     <Content Include="Views\Main\SpecialXYSN.cshtml" />
+    <Content Include="Scripts\WUXI SKY-EYE OCR.pptx" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
