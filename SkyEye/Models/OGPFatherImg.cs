@@ -13,6 +13,9 @@ namespace SkyEye.Models
 
         public static string GetPictureRev(string imgpath,bool fixangle=false)
         {
+            //var iividetectsm = ImgOperateIIVIsm.DetectIIVIsm(imgpath, 80, 115, 3.0, 4.3);
+            //if (iividetectsm)
+            //{ return "OGP-sm-iivi"; }
 
             var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000,true,fixangle);
             if (xyrectlist.Count > 0)
@@ -37,6 +40,19 @@ namespace SkyEye.Models
             xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
             if (xyrectlist.Count > 0)
             { return "OGP-rect2x1"; }
+
+            return string.Empty;
+        }
+
+        public static string GetPictureRevsm(string imgpath, bool fixangle = false)
+        {
+            var iividetectsm = ImgOperateIIVIsm.DetectIIVIsm(imgpath, 80, 115, 3.0, 4.3);
+            if (iividetectsm)
+            { return "OGP-sm-iivi"; }
+
+            var xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000, 50);
+            if (xyrectlist.Count > 0)
+            { return "OGP-small5x1"; }
 
             return string.Empty;
         }
@@ -161,6 +177,17 @@ namespace SkyEye.Models
                         }
                     }
                 }
+                else if (caprev.Contains("OGP-sm-iivi"))
+                {
+                    var charmatlist = ImgOperateIIVIsm.CutCharRect(imgpath, 80, 115);
+                    if (charmatlist.Count > 0)
+                    {
+                        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                        {
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
+                        }
+                    }
+                }
             }
             catch (Exception ex) { }
 
@@ -193,27 +220,17 @@ namespace SkyEye.Models
                         }
                     }
                 }
-                //else if (caprev.Contains("OGP-rect5x1"))
-                //{
-                //    var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000);
-                //    if (xyrectlist.Count > 0)
-                //    {
-                //        var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
-                //        if (charmatlist.Count > 0)
-                //        {
-                //            using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
-                //            {
-                //                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, kmode);
-                //            }
-                //        }
-                //        else
-                //        {
-                //            charmatlist = ImgOperate5x1.CutBadCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67);
-                //            if (charmatlist.Count == 9)
-                //            { return SolveUnrecognizeImg(imgpath, wafer, charmatlist, caprev, ctrl); }
-                //        }
-                //    }
-                //}
+                else if (caprev.Contains("OGP-sm-iivi"))
+                {
+                    var charmatlist = ImgOperateIIVIsm.CutCharRect(imgpath, 80, 115);
+                    if (charmatlist.Count > 0)
+                    {
+                        using (var kmode = KMode.GetTrainedMode(caprev, ctrl))
+                        {
+                            return Solve200xImg(imgpath, wafer, charmatlist, caprev, ctrl, kmode);
+                        }
+                    }
+                }
                 //else if (caprev.Contains("OGP-rect2x1"))
                 //{
                 //    var xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);

@@ -279,6 +279,7 @@
     <Compile Include="Models\ImgOperateCircle2168.cs" />
     <Compile Include="Models\ImgOperateCOGA.cs" />
     <Compile Include="Models\ImgOperateIIVI.cs" />
+    <Compile Include="Models\ImgOperateIIVIsm.cs" />
     <Compile Include="Models\ImgOperateSmall5x1.cs" />
     <Compile Include="Models\ImgPreOperate.cs" />
     <Compile Include="Models\KMode.cs" />

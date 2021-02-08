@@ -182,10 +182,10 @@ namespace SkyEye.Models
             { return false; }
 
             var caprev = "";
-            caprev = OGPFatherImg.GetPictureRev(samplepicture[0]);
+            caprev = OGPFatherImg.GetPictureRevsm(samplepicture[0]);
             if (string.IsNullOrEmpty(caprev))
             {
-                caprev = OGPFatherImg.GetPictureRev(samplepicture[1]);
+                caprev = OGPFatherImg.GetPictureRevsm(samplepicture[1]);
                 if (string.IsNullOrEmpty(caprev))
                 { return false; }
             }
