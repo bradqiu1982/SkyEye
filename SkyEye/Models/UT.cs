@@ -1,4 +1,6 @@
-﻿using System;
+﻿using OpenCvSharp;
+using OpenCvSharp.Dnn;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -154,6 +156,26 @@ namespace SkyEye.Models
 
             return ret;
         }
+
+        //"~/Scripts/font_ogpsm5x1_450.pb"
+        public static string CNN_SM5X1(Mat cmat,string pbfile)
+        {
+            var cmatcp = new Mat();
+            cmat.CopyTo(cmatcp);
+            var net = OpenCvSharp.Dnn.Net.ReadNetFromTensorflow(pbfile);
+            Cv2.Resize(cmatcp, cmatcp, new Size(50, 50));
+            Cv2.CvtColor(cmatcp, cmatcp, ColorConversionCodes.GRAY2RGB);
+            cmatcp = cmatcp / 255.0;
+            var fmat = new Mat();
+            cmatcp.ConvertTo(fmat, MatType.CV_32F, 1.0);
+            var blob = CvDnn.BlobFromImage(fmat, 1.0, new Size(50, 50), new Scalar(0, 0, 0), false, false);
+
+            net.SetInput(blob);
+            var ret = net.Forward();
+            var retdump = ret.Dump();
+            return retdump;
+        }
+
 
     }
 }

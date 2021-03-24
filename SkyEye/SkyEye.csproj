@@ -786,6 +786,11 @@
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.min.css.map" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.standalone.css.map" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.standalone.min.css.map" />
+    <Content Include="Scripts\font_ogpsm5x1_450.pb" />
+    <Content Include="Scripts\font_ogp2168_850.pb" />
+    <Content Include="Scripts\font_ogp2x1_4500.pb" />
+    <Content Include="Scripts\font_ogp5x1_5000.pb" />
+    <Content Include="Scripts\font_ogpiivi_480.pb" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.css" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.js" />
