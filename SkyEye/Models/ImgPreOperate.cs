@@ -189,5 +189,14 @@ namespace SkyEye.Models
             return ret;
         }
 
+        public static Mat DNN_RESIZE(Mat src)
+        {
+            //var sr = new DnnSuperResImpl("edsr", 4);
+            //sr.ReadModel("~/Scripts/EDSR_x4.pb");
+            //var coordmat4x = new Mat();
+            //sr.Upsample(src, coordmat4x);
+            return src;
+        }
+
     }
 }
