@@ -102,12 +102,12 @@ namespace SkyEye.Controllers
                 return ret;
             }
 
-            var caprev = "";
-            caprev = OGPFatherImg.GetPictureRev(samplepicture[0]);
-            if (string.IsNullOrEmpty(caprev))
+
+            var caprev = OGPFatherImg.GetPictureRev(samplepicture[0]);
+            if (string.IsNullOrEmpty(caprev.ImgType))
             {
                 caprev = OGPFatherImg.GetPictureRev(samplepicture[1]);
-                if (string.IsNullOrEmpty(caprev))
+                if (string.IsNullOrEmpty(caprev.ImgType))
                 {
                     CleanWaferParseFile(wafer);
                     ret.Data = new
@@ -262,12 +262,12 @@ namespace SkyEye.Controllers
                 return ret;
             }
 
-            var caprev = "";
+            var caprev = new ImageDetect();
 
             if (string.IsNullOrEmpty(vtype) || vtype.Contains("auto"))
             {
                 caprev = OGPFatherImg.GetPictureRev(samplepicture[0], fixangle);
-                if (string.IsNullOrEmpty(caprev))
+                if (string.IsNullOrEmpty(caprev.ImgType))
                 {
                     caprev = OGPFatherImg.GetPictureRev(samplepicture[1], fixangle);
                 }
@@ -275,21 +275,21 @@ namespace SkyEye.Controllers
             else if (vtype.Contains("4inch"))
             {
                 caprev = OGPFatherImg.GetPicture4inchRev(samplepicture[0], fixangle);
-                if (string.IsNullOrEmpty(caprev))
+                if (string.IsNullOrEmpty(caprev.ImgType))
                 {
                     caprev = OGPFatherImg.GetPicture4inchRev(samplepicture[1], fixangle);
                 }
             }
             else if (vtype.Contains("6inch"))
             {
-                caprev = "OGP-circle2168";
+                caprev.ImgType = "OGP-circle2168";
             }
             else if (vtype.Contains("iivi"))
             {
-                caprev = "OGP-iivi";
+                caprev.ImgType = "OGP-iivi";
             }
 
-            if (string.IsNullOrEmpty(caprev))
+            if (string.IsNullOrEmpty(caprev.ImgType))
             {
                 CleanWaferParseFile(wafer);
                 ret.Data = new

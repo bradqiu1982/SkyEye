@@ -133,7 +133,7 @@ namespace SkyEye.Models
         private static Mat GetEnhanceEdge(Mat xymat)
         {
             var xyenhance4x = new Mat();
-            Cv2.Resize(xymat, xyenhance4x, new Size(xymat.Width * 4, xymat.Height * 4));
+            Cv2.Resize(xymat, xyenhance4x, new Size(xymat.Width * 5, xymat.Height * 5));
             Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
             var xyenhgray = new Mat();

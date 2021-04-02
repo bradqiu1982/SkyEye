@@ -33,8 +33,24 @@ namespace SkyEye.Models
                 var rect = Cv2.BoundingRect(item);
                 var a = rect.Width * rect.Height;
                 var whrate = (double)rect.Width / (double)rect.Height;
+                var hwrate = (double)rect.Height / (double)rect.Width;
+
                 if (rect.Height >= heighlow && rect.Height <= heighhigh
                     && whrate > ratelow && whrate < ratehigh && a < areahigh)
+                {
+                    if (ret.Count > 0)
+                    {
+                        if (a > ret[0].Width * ret[0].Height)
+                        {
+                            ret.Clear();
+                            ret.Add(rect);
+                        }
+                    }
+                    else
+                    { ret.Add(rect); }
+                }
+                else if (rect.Width >= heighlow && rect.Width <= heighhigh
+                    && hwrate > ratelow && hwrate < ratehigh && a < areahigh)
                 {
                     if (ret.Count > 0)
                     {
@@ -52,7 +68,7 @@ namespace SkyEye.Models
             return ret;
         }
 
-        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh,int areahigh,bool checkcharimg, bool fixangle = false)
+        public static List<Rect> FindXYRect(string file, int heighlow, int heighhigh, double ratelow, double ratehigh,int areahigh,bool checkcharimg,out bool turn, bool fixangle = false)
         {
             var ret = new List<Rect>();
 
@@ -72,6 +88,25 @@ namespace SkyEye.Models
 
             var blurred = new Mat();
             Cv2.GaussianBlur(denoisemat, blurred, new Size(5, 5), 0);
+
+            var detect_rect = FindXYRect_(blurred, false, heighlow, heighhigh, ratelow, ratehigh, areahigh);
+            if (detect_rect.Count > 0 && detect_rect[0].Width < detect_rect[0].Height)
+            {
+                var outxymat = new Mat();
+                Cv2.Transpose(srccolor, outxymat);
+                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                srccolor = outxymat;
+
+                src = new Mat();
+                Cv2.CvtColor(srccolor, src, ColorConversionCodes.BGR2GRAY);
+                denoisemat = new Mat();
+                Cv2.FastNlMeansDenoising(src, denoisemat, 10, 7, 21);
+                blurred = new Mat();
+                Cv2.GaussianBlur(denoisemat, blurred, new Size(5, 5), 0);
+                turn = true;
+            }
+            else
+            { turn = false; }
 
             var truerect = FindXYRect_( blurred, true,  heighlow,  heighhigh,  ratelow,  ratehigh,  areahigh);
             var falserect = FindXYRect_( blurred, false,  heighlow,  heighhigh,  ratelow,  ratehigh,  areahigh);
@@ -477,7 +512,7 @@ namespace SkyEye.Models
             return cmatlist;
         }
 
-        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle,bool newalg)
+        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle,bool newalg,bool turn)
         {
             var cmatlist = new List<Mat>();
 
@@ -487,6 +522,14 @@ namespace SkyEye.Models
                 var angle = ImgPreOperate.GetAngle(imgpath);
                 if (angle >= 0.7 && angle <= 359.3)
                 { src = ImgPreOperate.GetFixedAngleImg(src, angle); }
+            }
+
+            if (turn)
+            {
+                var outxymat = new Mat();
+                Cv2.Transpose(src, outxymat);
+                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                src = outxymat;
             }
 
             var xymat = src.SubMat(xyrect);
