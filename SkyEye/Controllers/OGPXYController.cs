@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using SkyEye.Models;
+using System.Threading.Tasks;
 
 namespace SkyEye.Controllers
 {
@@ -103,10 +104,10 @@ namespace SkyEye.Controllers
             }
 
 
-            var caprev = OGPFatherImg.GetPictureRev(samplepicture[0]);
+            var caprev = OGPFatherImg.GetPictureRev4Train(samplepicture[0]);
             if (string.IsNullOrEmpty(caprev.ImgType))
             {
-                caprev = OGPFatherImg.GetPictureRev(samplepicture[1]);
+                caprev = OGPFatherImg.GetPictureRev4Train(samplepicture[1]);
                 if (string.IsNullOrEmpty(caprev.ImgType))
                 {
                     CleanWaferParseFile(wafer);
@@ -120,21 +121,42 @@ namespace SkyEye.Controllers
                 }
             }
 
+            var kmode = KMode.GetTrainedMode(caprev.ImgType, this);
+
             var keylist = new List<string>();
-            foreach (var fs in filelist)
-            {
-                var fn = System.IO.Path.GetFileName(fs).ToUpper();
-                if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
-                {
-                    var imgkey = OGPFatherImg.LoadImg(fs,wafer,snmap, probexymap,caprev, this);
-                    if (!string.IsNullOrEmpty(imgkey))
-                    {
-                        keylist.Add(imgkey);
-                    }
-                    else
-                    { failimg += fn + "/"; }
-                }
-            }
+
+            var sys = CfgUtility.GetSysConfig(this);
+            var poption = new ParallelOptions();
+            poption.MaxDegreeOfParallelism = UT.O2I(sys["MAXTHREADS"]);
+            Parallel.ForEach(filelist, poption, fs =>
+              {
+                  var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                  if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+                  {
+                      var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this,kmode);
+                      if (!string.IsNullOrEmpty(imgkey))
+                      {
+                          keylist.Add(imgkey);
+                      }
+                      else
+                      { failimg += fn + "/"; }
+                  }
+              });
+
+            //foreach (var fs in filelist)
+            //{
+            //    var fn = System.IO.Path.GetFileName(fs).ToUpper();
+            //    if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+            //    {
+            //        var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this);
+            //        if (!string.IsNullOrEmpty(imgkey))
+            //        {
+            //            keylist.Add(imgkey);
+            //        }
+            //        else
+            //        { failimg += fn + "/"; }
+            //    }
+            //}
 
             imglist = OGPFatherImg.NewUnTrainedImg(keylist,wafer);
 
@@ -266,10 +288,10 @@ namespace SkyEye.Controllers
 
             if (string.IsNullOrEmpty(vtype) || vtype.Contains("auto"))
             {
-                caprev = OGPFatherImg.GetPictureRev(samplepicture[0], fixangle);
+                caprev = OGPFatherImg.GetPictureRev4Product(samplepicture[0], fixangle);
                 if (string.IsNullOrEmpty(caprev.ImgType))
                 {
-                    caprev = OGPFatherImg.GetPictureRev(samplepicture[1], fixangle);
+                    caprev = OGPFatherImg.GetPictureRev4Product(samplepicture[1], fixangle);
                 }
             }
             else if (vtype.Contains("4inch"))
@@ -300,13 +322,15 @@ namespace SkyEye.Controllers
                 return ret;
             }
 
+            var kmode = KMode.GetTrainedMode(caprev.ImgType, this);
+
             var keylist = new List<string>();
             foreach (var fs in filelist)
             {
                 var fn = System.IO.Path.GetFileName(fs).ToUpper();
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
-                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, fixangle,newalg);
+                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this,kmode, fixangle,newalg);
                     if (!string.IsNullOrEmpty(imgkey))
                     {
                         keylist.Add(imgkey);

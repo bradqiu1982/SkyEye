@@ -198,5 +198,45 @@ namespace SkyEye.Models
             return src;
         }
 
+        public static Mat Sharp(Mat xymat)
+        {
+            var sharpimg = new Mat();
+            Cv2.GaussianBlur(xymat, sharpimg, new Size(0, 0), 3);
+            Cv2.AddWeighted(xymat, 2.0, sharpimg, -0.4, 0, sharpimg);
+            return sharpimg;
+        }
+
+        public static Mat BrightGammCorrect(Mat yimg)
+        {
+            var cols = yimg.Cols;
+            var rows = yimg.Rows;
+            var yimgidx = yimg.GetGenericIndexer<Vec3b>();
+            for (var y = 0; y < rows; y++)
+            {
+                for (var x = 0; x < cols; x++)
+                {
+                    Vec3b color = yimgidx[y, x];
+                    var gamm = 1.0 / 2.2;
+                    var pixval = Convert.ToDouble(color.Item0);
+                    var nval = Math.Pow(pixval / 255.0, gamm) * 255.0;
+                    if (nval > 255.0) { nval = 255.0; }
+                    color.Item0 = Convert.ToByte(nval);
+
+                    pixval = Convert.ToDouble(color.Item1);
+                    nval = Math.Pow(pixval / 255.0, gamm) * 255.0;
+                    if (nval > 255.0) { nval = 255.0; }
+                    color.Item1 = Convert.ToByte(nval);
+
+                    pixval = Convert.ToDouble(color.Item2);
+                    nval = Math.Pow(pixval / 255.0, gamm) * 255.0;
+                    if (nval > 255.0) { nval = 255.0; }
+                    color.Item2 = Convert.ToByte(nval);
+                    yimgidx[y, x] = color;
+                }
+            }
+
+            return yimg;
+        }
+
     }
 }

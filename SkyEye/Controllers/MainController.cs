@@ -385,6 +385,11 @@ namespace SkyEye.Controllers
                     var cnt = snlist.Count * 32;
                     OGPFatherImg.Update1x1SN(snlist, wafer, cnt);
                 }
+                else if (arrayzie == 2)
+                {
+                    var cnt = snlist.Count * 16;
+                    OGPFatherImg.Update1x2SN(snlist, wafer, cnt);
+                }
                 else if (arrayzie == 4)
                 {
                     var cnt = snlist.Count * 8;

@@ -27,11 +27,12 @@ namespace SkyEye.Models
 
             try
             {
+                var alllot = GetAllLotNum();
                 var ocrlist = new List<GeneralOCRVM>();
 
                 var latesttime = GetLatestUpdateTime();
                 var dict = new Dictionary<string, string>();
-                dict.Add("@LoadTimestamp", latesttime);
+                dict.Add("@LoadTimestamp", UT.O2T(latesttime).AddDays(-2).ToString("yyyy-MM-dd HH:mm:ss"));
 
                 var sql = @"select [Lot],[MoveOutTimeStamp],[PC],[Product],[Path],[Employee] from [AIProjects].[dbo].[OGP_Ins_Online_Lot]  
                             where [MoveOutTimeStamp]  is not null and MoveOut is not null and [MoveOutTimeStamp] >= @LoadTimestamp and MoveOut=1";
@@ -39,7 +40,10 @@ namespace SkyEye.Models
                 foreach (var line in dbret)
                 {
                     var tempvm = new GeneralOCRVM();
-                    tempvm.LotNum = UT.O2S(line[0]);
+                    tempvm.LotNum = UT.O2S(line[0]).ToUpper();
+                    if (alllot.ContainsKey(tempvm.LotNum))
+                    { continue; }
+
                     tempvm.UploadTime = UT.T2S(line[1]);
                     tempvm.UploadMachine = UT.O2S(line[2]);
                     tempvm.Product = UT.O2S(line[3]);
@@ -55,6 +59,20 @@ namespace SkyEye.Models
             catch (Exception ex) { }
 
             CleanRefreshFile(ctrl);
+        }
+
+        public static Dictionary<string, bool> GetAllLotNum()
+        {
+            var ret = new Dictionary<string, bool>();
+            var sql = "select distinct LotNum from [WAT].[dbo].[GeneralOCRVM]";
+            var dbret = DBUtility.ExeLocalSqlWithRes(sql);
+            foreach (var line in dbret)
+            {
+                var lot = UT.O2S(line[0]).ToUpper();
+                if (!ret.ContainsKey(lot))
+                { ret.Add(lot, true); }
+            }
+            return ret;
         }
 
         private static bool CheckRefreshFile(Controller ctrl)

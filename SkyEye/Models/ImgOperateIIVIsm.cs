@@ -132,8 +132,12 @@ namespace SkyEye.Models
 
         private static Mat GetEnhanceEdge(Mat xymat)
         {
+            var sharpimg = new Mat();
+            Cv2.GaussianBlur(xymat, sharpimg, new Size(0, 0), 3);
+            Cv2.AddWeighted(xymat, 2.0, sharpimg, -0.4, 0, sharpimg);
+
             var xyenhance4x = new Mat();
-            Cv2.Resize(xymat, xyenhance4x, new Size(xymat.Width * 5, xymat.Height * 5));
+            Cv2.Resize(sharpimg, xyenhance4x, new Size(xymat.Width * 5, xymat.Height * 5));
             Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
             var xyenhgray = new Mat();
@@ -189,7 +193,7 @@ namespace SkyEye.Models
                 else
                 {
                     sum++;
-                    if (sum > 10)
+                    if (sum > 20)
                     {
                         getfont = true;
                     }

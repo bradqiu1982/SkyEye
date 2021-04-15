@@ -8,12 +8,14 @@ namespace SkyEye.Models
 {
     public class ImgOperateIIVI
     {
-        //115,140,3.1,4.2
-        public static bool DetectIIVI(string imgpath,int minrad,int maxrad,double hrminrate,double hrmaxrate)
+        //115,160,3.1,4.2
+        public static bool DetectIIVI(string imgpath,int minrad,int maxrad,double hrminrate,double hrmaxrate, out bool turn)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             var detectsize = GetDetectPoint(srcorgimg);
             var srcrealimg = srcorgimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
+
+            turn = false;
 
             var srcgray = new Mat();
             Cv2.CvtColor(srcrealimg, srcgray, ColorConversionCodes.BGR2GRAY);
@@ -22,15 +24,26 @@ namespace SkyEye.Models
             if (circles.Count() > 0)
             {
                 var ccl = circles[0];
+                if (ccl.Radius >= 135 && srcrealimg.Width > srcrealimg.Height)
+                {
+                    var outxymat = new Mat();
+                    Cv2.Transpose(srcrealimg, outxymat);
+                    Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                    srcrealimg = outxymat;
+                    turn = true;
+                }
+
                 var rat = srcrealimg.Height / ccl.Radius;
                 if (rat >= hrminrate && rat <= hrmaxrate)
                 { return true; }
             }
+
+            turn = false;
             return false;
         }
 
         //115,140
-        public static List<Mat> CutCharRect(string imgpath, int minrad, int maxrad, bool fixangle = false)
+        public static List<Mat> CutCharRect(string imgpath, int minrad, int maxrad,bool turn, bool fixangle = false)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             if (fixangle)
@@ -43,10 +56,19 @@ namespace SkyEye.Models
             var detectsize = GetDetectPoint(srcorgimg);
             var srcrealimg = srcorgimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
+            if (turn)
+            {
+                var outxymat = new Mat();
+                Cv2.Transpose(srcrealimg, outxymat);
+                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                srcrealimg = outxymat;
+                srcrealimg = srcrealimg.Resize(new Size(368, 452));
+            }
+
             var srcgray = new Mat();
             Cv2.CvtColor(srcrealimg, srcgray, ColorConversionCodes.BGR2GRAY);
 
-            var circles = Cv2.HoughCircles(srcgray, HoughMethods.Gradient, 1, srcgray.Rows / 4, 100, 80, 115, 140);
+            var circles = Cv2.HoughCircles(srcgray, HoughMethods.Gradient, 1, srcgray.Rows / 4, 100, 80, minrad, maxrad);
 
             if (circles.Count() > 0)
             {
@@ -83,9 +105,9 @@ namespace SkyEye.Models
 
                 if (!DetectXCoord(ximg))
                 {
-                    xcoordx = (int)(ccl.Center.X + 94);
+                    xcoordx = (int)(ccl.Center.X + 92);
                     xcoordy = (int)(ccl.Center.Y + 22);
-                    ximg = srcrealimg.SubMat(new Rect(xcoordx, xcoordy, 90, 54));
+                    ximg = srcrealimg.SubMat(new Rect(xcoordx, xcoordy, 92, 54));
 
                     ycoordx = (int)(ccl.Center.X + 9);
                     ycoordy = (int)(ccl.Center.Y - 263);
@@ -142,9 +164,9 @@ namespace SkyEye.Models
             var edged = new Mat();
             Cv2.AdaptiveThreshold(blurred, edged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
 
-            var lowx = (int)(0.75 * edged.Width);
-            var highx = edged.Width;
-            var submat = edged.SubMat(0, edged.Height, lowx, highx-16);
+            var lowx = (int)(0.55 * edged.Width);
+            var highx = (int)(0.85 * edged.Width);
+            var submat = edged.SubMat(0, edged.Height, lowx, highx);
             var nonzerocnt = submat.CountNonZero();
             if (nonzerocnt < 1000)
             { return false; }
@@ -468,8 +490,12 @@ namespace SkyEye.Models
 
         public static Mat GetEnhanceEdge(Mat xymat)
         {
+            var sharpimg = new Mat();
+            Cv2.GaussianBlur(xymat, sharpimg, new Size(0, 0), 3);
+            Cv2.AddWeighted(xymat, 2.0, sharpimg, -0.4, 0, sharpimg);
+
             var xyenhance4x = new Mat();
-            Cv2.Resize(xymat, xyenhance4x, new Size(xymat.Width * 4, xymat.Height * 4));
+            Cv2.Resize(sharpimg, xyenhance4x, new Size(xymat.Width * 4, xymat.Height * 4));
             Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
             var xyenhgray = new Mat();
