@@ -301,46 +301,87 @@ namespace SkyEye.Models
             return ret;
         }
 
-        private static List<List<double>> GetDetectPoint(Mat mat)
+        //private static List<List<double>> GetDetectPoint(Mat mat)
+        //{
+        //    var xyenhance = new Mat();
+        //    Cv2.DetailEnhance(mat, xyenhance);
+
+        //    var ret = new List<List<double>>();
+        //    var kaze = KAZE.Create();
+        //    var kazeDescriptors = new Mat();
+        //    KeyPoint[] kazeKeyPoints = null;
+        //    kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
+
+        //    var wptlist = new List<KeyPoint>();
+        //    for (var idx = 20; idx < mat.Width;)
+        //    {
+        //        var yhlist = new List<double>();
+        //        var wlist = new List<KeyPoint>();
+        //        foreach (var pt in kazeKeyPoints)
+        //        {
+        //            if (pt.Pt.X >= (idx - 20) && pt.Pt.X < idx)
+        //            {
+        //                wlist.Add(pt);
+        //                yhlist.Add(pt.Pt.Y);
+        //            }
+        //        }
+
+        //        if (wlist.Count > 10 && (yhlist.Max() - yhlist.Min()) > 0.3 * mat.Height)
+        //        { wptlist.AddRange(wlist); }
+        //        idx = idx + 20;
+        //    }
+
+        //    var xlist = new List<double>();
+        //    var ylist = new List<double>();
+        //    foreach (var pt in wptlist)
+        //    {
+        //        xlist.Add(pt.Pt.X);
+        //        ylist.Add(pt.Pt.Y);
+        //    }
+        //    ret.Add(xlist);
+        //    ret.Add(ylist);
+
+        //    return ret;
+        //}
+
+        private static List<List<int>> GetDetectPoint(Mat srccolor)
         {
-            var xyenhance = new Mat();
-            Cv2.DetailEnhance(mat, xyenhance);
+            var srcgray = new Mat();
+            Cv2.CvtColor(srccolor, srcgray, ColorConversionCodes.BGR2GRAY);
+            var blurred = new Mat();
+            Cv2.GaussianBlur(srcgray, blurred, new Size(3, 3), 0);
+            var edged = new Mat();
+            Cv2.Canny(blurred, edged, 50, 200, 3, false);
 
-            var ret = new List<List<double>>();
-            var kaze = KAZE.Create();
-            var kazeDescriptors = new Mat();
-            KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
+            var high = edged.Height;
+            var width = edged.Width;
 
-            var wptlist = new List<KeyPoint>();
-            for (var idx = 20; idx < mat.Width;)
+            var lowy = (int)(0.2 * high);
+            var highy = (int)(0.8 * high);
+            var lowx = (int)(0.2 * width);
+            var highx = (int)(0.8 * width);
+
+            var xlist = new List<int>();
+            var ylist = new List<int>();
+            for (var x = 0; x < width - 2; x++)
             {
-                var yhlist = new List<double>();
-                var wlist = new List<KeyPoint>();
-                foreach (var pt in kazeKeyPoints)
-                {
-                    if (pt.Pt.X >= (idx - 20) && pt.Pt.X < idx)
-                    {
-                        wlist.Add(pt);
-                        yhlist.Add(pt.Pt.Y);
-                    }
-                }
-
-                if (wlist.Count > 10 && (yhlist.Max() - yhlist.Min()) > 0.3 * mat.Height)
-                { wptlist.AddRange(wlist); }
-                idx = idx + 20;
+                var submat = edged.SubMat(lowy, highy, x, x + 2);
+                var nonzero = submat.CountNonZero();
+                if (nonzero > 20)
+                { xlist.Add(x); }
             }
 
-            var xlist = new List<double>();
-            var ylist = new List<double>();
-            foreach (var pt in wptlist)
+            for (var y = 0; y < high - 2; y++)
             {
-                xlist.Add(pt.Pt.X);
-                ylist.Add(pt.Pt.Y);
+                var submat = edged.SubMat(y, y + 2, lowx, highx);
+                var nonzero = submat.CountNonZero();
+                if (nonzero > 20)
+                { ylist.Add(y); }
             }
+
+            var ret = new List<List<int>>();
             ret.Add(xlist);
             ret.Add(ylist);
-
             return ret;
         }
     }
