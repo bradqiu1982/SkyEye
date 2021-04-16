@@ -257,7 +257,7 @@ namespace SkyEye.Models
             fimg.WaferNum = wafer;
             fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
             fimg.MainImgKey = GetUniqKey();
-            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl,imgpath);
             fimg.CaptureImg = "";
             fimg.CaptureRev = caprev.ImgType;
             fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -266,7 +266,7 @@ namespace SkyEye.Models
             return string.Empty;
         }
 
-        public static string Load200xImg(string imgpath, string wafer, ImageDetect caprev, Controller ctrl)
+        public static string Load200xImg(string imgpath, string wafer, ImageDetect caprev, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
         {
             try
             {
@@ -275,7 +275,7 @@ namespace SkyEye.Models
                     var charmatlist = ImgOperateSmall5x1.CutCharRect(imgpath, 18, 35, 4.5, 8, 5500, 50);
                     if (charmatlist.Count > 0)
                     {
-                        using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
+                        //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                         {
                             return Solve200xImg(imgpath, wafer, charmatlist, caprev.ImgType, ctrl, kmode);
                         }
@@ -286,7 +286,7 @@ namespace SkyEye.Models
                     var charmatlist = ImgOperateIIVIsm.CutCharRect(imgpath, 80, 115);
                     if (charmatlist.Count > 0)
                     {
-                        using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
+                        //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                         {
                             return Solve200xImg(imgpath, wafer, charmatlist, caprev.ImgType, ctrl, kmode);
                         }
@@ -297,7 +297,7 @@ namespace SkyEye.Models
                     var charmatlist = ImgOperateIIVI.CutCharRect(imgpath, 115, 140, caprev.ImgTurn);
                     if (charmatlist.Count > 0)
                     {
-                        using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
+                        //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                         {
                             return Solve200xImg(imgpath, wafer, charmatlist, caprev.ImgType, ctrl, kmode);
                         }
@@ -312,7 +312,7 @@ namespace SkyEye.Models
                         var charmatlist = ImgOperate5x1.CutCharRect(imgpath, xyrectlist[0], 50, 90, 40, 67, false, true, caprev.ImgTurn);
                         if (charmatlist.Count > 0)
                         {
-                            using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
+                            //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                             {
                                 return Solve200xImg(imgpath, wafer, charmatlist, caprev.ImgType , ctrl, kmode);
                             }
@@ -353,7 +353,7 @@ namespace SkyEye.Models
             fimg.WaferNum = wafer;
             fimg.SN = Path.GetFileNameWithoutExtension(imgpath);
             fimg.MainImgKey = GetUniqKey();
-            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl, imgpath);
             fimg.CaptureImg = "";
             fimg.CaptureRev = caprev.ImgType;
             fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -382,7 +382,7 @@ namespace SkyEye.Models
             { fimg.SN = snmap[fimg.SN]; }
 
             fimg.MainImgKey = GetUniqKey();
-            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl, imgpath);
             fimg.CaptureImg = Convert.ToBase64String(charmatlist[0].ToBytes());
             fimg.CaptureRev = caprev;
             fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -496,7 +496,7 @@ namespace SkyEye.Models
             { fimg.SN += "_"+sns[1]; }
             fimg.FileName = fimg.SN;
             fimg.MainImgKey = GetUniqKey();
-            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl, imgpath);
             fimg.CaptureImg = Convert.ToBase64String(charmatlist[0].ToBytes());
             fimg.CaptureRev = caprev;
             fimg.MUpdateTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
@@ -588,7 +588,7 @@ namespace SkyEye.Models
             fimg.FileName = fimg.SN;
 
             fimg.MainImgKey = GetUniqKey();
-            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl);
+            fimg.RAWImgURL = WriteRawImg(rawimg, fimg.MainImgKey, ctrl, imgpath);
 
             fimg.CaptureImg = Convert.ToBase64String(charmatlist[0].ToBytes());
             fimg.CaptureRev = caprev;
@@ -650,19 +650,21 @@ namespace SkyEye.Models
         }
 
 
-        private static string WriteRawImg(Mat rawimg, string mk, Controller ctrl)
+        private static string WriteRawImg(Mat rawimg, string mk, Controller ctrl,string imgpath)
         {
             try
             {
-                var fn = mk + ".png";
-                string datestring = DateTime.Now.ToString("yyyyMMdd");
-                string imgdir = ctrl.Server.MapPath("~/userfiles") + "\\images\\" + datestring + "\\";
-                if (!Directory.Exists(imgdir))
-                { Directory.CreateDirectory(imgdir); }
-                var wholefn = imgdir + fn;
-                var bts = rawimg.ToBytes();
-                File.WriteAllBytes(wholefn, bts);
-                var url = "/userfiles/images/" + datestring + "/" + fn;
+                //var fn = mk + ".png";
+                //string datestring = DateTime.Now.ToString("yyyyMMdd");
+                //string imgdir = ctrl.Server.MapPath("~/userfiles") + "\\images\\" + datestring + "\\";
+                //if (!Directory.Exists(imgdir))
+                //{ Directory.CreateDirectory(imgdir); }
+                //var wholefn = imgdir + fn;
+                //var bts = rawimg.ToBytes();
+                //File.WriteAllBytes(wholefn, bts);
+                //var url = "/userfiles/images/" + datestring + "/" + fn;
+                var uri = new Uri(imgpath);
+                var url = uri.AbsoluteUri.Replace("//"+uri.Host,"/////"+uri.Host);
                 return url;
             }
             catch (Exception ex) { }

@@ -238,5 +238,49 @@ namespace SkyEye.Models
             return yimg;
         }
 
+        public static List<List<int>> GetImageBoundPointX(Mat srccolor)
+        {
+            var sharpimg = new Mat();
+            Cv2.GaussianBlur(srccolor, sharpimg, new Size(0, 0), 3);
+            Cv2.AddWeighted(srccolor, 2.0, sharpimg, -0.4, 0, sharpimg);
+
+            var srcgray = new Mat();
+            Cv2.CvtColor(sharpimg, srcgray, ColorConversionCodes.BGR2GRAY);
+            var blurred = new Mat();
+            Cv2.GaussianBlur(srcgray, blurred, new Size(3, 3), 0);
+            var edged = new Mat();
+            Cv2.Canny(blurred, edged, 50, 200, 3, false);
+
+            var high = edged.Height;
+            var width = edged.Width;
+
+            var lowy = (int)(0.2 * high);
+            var highy = (int)(0.8 * high);
+            var lowx = (int)(0.2 * width);
+            var highx = (int)(0.8 * width);
+
+            var xlist = new List<int>();
+            var ylist = new List<int>();
+            for (var x = 0; x < width - 2; x++)
+            {
+                var submat = edged.SubMat(lowy, highy, x, x + 2);
+                var nonzero = submat.CountNonZero();
+                if (nonzero > 20)
+                { xlist.Add(x); }
+            }
+
+            for (var y = 0; y < high - 2; y++)
+            {
+                var submat = edged.SubMat(y, y + 2, lowx, highx);
+                var nonzero = submat.CountNonZero();
+                if (nonzero > 20)
+                { ylist.Add(y); }
+            }
+
+            var ret = new List<List<int>>();
+            ret.Add(xlist);
+            ret.Add(ylist);
+            return ret;
+        }
     }
 }

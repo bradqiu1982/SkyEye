@@ -12,7 +12,7 @@ namespace SkyEye.Models
         public static bool DetectIIVIsm(string imgpath, int minrad, int maxrad, double hrminrate, double hrmaxrate)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
-            var detectsize = GetDetectPoint(srcorgimg);
+            var detectsize = ImgPreOperate.GetImageBoundPointX(srcorgimg);
             var srcrealimg = srcorgimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
             {
@@ -41,7 +41,7 @@ namespace SkyEye.Models
         public static List<Mat> CutCharRect(string imgpath, int minrad, int maxrad, bool fixangle = false)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
-            var detectsize = GetDetectPoint(srcorgimg);
+            var detectsize = ImgPreOperate.GetImageBoundPointX(srcorgimg);
             var srcrealimg = srcorgimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
             {
@@ -137,12 +137,14 @@ namespace SkyEye.Models
             Cv2.AddWeighted(xymat, 2.0, sharpimg, -0.4, 0, sharpimg);
 
             var xyenhance4x = new Mat();
+            Cv2.DetailEnhance(sharpimg, sharpimg);
             Cv2.Resize(sharpimg, xyenhance4x, new Size(xymat.Width * 5, xymat.Height * 5));
-            Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+            //Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
             var xyenhgray = new Mat();
             var denoisemat = new Mat();
-            Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            //Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            Cv2.MedianBlur(xyenhance4x, denoisemat, 11);
             Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
 
             var blurred = new Mat();
@@ -344,45 +346,5 @@ namespace SkyEye.Models
         //    return ret;
         //}
 
-        private static List<List<int>> GetDetectPoint(Mat srccolor)
-        {
-            var srcgray = new Mat();
-            Cv2.CvtColor(srccolor, srcgray, ColorConversionCodes.BGR2GRAY);
-            var blurred = new Mat();
-            Cv2.GaussianBlur(srcgray, blurred, new Size(3, 3), 0);
-            var edged = new Mat();
-            Cv2.Canny(blurred, edged, 50, 200, 3, false);
-
-            var high = edged.Height;
-            var width = edged.Width;
-
-            var lowy = (int)(0.2 * high);
-            var highy = (int)(0.8 * high);
-            var lowx = (int)(0.2 * width);
-            var highx = (int)(0.8 * width);
-
-            var xlist = new List<int>();
-            var ylist = new List<int>();
-            for (var x = 0; x < width - 2; x++)
-            {
-                var submat = edged.SubMat(lowy, highy, x, x + 2);
-                var nonzero = submat.CountNonZero();
-                if (nonzero > 20)
-                { xlist.Add(x); }
-            }
-
-            for (var y = 0; y < high - 2; y++)
-            {
-                var submat = edged.SubMat(y, y + 2, lowx, highx);
-                var nonzero = submat.CountNonZero();
-                if (nonzero > 20)
-                { ylist.Add(y); }
-            }
-
-            var ret = new List<List<int>>();
-            ret.Add(xlist);
-            ret.Add(ylist);
-            return ret;
-        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 
@@ -208,18 +209,24 @@ namespace SkyEye.Models
                 { return false; }
             }
 
+            var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl);
+
             var snlist = new List<string>();
-            foreach (var fs in filelist)
+
+            var sys = CfgUtility.GetSysConfig(ctrl);
+            var poption = new ParallelOptions();
+            poption.MaxDegreeOfParallelism = UT.O2I(sys["MAXTHREADS"]);
+            Parallel.ForEach(filelist, poption, fs =>
             {
                 var fn = System.IO.Path.GetFileName(fs).ToUpper();
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
-                   OGPFatherImg.Load200xImg(fs, lotnum , caprev, ctrl);
-                   var sn = fn.Split(new string[] { "_", "." }, StringSplitOptions.RemoveEmptyEntries)[0].Trim().ToUpper();
+                    OGPFatherImg.Load200xImg(fs, lotnum, caprev, ctrl,kmode);
+                    var sn = fn.Split(new string[] { "_", "." }, StringSplitOptions.RemoveEmptyEntries)[0].Trim().ToUpper();
                     if (sn.Length == 7 && !snlist.Contains(sn))
                     { snlist.Add(sn); }
                 }
-            }
+            });
 
             if (snlist.Count > 0)
             {

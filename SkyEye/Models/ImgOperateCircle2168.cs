@@ -488,7 +488,7 @@ namespace SkyEye.Models
                 }
             }
 
-            var detectsize = GetDetectPoint(srccolor);
+            var detectsize = ImgPreOperate.GetImageBoundPointX(srccolor);
             var srcrealimg = srccolor.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
             var srcgray = new Mat();
@@ -500,16 +500,31 @@ namespace SkyEye.Models
 
             var circles = Cv2.HoughCircles(srcgray, HoughMethods.Gradient, 1, srcgray.Rows / 4, 100, 80, 30, 70);
 
-            var lowbond = srcrealimg.Height * 0.25;
-            var upbond = srcrealimg.Height * 0.75;
+            var lowbond = srcrealimg.Height * 0.2;
+            var upbond = srcrealimg.Height * 0.8;
             var midbond = srcrealimg.Height * 0.5;
 
+            var middis = 0;
             var filtercircles = new List<CircleSegment>();
             foreach (var c in circles)
             {
                 if (c.Center.Y > lowbond && c.Center.Y < upbond)
                 {
-                    filtercircles.Add(c);
+                    if (middis == 0)
+                    {
+                        middis = Math.Abs((int)c.Center.Y - (int)midbond);
+                        filtercircles.Add(c);
+                    }
+                    else
+                    {
+                        var tempdis = Math.Abs((int)c.Center.Y - (int)midbond);
+                        if (tempdis < middis)
+                        {
+                            middis = tempdis;
+                            filtercircles.Clear();
+                            filtercircles.Add(c);
+                        }
+                    }
                 }
             }
 
@@ -587,7 +602,7 @@ namespace SkyEye.Models
                 }
             }
 
-            var detectsize = GetDetectPoint(srccolor);
+            var detectsize = ImgPreOperate.GetImageBoundPointX(srccolor);
             var srcrealimg = srccolor.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
             var srcgray = new Mat();
@@ -603,12 +618,30 @@ namespace SkyEye.Models
             var upbond = srcrealimg.Height * 0.8;
             var midbond = srcrealimg.Height * 0.5;
 
+            var middis = 0;
             var filtercircles = new List<CircleSegment>();
             foreach (var c in circles)
             {
                 if (c.Center.Y > lowbond && c.Center.Y < upbond)
                 {
-                    filtercircles.Add(c);
+                    if (c.Center.Y > lowbond && c.Center.Y < upbond)
+                    {
+                        if (middis == 0)
+                        {
+                            middis = Math.Abs((int)c.Center.Y - (int)midbond);
+                            filtercircles.Add(c);
+                        }
+                        else
+                        {
+                            var tempdis = Math.Abs((int)c.Center.Y - (int)midbond);
+                            if (tempdis < middis)
+                            {
+                                middis = tempdis;
+                                filtercircles.Clear();
+                                filtercircles.Add(c);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -739,25 +772,18 @@ namespace SkyEye.Models
         {
             var cmatlist = new List<Mat>();
 
-            var xyenhance = coordmat;
-
-            //if (ylen < 190)
-            {
-                xyenhance = new Mat();
-                Cv2.DetailEnhance(coordmat, xyenhance);
-
-                var denoisemat1 = new Mat();
-                Cv2.FastNlMeansDenoisingColored(xyenhance, denoisemat1, 10, 10, 7, 21);
-                xyenhance = denoisemat1;
-            }
+            var sharpimg = new Mat();
+            Cv2.GaussianBlur(coordmat, sharpimg, new Size(0, 0), 3);
+            Cv2.AddWeighted(coordmat, 2.0, sharpimg, -0.4, 0, sharpimg);
 
             var xyenhance4x = new Mat();
-            Cv2.Resize(xyenhance, xyenhance4x, new Size(xyenhance.Width * 4, xyenhance.Height * 4));
-            Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+            Cv2.DetailEnhance(sharpimg, sharpimg);
+            Cv2.Resize(sharpimg, xyenhance4x, new Size(coordmat.Width * 4, coordmat.Height * 4));
 
             var xyenhgray = new Mat();
             var denoisemat = new Mat();
-            Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            //Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            Cv2.MedianBlur(xyenhance4x, denoisemat, 9);
             Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
 
 
@@ -774,7 +800,7 @@ namespace SkyEye.Models
 
             var rectlist = Get2168Rect(edged, xyenhance4x);
 
-            cmatlist.Add(xyenhance);
+            cmatlist.Add(sharpimg);
             foreach (var rect in rectlist)
             {
                 if (rect.X < 0 || rect.Y < 0
@@ -1430,7 +1456,7 @@ namespace SkyEye.Models
         {
             Mat srcimg = Cv2.ImRead(imgpath, ImreadModes.Color);
 
-            var detectsize = GetDetectPoint(srcimg);
+            var detectsize = ImgPreOperate.GetImageBoundPointX(srcimg);
             srcimg = srcimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
             var src = new Mat();
@@ -1469,73 +1495,73 @@ namespace SkyEye.Models
             return 0;
         }
 
-        private static List<List<double>> GetDetectPoint(Mat mat)
-        {
-            var ret = new List<List<double>>();
-            var xyenhance = new Mat();
-            Cv2.DetailEnhance(mat, xyenhance);
-            var kaze = KAZE.Create();
-            var kazeDescriptors = new Mat();
-            KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
+        //private static List<List<double>> GetDetectPoint(Mat mat)
+        //{
+        //    var ret = new List<List<double>>();
+        //    var xyenhance = new Mat();
+        //    Cv2.DetailEnhance(mat, xyenhance);
+        //    var kaze = KAZE.Create();
+        //    var kazeDescriptors = new Mat();
+        //    KeyPoint[] kazeKeyPoints = null;
+        //    kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
 
-            var wptlist = new List<KeyPoint>();
-            for (var idx = 20; idx < mat.Width;)
-            {
-                var yhlist = new List<double>();
-                var wlist = new List<KeyPoint>();
-                foreach (var pt in kazeKeyPoints)
-                {
-                    if (pt.Pt.X >= (idx - 20) && pt.Pt.X < idx)
-                    {
-                        wlist.Add(pt);
-                        yhlist.Add(pt.Pt.Y);
-                    }
-                }
+        //    var wptlist = new List<KeyPoint>();
+        //    for (var idx = 20; idx < mat.Width;)
+        //    {
+        //        var yhlist = new List<double>();
+        //        var wlist = new List<KeyPoint>();
+        //        foreach (var pt in kazeKeyPoints)
+        //        {
+        //            if (pt.Pt.X >= (idx - 20) && pt.Pt.X < idx)
+        //            {
+        //                wlist.Add(pt);
+        //                yhlist.Add(pt.Pt.Y);
+        //            }
+        //        }
 
-                if (wlist.Count > 10 && (yhlist.Max() - yhlist.Min()) > 0.3 * mat.Height)
-                { wptlist.AddRange(wlist); }
-                idx = idx + 20;
-            }
+        //        if (wlist.Count > 10 && (yhlist.Max() - yhlist.Min()) > 0.3 * mat.Height)
+        //        { wptlist.AddRange(wlist); }
+        //        idx = idx + 20;
+        //    }
 
-            var hptlist = new List<KeyPoint>();
-            for (var idx = 20; idx < mat.Height;)
-            {
-                var xwlist = new List<double>();
-                var wlist = new List<KeyPoint>();
-                foreach (var pt in wptlist)
-                {
-                    if (pt.Pt.Y >= (idx - 20) && pt.Pt.Y < idx)
-                    {
-                        wlist.Add(pt);
-                        xwlist.Add(pt.Pt.X);
-                    }
-                }
+        //    var hptlist = new List<KeyPoint>();
+        //    for (var idx = 20; idx < mat.Height;)
+        //    {
+        //        var xwlist = new List<double>();
+        //        var wlist = new List<KeyPoint>();
+        //        foreach (var pt in wptlist)
+        //        {
+        //            if (pt.Pt.Y >= (idx - 20) && pt.Pt.Y < idx)
+        //            {
+        //                wlist.Add(pt);
+        //                xwlist.Add(pt.Pt.X);
+        //            }
+        //        }
 
-                if (wlist.Count >= 2 && (xwlist.Max() - xwlist.Min()) > 0.3 * mat.Width)
-                { hptlist.AddRange(wlist); }
-                idx = idx + 20;
-            }
+        //        if (wlist.Count >= 2 && (xwlist.Max() - xwlist.Min()) > 0.3 * mat.Width)
+        //        { hptlist.AddRange(wlist); }
+        //        idx = idx + 20;
+        //    }
 
-            var xlist = new List<double>();
-            var ylist = new List<double>();
-            foreach (var pt in hptlist)
-            {
-                xlist.Add(pt.Pt.X);
-                ylist.Add(pt.Pt.Y);
-            }
-            ret.Add(xlist);
-            ret.Add(ylist);
+        //    var xlist = new List<double>();
+        //    var ylist = new List<double>();
+        //    foreach (var pt in hptlist)
+        //    {
+        //        xlist.Add(pt.Pt.X);
+        //        ylist.Add(pt.Pt.Y);
+        //    }
+        //    ret.Add(xlist);
+        //    ret.Add(ylist);
 
-            //var dstKaze = new Mat();
-            //Cv2.DrawKeypoints(mat, wptlist, dstKaze);
+        //    //var dstKaze = new Mat();
+        //    //Cv2.DrawKeypoints(mat, wptlist, dstKaze);
 
-            //using (new Window("dstKazexx", dstKaze))
-            //{
-            //    Cv2.WaitKey();
-            //}
+        //    //using (new Window("dstKazexx", dstKaze))
+        //    //{
+        //    //    Cv2.WaitKey();
+        //    //}
 
-            return ret;
-        }
+        //    return ret;
+        //}
     }
 }

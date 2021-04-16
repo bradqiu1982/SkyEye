@@ -12,7 +12,7 @@ namespace SkyEye.Models
         public static bool DetectIIVI(string imgpath,int minrad,int maxrad,double hrminrate,double hrmaxrate, out bool turn)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
-            var detectsize = GetDetectPoint(srcorgimg);
+            var detectsize = ImgPreOperate.GetImageBoundPointX(srcorgimg);
             var srcrealimg = srcorgimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
             turn = false;
@@ -53,7 +53,7 @@ namespace SkyEye.Models
                 { srcorgimg = ImgPreOperate.GetFixedAngleImg(srcorgimg, angle); }
             }
 
-            var detectsize = GetDetectPoint(srcorgimg);
+            var detectsize = ImgPreOperate.GetImageBoundPointX(srcorgimg);
             var srcrealimg = srcorgimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
             if (turn)
@@ -100,20 +100,20 @@ namespace SkyEye.Models
                 var markx = (int)(ccl.Center.X + 123);
                 var marky = (int)(ccl.Center.Y - 125);
 
-                var ximg = srcrealimg.SubMat(new Rect(xcoordx, xcoordy, 90, 54));
-                var yimg = srcrealimg.SubMat(new Rect(ycoordx, ycoordy, 54, 90));
+                var ximg = srcrealimg.SubMat(new Rect(xcoordx, xcoordy, 92, 54));
+                var yimg = srcrealimg.SubMat(new Rect(ycoordx, ycoordy, 54, 92));
 
                 if (!DetectXCoord(ximg))
                 {
                     xcoordx = (int)(ccl.Center.X + 92);
                     xcoordy = (int)(ccl.Center.Y + 22);
-                    ximg = srcrealimg.SubMat(new Rect(xcoordx, xcoordy, 92, 54));
+                    ximg = srcrealimg.SubMat(new Rect(xcoordx, xcoordy, 100, 54));
 
                     ycoordx = (int)(ccl.Center.X + 9);
-                    ycoordy = (int)(ccl.Center.Y - 263);
+                    ycoordy = (int)(ccl.Center.Y - 278);
                     if (ycoordy < 0) { ycoordy = 0; }
 
-                    yimg = srcrealimg.SubMat(new Rect(ycoordx, ycoordy, 54, 90));
+                    yimg = srcrealimg.SubMat(new Rect(ycoordx, ycoordy, 54, 100));
                 }
 
                 {
@@ -495,12 +495,14 @@ namespace SkyEye.Models
             Cv2.AddWeighted(xymat, 2.0, sharpimg, -0.4, 0, sharpimg);
 
             var xyenhance4x = new Mat();
+            Cv2.DetailEnhance(sharpimg, sharpimg);
             Cv2.Resize(sharpimg, xyenhance4x, new Size(xymat.Width * 4, xymat.Height * 4));
-            Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+            //Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
             var xyenhgray = new Mat();
             var denoisemat = new Mat();
-            Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            //Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            Cv2.MedianBlur(xyenhance4x, denoisemat, 9);
             Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
 
             var blurred = new Mat();
@@ -512,49 +514,51 @@ namespace SkyEye.Models
             return edged;
         }
 
-        private static List<List<double>> GetDetectPoint(Mat mat)
-        {
-            var ret = new List<List<double>>();
+        
 
-            var xyenhance = new Mat();
-            Cv2.DetailEnhance(mat, xyenhance);
+        //private static List<List<double>> GetDetectPoint(Mat mat)
+        //{
+        //    var ret = new List<List<double>>();
 
-            var kaze = KAZE.Create();
-            var kazeDescriptors = new Mat();
-            KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
+        //    var xyenhance = new Mat();
+        //    Cv2.DetailEnhance(mat, xyenhance);
 
-            var wptlist = new List<KeyPoint>();
-            for (var idx = 20; idx < mat.Width;)
-            {
-                var yhlist = new List<double>();
-                var wlist = new List<KeyPoint>();
-                foreach (var pt in kazeKeyPoints)
-                {
-                    if (pt.Pt.X >= (idx - 20) && pt.Pt.X < idx)
-                    {
-                        wlist.Add(pt);
-                        yhlist.Add(pt.Pt.Y);
-                    }
-                }
+        //    var kaze = KAZE.Create();
+        //    var kazeDescriptors = new Mat();
+        //    KeyPoint[] kazeKeyPoints = null;
+        //    kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
 
-                if (wlist.Count > 10 && (yhlist.Max() - yhlist.Min()) > 0.3 * mat.Height)
-                { wptlist.AddRange(wlist); }
-                idx = idx + 20;
-            }
+        //    var wptlist = new List<KeyPoint>();
+        //    for (var idx = 20; idx < mat.Width;)
+        //    {
+        //        var yhlist = new List<double>();
+        //        var wlist = new List<KeyPoint>();
+        //        foreach (var pt in kazeKeyPoints)
+        //        {
+        //            if (pt.Pt.X >= (idx - 20) && pt.Pt.X < idx)
+        //            {
+        //                wlist.Add(pt);
+        //                yhlist.Add(pt.Pt.Y);
+        //            }
+        //        }
 
-                var xlist = new List<double>();
-                var ylist = new List<double>();
-                foreach (var pt in wptlist)
-                {
-                    xlist.Add(pt.Pt.X);
-                    ylist.Add(pt.Pt.Y);
-                }
-                ret.Add(xlist);
-                ret.Add(ylist);
+        //        if (wlist.Count > 10 && (yhlist.Max() - yhlist.Min()) > 0.3 * mat.Height)
+        //        { wptlist.AddRange(wlist); }
+        //        idx = idx + 20;
+        //    }
 
-                return ret;
-            }
+        //        var xlist = new List<double>();
+        //        var ylist = new List<double>();
+        //        foreach (var pt in wptlist)
+        //        {
+        //            xlist.Add(pt.Pt.X);
+        //            ylist.Add(pt.Pt.Y);
+        //        }
+        //        ret.Add(xlist);
+        //        ret.Add(ylist);
+
+        //        return ret;
+        //    }
 
     }
 }
