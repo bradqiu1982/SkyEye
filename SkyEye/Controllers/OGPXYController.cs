@@ -122,6 +122,7 @@ namespace SkyEye.Controllers
             }
 
             var kmode = KMode.GetTrainedMode(caprev.ImgType, this);
+            var cnnmode = UT.GetNetByType(caprev.ImgType,this);
 
             var keylist = new List<string>();
 
@@ -133,7 +134,7 @@ namespace SkyEye.Controllers
                   var fn = System.IO.Path.GetFileName(fs).ToUpper();
                   if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                   {
-                      var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this,kmode);
+                      var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this,kmode,cnnmode);
                       if (!string.IsNullOrEmpty(imgkey))
                       {
                           keylist.Add(imgkey);
@@ -334,7 +335,7 @@ namespace SkyEye.Controllers
                 var fn = System.IO.Path.GetFileName(fs).ToUpper();
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
-                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, kmode, fixangle, newalg);
+                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, kmode,null, fixangle, newalg);
                     if (!string.IsNullOrEmpty(imgkey))
                     {
                         keylist.Add(imgkey);

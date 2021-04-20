@@ -5,6 +5,7 @@ using System.Web;
 using OpenCvSharp;
 using System.Web.Mvc;
 using System.IO;
+using OpenCvSharp.Dnn;
 
 namespace SkyEye.Models
 {
@@ -139,7 +140,7 @@ namespace SkyEye.Models
         }
 
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
-            , Dictionary<string, bool> probexymap,ImageDetect caprev, Controller ctrl,OpenCvSharp.ML.KNearest onemode, bool fixangle = false,bool newalg = true)
+            , Dictionary<string, bool> probexymap,ImageDetect caprev, Controller ctrl,OpenCvSharp.ML.KNearest onemode,Net cnnnet = null, bool fixangle = false,bool newalg = true)
         {
             try
             {
@@ -150,7 +151,7 @@ namespace SkyEye.Models
                     {
                         //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode,cnnnet);
                         }
                     }
                     //else
@@ -175,7 +176,7 @@ namespace SkyEye.Models
                     {
                         //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode, cnnnet);
                         }
                     }
                 }
@@ -190,7 +191,7 @@ namespace SkyEye.Models
                         {
                             //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                             {
-                                return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode);
+                                return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode, cnnnet);
                             }
                         }
                         else
@@ -211,7 +212,7 @@ namespace SkyEye.Models
                         {
                             //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                             {
-                                return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode);
+                                return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode, cnnnet);
                             }
                         }
                     }
@@ -223,7 +224,7 @@ namespace SkyEye.Models
                     {
                         //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode, cnnnet);
                         }
                     }
                 }
@@ -234,7 +235,7 @@ namespace SkyEye.Models
                     {
                         //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode, cnnnet);
                         }
                     }
                 }
@@ -245,7 +246,7 @@ namespace SkyEye.Models
                     {
                         //using (var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl))
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev.ImgType, snmap, probexymap, ctrl, onemode, cnnnet);
                         }
                     }
                 }
@@ -363,7 +364,7 @@ namespace SkyEye.Models
         }
 
         private static string SolveImg(string imgpath,string wafer, List<Mat> charmatlist, string caprev
-            , Dictionary<string, string> snmap, Dictionary<string, bool> probexymap, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
+            , Dictionary<string, string> snmap, Dictionary<string, bool> probexymap, Controller ctrl, OpenCvSharp.ML.KNearest kmode, Net cnnnet)
         {
             var ret = "";
             var ratelist = new List<double>();
@@ -430,6 +431,14 @@ namespace SkyEye.Models
                     if (imgval > 0)
                     { sonimg.ImgVal = (int)imgval; }
 
+                    if (cnnnet != null) {
+                        var refval = UT.CNN_GetVAL(sm, cnnnet);
+                        if (refval != sonimg.ImgVal)
+                        {
+
+                        }
+                    }
+ 
                     var rate = 0.0;
                     var matched = new Mat();
                     kmode.FindNearest(stcm, 7, resultmat, matched);
