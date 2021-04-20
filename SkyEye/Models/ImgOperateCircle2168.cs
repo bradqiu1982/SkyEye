@@ -1176,7 +1176,7 @@ namespace SkyEye.Models
                     tm++;
                     if (ret == -1)
                     { ret = idx; }
-                    else if (ret != -1 && tm > 8)
+                    else if (ret != -1 && tm > 7)
                     { return ret; }
                 }
                 else
@@ -1202,7 +1202,7 @@ namespace SkyEye.Models
                     tm++;
                     if (ret == -1)
                     { ret = idx; }
-                    else if (ret != -1 && tm > 8)
+                    else if (ret != -1 && tm > 7)
                     { return ret; }
                 }
                 else

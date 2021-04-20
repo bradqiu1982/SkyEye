@@ -33,7 +33,7 @@ namespace SkyEye.Models
                 var rect = Cv2.BoundingRect(item);
                 var a = rect.Width * rect.Height;
                 var whrate = (double)rect.Width / (double)rect.Height;
-                var hwrate = (double)rect.Height / (double)rect.Width;
+                //var hwrate = (double)rect.Height / (double)rect.Width;
 
                 if (rect.Height >= heighlow && rect.Height <= heighhigh
                     && whrate > ratelow && whrate < ratehigh && a < areahigh)
@@ -49,20 +49,20 @@ namespace SkyEye.Models
                     else
                     { ret.Add(rect); }
                 }
-                else if (rect.Width >= heighlow && rect.Width <= heighhigh
-                    && hwrate > ratelow && hwrate < ratehigh && a < areahigh)
-                {
-                    if (ret.Count > 0)
-                    {
-                        if (a > ret[0].Width * ret[0].Height)
-                        {
-                            ret.Clear();
-                            ret.Add(rect);
-                        }
-                    }
-                    else
-                    { ret.Add(rect); }
-                }
+                //else if (rect.Width >= heighlow && rect.Width <= heighhigh
+                //    && hwrate > ratelow && hwrate < ratehigh && a < areahigh)
+                //{
+                //    if (ret.Count > 0)
+                //    {
+                //        if (a > ret[0].Width * ret[0].Height)
+                //        {
+                //            ret.Clear();
+                //            ret.Add(rect);
+                //        }
+                //    }
+                //    else
+                //    { ret.Add(rect); }
+                //}
             }//end foreach
 
             return ret;
@@ -83,11 +83,11 @@ namespace SkyEye.Models
             Mat src = new Mat();
             Cv2.CvtColor(srccolor, src, ColorConversionCodes.BGR2GRAY);
 
-            var denoisemat = new Mat();
-            Cv2.FastNlMeansDenoising(src, denoisemat, 10, 7, 21);
+            //var denoisemat = new Mat();
+            //Cv2.FastNlMeansDenoising(src, denoisemat, 10, 7, 21);
 
             var blurred = new Mat();
-            Cv2.GaussianBlur(denoisemat, blurred, new Size(5, 5), 0);
+            Cv2.GaussianBlur(src, blurred, new Size(5, 5), 0);
 
             //var detect_rect = FindXYRect_(blurred, false, heighlow, heighhigh, ratelow, ratehigh, areahigh);
             //if (detect_rect.Count > 0 && detect_rect[0].Width < detect_rect[0].Height)
@@ -164,38 +164,6 @@ namespace SkyEye.Models
             return ret;
         }
 
-
-        private static List<List<double>> GetDetectPoint(Mat mat)
-        {
-            var ret = new List<List<double>>();
-
-            var xyenhance = new Mat();
-            Cv2.DetailEnhance(mat, xyenhance);
-
-            var kaze = KAZE.Create();
-            var kazeDescriptors = new Mat();
-            KeyPoint[] kazeKeyPoints = null;
-            kaze.DetectAndCompute(xyenhance, null, out kazeKeyPoints, kazeDescriptors);
-            var xlist = new List<double>();
-            var ylist = new List<double>();
-            foreach (var pt in kazeKeyPoints)
-            {
-                xlist.Add(pt.Pt.X);
-                ylist.Add(pt.Pt.Y);
-            }
-            ret.Add(xlist);
-            ret.Add(ylist);
-
-            //var dstKaze = new Mat();
-            //Cv2.DrawKeypoints(mat, kazeKeyPoints, dstKaze);
-
-            //using (new Window("dstKaze", dstKaze))
-            //{
-            //    Cv2.WaitKey();
-            //}
-
-            return ret;
-        }
 
         private static List<int> UniqX(List<int> xlist, int imgw, int avgw, int widthlow, int widthhigh)
         {
@@ -425,7 +393,7 @@ namespace SkyEye.Models
             Mat src = Cv2.ImRead(imgpath, ImreadModes.Color);
             var xymat = src.SubMat(xyrect);
 
-            var availableimgpt = GetDetectPoint(src);
+            var availableimgpt = ImgPreOperate.GetImageBoundPointX(src);
             //var srcmidy = src.Height / 2;
             var srcmidy = (availableimgpt[1].Max() + availableimgpt[1].Min())/2;
 
@@ -535,7 +503,7 @@ namespace SkyEye.Models
 
             var xymat = src.SubMat(xyrect);
 
-            var availableimgpt = GetDetectPoint(src);
+            var availableimgpt = ImgPreOperate.GetImageBoundPointX(src);
             //var srcmidy = src.Height / 2;
             var srcmidy = (availableimgpt[1].Max() + availableimgpt[1].Min()) / 2;
 
@@ -548,17 +516,20 @@ namespace SkyEye.Models
                 xymat = outxymat;
             }
 
-            var xyenhance = new Mat();
-            Cv2.DetailEnhance(xymat, xyenhance);
+            var sharpimg = new Mat();
+            Cv2.GaussianBlur(xymat, sharpimg, new Size(0, 0), 3);
+            Cv2.AddWeighted(xymat, 2.0, sharpimg, -0.4, 0, sharpimg);
 
+            Cv2.DetailEnhance(sharpimg, sharpimg);
             var xyenhance4x = new Mat();
-            Cv2.Resize(xyenhance, xyenhance4x, new Size(xyenhance.Width * 4, xyenhance.Height * 4));
+            Cv2.Resize(sharpimg, xyenhance4x, new Size(sharpimg.Width * 4, sharpimg.Height * 4));
 
-            Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
+            //Cv2.DetailEnhance(xyenhance4x, xyenhance4x);
 
             var xyenhgray = new Mat();
             var denoisemat = new Mat();
-            Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            //Cv2.FastNlMeansDenoisingColored(xyenhance4x, denoisemat, 10, 10, 7, 21);
+            Cv2.MedianBlur(xyenhance4x, denoisemat, 9);
             Cv2.CvtColor(denoisemat, xyenhgray, ColorConversionCodes.BGR2GRAY);
 
 
@@ -577,7 +548,7 @@ namespace SkyEye.Models
 
             if (crectlist.Count > 0)
             {
-                cmatlist.Add(xyenhance);
+                cmatlist.Add(sharpimg);
                 foreach (var rect in crectlist)
                 {
                     if (rect.X < 0 || rect.Y < 0
@@ -614,7 +585,7 @@ namespace SkyEye.Models
             Mat src = Cv2.ImRead(imgpath, ImreadModes.Color);
             var xymat = src.SubMat(xyrect);
 
-            var availableimgpt = GetDetectPoint(src);
+            var availableimgpt = ImgPreOperate.GetImageBoundPointX(src);
             //var srcmidy = src.Height / 2;
             var srcmidy = (availableimgpt[1].Max() + availableimgpt[1].Min()) / 2;
 

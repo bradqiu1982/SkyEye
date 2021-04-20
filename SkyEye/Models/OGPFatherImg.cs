@@ -139,7 +139,7 @@ namespace SkyEye.Models
         }
 
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
-            , Dictionary<string, bool> probexymap,ImageDetect caprev, Controller ctrl,OpenCvSharp.ML.KNearest onemode, bool fixangle = false,bool newalg = false)
+            , Dictionary<string, bool> probexymap,ImageDetect caprev, Controller ctrl,OpenCvSharp.ML.KNearest onemode, bool fixangle = false,bool newalg = true)
         {
             try
             {
