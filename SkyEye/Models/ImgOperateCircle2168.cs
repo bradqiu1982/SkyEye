@@ -1167,9 +1167,9 @@ namespace SkyEye.Models
             var wml = (int)(edged.Width * 0.25);
             var wmh = (int)(edged.Width * 0.5);
 
-            for (var idx = wmh; idx > wml; idx = idx - 2)
+            for (var idx = wmh; idx > wml; idx = idx - 3)
             {
-                var snapmat = edged.SubMat(dcl, dch, idx - 2, idx);
+                var snapmat = edged.SubMat(dcl, dch, idx - 3, idx);
                 var cnt = snapmat.CountNonZero();
                 if (cnt > 3)
                 {
@@ -1193,9 +1193,9 @@ namespace SkyEye.Models
             var wml = (int)(edged.Width * 0.5);
             var wmh = (int)(edged.Width * 0.75);
 
-            for (var idx = wml; idx < wmh; idx = idx + 2)
+            for (var idx = wml; idx < wmh; idx = idx + 3)
             {
-                var snapmat = edged.SubMat(dcl, dch, idx, idx + 2);
+                var snapmat = edged.SubMat(dcl, dch, idx, idx + 3);
                 var cnt = snapmat.CountNonZero();
                 if (cnt > 3)
                 {

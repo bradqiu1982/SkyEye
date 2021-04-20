@@ -62,7 +62,8 @@ namespace SkyEye.Models
                 Cv2.Transpose(srcrealimg, outxymat);
                 Cv2.Flip(outxymat, outxymat, FlipMode.Y);
                 srcrealimg = outxymat;
-                srcrealimg = srcrealimg.Resize(new Size(368, 452));
+                var h = (int)((360.0 / (double)srcrealimg.Width) * srcrealimg.Height);
+                srcrealimg = srcrealimg.Resize(new Size(360, h));
             }
 
             var srcgray = new Mat();

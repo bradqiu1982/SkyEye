@@ -89,24 +89,25 @@ namespace SkyEye.Models
             var blurred = new Mat();
             Cv2.GaussianBlur(denoisemat, blurred, new Size(5, 5), 0);
 
-            var detect_rect = FindXYRect_(blurred, false, heighlow, heighhigh, ratelow, ratehigh, areahigh);
-            if (detect_rect.Count > 0 && detect_rect[0].Width < detect_rect[0].Height)
-            {
-                var outxymat = new Mat();
-                Cv2.Transpose(srccolor, outxymat);
-                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
-                srccolor = outxymat;
+            //var detect_rect = FindXYRect_(blurred, false, heighlow, heighhigh, ratelow, ratehigh, areahigh);
+            //if (detect_rect.Count > 0 && detect_rect[0].Width < detect_rect[0].Height)
+            //{
+            //    var outxymat = new Mat();
+            //    Cv2.Transpose(srccolor, outxymat);
+            //    Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+            //    srccolor = outxymat;
 
-                src = new Mat();
-                Cv2.CvtColor(srccolor, src, ColorConversionCodes.BGR2GRAY);
-                denoisemat = new Mat();
-                Cv2.FastNlMeansDenoising(src, denoisemat, 10, 7, 21);
-                blurred = new Mat();
-                Cv2.GaussianBlur(denoisemat, blurred, new Size(5, 5), 0);
-                turn = true;
-            }
-            else
-            { turn = false; }
+            //    src = new Mat();
+            //    Cv2.CvtColor(srccolor, src, ColorConversionCodes.BGR2GRAY);
+            //    denoisemat = new Mat();
+            //    Cv2.FastNlMeansDenoising(src, denoisemat, 10, 7, 21);
+            //    blurred = new Mat();
+            //    Cv2.GaussianBlur(denoisemat, blurred, new Size(5, 5), 0);
+            //    turn = true;
+            //}
+            //else
+            //{ turn = false; }
+            turn = false;
 
             var truerect = FindXYRect_( blurred, true,  heighlow,  heighhigh,  ratelow,  ratehigh,  areahigh);
             var falserect = FindXYRect_( blurred, false,  heighlow,  heighhigh,  ratelow,  ratehigh,  areahigh);

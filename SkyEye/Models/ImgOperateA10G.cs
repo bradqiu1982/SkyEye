@@ -16,10 +16,10 @@ namespace SkyEye.Models
 
             var srcgray = new Mat();
             Cv2.CvtColor(srcrealimg, srcgray, ColorConversionCodes.BGR2GRAY);
-            var srcblurred = new Mat();
-            Cv2.GaussianBlur(srcgray, srcblurred, new Size(5, 5), 0);
-            var srcedged = new Mat();
-            Cv2.AdaptiveThreshold(srcblurred, srcedged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+            //var srcblurred = new Mat();
+            //Cv2.GaussianBlur(srcgray, srcblurred, new Size(5, 5), 0);
+            //var srcedged = new Mat();
+            //Cv2.AdaptiveThreshold(srcblurred, srcedged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
 
             var circles = Cv2.HoughCircles(srcgray, HoughMethods.Gradient, 1, srcgray.Rows / 4, 100, 70, 30, 80);
 
@@ -63,10 +63,10 @@ namespace SkyEye.Models
 
             var srcgray = new Mat();
             Cv2.CvtColor(srcrealimg, srcgray, ColorConversionCodes.BGR2GRAY);
-            var srcblurred = new Mat();
-            Cv2.GaussianBlur(srcgray, srcblurred, new Size(5, 5), 0);
-            var srcedged = new Mat();
-            Cv2.AdaptiveThreshold(srcblurred, srcedged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
+            //var srcblurred = new Mat();
+            //Cv2.GaussianBlur(srcgray, srcblurred, new Size(5, 5), 0);
+            //var srcedged = new Mat();
+            //Cv2.AdaptiveThreshold(srcblurred, srcedged, 255, AdaptiveThresholdTypes.MeanC, ThresholdTypes.BinaryInv, 17, 15);
 
             var circles = Cv2.HoughCircles(srcgray, HoughMethods.Gradient, 1, srcgray.Rows / 4, 100, 65, 30, 80);
 

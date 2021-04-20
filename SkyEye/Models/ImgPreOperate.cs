@@ -259,6 +259,10 @@ namespace SkyEye.Models
             var lowx = (int)(0.2 * width);
             var highx = (int)(0.8 * width);
 
+            var zerotime = 0;
+            var firstcleanzone = (int)(0.1 * width);
+            var secondcleanzone = (int)(0.9 * width);
+
             var xlist = new List<int>();
             var ylist = new List<int>();
             for (var x = 0; x < width - 2; x++)
@@ -267,6 +271,27 @@ namespace SkyEye.Models
                 var nonzero = submat.CountNonZero();
                 if (nonzero > 20)
                 { xlist.Add(x); }
+
+                //avoid other die from x direction
+                if (x < firstcleanzone)
+                {
+                    if (nonzero < 2 && xlist.Count > 0)
+                    { zerotime++; }
+                    if (zerotime >= 20 && xlist.Count > 0)
+                    {
+                        xlist.Clear();
+                        zerotime = 0;
+                    }
+                }
+                if (x > lowx && x < highx)
+                { zerotime = 0; }
+                if (x > secondcleanzone)
+                {
+                    if (nonzero < 2)
+                    { zerotime++; }
+                    if (zerotime >= 20)
+                    { break; }
+                }
             }
 
             for (var y = 0; y < high - 2; y++)
