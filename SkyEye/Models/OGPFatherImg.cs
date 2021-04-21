@@ -431,14 +431,6 @@ namespace SkyEye.Models
                     if (imgval > 0)
                     { sonimg.ImgVal = (int)imgval; }
 
-                    if (cnnnet != null) {
-                        var refval = UT.CNN_GetVAL(sm, cnnnet);
-                        if (refval != sonimg.ImgVal)
-                        {
-
-                        }
-                    }
- 
                     var rate = 0.0;
                     var matched = new Mat();
                     kmode.FindNearest(stcm, 7, resultmat, matched);
@@ -458,6 +450,15 @@ namespace SkyEye.Models
                         msidx++;
                     }
                     sonimg.Rate = rate.ToString();
+
+                    //if (cnnnet != null) {
+                    //    var refval = UT.CNN_GetVAL(sm, cnnnet);
+                    //    if (refval != sonimg.ImgVal)
+                    //    {
+                    //        sonimg.ImgVal = refval;
+                    //        sonimg.Rate = "10";
+                    //    }
+                    //}
                 }
 
                 if (idx < midx)

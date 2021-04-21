@@ -218,7 +218,7 @@ namespace SkyEye.Models
             if (string.IsNullOrEmpty(pbfile))
             { pbfile = "~/Scripts/font_ogp5x1_5000.pb"; }
 
-            var trainedNet = OpenCvSharp.Dnn.Net.ReadNetFromTensorflow(pbfile);
+            var trainedNet = OpenCvSharp.Dnn.Net.ReadNetFromTensorflow(ctrl.Server.MapPath(pbfile));
 
             if (trainedNet != null)
             { ctrl.HttpContext.Cache.Insert(caprev + "_CNN", trainedNet, null, DateTime.Now.AddHours(4), Cache.NoSlidingExpiration); }
