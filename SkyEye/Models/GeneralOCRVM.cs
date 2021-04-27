@@ -197,19 +197,13 @@ namespace SkyEye.Models
                 }
             }
 
-            if (samplepicture.Count == 0)
+            if (samplepicture.Count < 3)
             { return false; }
 
+            var vcselTypeNet = ImageDetect.GetVCSELTypeCNN(ctrl);
 
-            var caprev = OGPFatherImg.GetPictureRevsm(samplepicture[0]);
-            if (string.IsNullOrEmpty(caprev.ImgType))
-            {
-                caprev = OGPFatherImg.GetPictureRevsm(samplepicture[1]);
-                if (string.IsNullOrEmpty(caprev.ImgType))
-                { return false; }
-            }
-
-            var kmode = KMode.GetTrainedMode(caprev.ImgType, ctrl);
+            var caprev = ImageDetect.GetPictureRevsm(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2]);
+            var kmode = KMode.GetTrainedMode(caprev.ModelName, ctrl);
 
             var snlist = new List<string>();
 

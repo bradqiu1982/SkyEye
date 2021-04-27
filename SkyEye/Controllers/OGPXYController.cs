@@ -91,7 +91,7 @@ namespace SkyEye.Controllers
                 }
             }
 
-            if (samplepicture.Count == 0)
+            if (samplepicture.Count < 3)
             {
                 CleanWaferParseFile(wafer);
                 ret.Data = new
@@ -274,7 +274,7 @@ namespace SkyEye.Controllers
                 }
             }
 
-            if (samplepicture.Count == 0)
+            if (samplepicture.Count < 3)
             {
                 CleanWaferParseFile(wafer);
                 ret.Data = new

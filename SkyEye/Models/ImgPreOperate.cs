@@ -254,10 +254,10 @@ namespace SkyEye.Models
             var high = edged.Height;
             var width = edged.Width;
 
-            var lowy = (int)(0.2 * high);
-            var highy = (int)(0.8 * high);
-            var lowx = (int)(0.2 * width);
-            var highx = (int)(0.8 * width);
+            var lowy = (int)(0.1 * high);
+            var highy = (int)(0.9 * high);
+            var lowx = (int)(0.1 * width);
+            var highx = (int)(0.9 * width);
 
             var zerotime = 0;
             var firstcleanzone = (int)(0.1 * width);
@@ -265,11 +265,11 @@ namespace SkyEye.Models
 
             var xlist = new List<int>();
             var ylist = new List<int>();
-            for (var x = 0; x < width - 2; x++)
+            for (var x = 0; x < width - 3; x++)
             {
-                var submat = edged.SubMat(lowy, highy, x, x + 2);
+                var submat = edged.SubMat(lowy, highy, x, x + 3);
                 var nonzero = submat.CountNonZero();
-                if (nonzero > 20)
+                if (nonzero >= 2)
                 { xlist.Add(x); }
 
                 //avoid other die from x direction
@@ -294,12 +294,37 @@ namespace SkyEye.Models
                 }
             }
 
-            for (var y = 0; y < high - 2; y++)
+            zerotime = 0;
+            firstcleanzone = (int)(0.1 * high);
+            secondcleanzone = (int)(0.9 * high);
+
+            for (var y = 0; y < high - 3; y++)
             {
-                var submat = edged.SubMat(y, y + 2, lowx, highx);
+                var submat = edged.SubMat(y, y + 3, lowx, highx);
                 var nonzero = submat.CountNonZero();
-                if (nonzero > 20)
+                if (nonzero >= 2)
                 { ylist.Add(y); }
+
+                //avoid other die from y direction
+                if (y < firstcleanzone)
+                {
+                    if (nonzero < 2 && ylist.Count > 0)
+                    { zerotime++; }
+                    if (zerotime >= 20 && ylist.Count > 0)
+                    {
+                        ylist.Clear();
+                        zerotime = 0;
+                    }
+                }
+                if (y > lowy && y < highy)
+                { zerotime = 0; }
+                if (y > secondcleanzone)
+                {
+                    if (nonzero < 2)
+                    { zerotime++; }
+                    if (zerotime >= 20)
+                    { break; }
+                }
             }
 
             var ret = new List<List<int>>();

@@ -9,16 +9,6 @@ using OpenCvSharp.Dnn;
 
 namespace SkyEye.Models
 {
-    public class ImageDetect
-    {
-        public string ImgType { set; get; }
-        public bool ImgTurn { set; get; }
-        public ImageDetect()
-        {
-            ImgType = "";
-            ImgTurn = false;
-        }
-    }
 
     public class OGPFatherImg
     {
@@ -91,29 +81,7 @@ namespace SkyEye.Models
             return ret;
         }
 
-        public static ImageDetect GetPictureRevsm(string imgpath, bool fixangle = false)
-        {
-            var ret = new ImageDetect();
-            var turn = false;
 
-            var iividetect = ImgOperateIIVI.DetectIIVI(imgpath, 115, 160, 3.0, 4.3, out turn);
-            if (iividetect)
-            { ret.ImgType = "OGP-iivi"; ret.ImgTurn = turn; return ret; }
-
-            var iividetectsm = ImgOperateIIVIsm.DetectIIVIsm(imgpath, 80, 115, 3.0, 4.8);
-            if (iividetectsm)
-            { ret.ImgType = "OGP-sm-iivi"; return ret; }
-
-            var xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000, 50);
-            if (xyrectlist.Count > 0)
-            { ret.ImgType = "OGP-small5x1"; return ret; }
-
-            xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000, true, out turn, fixangle);
-            if (xyrectlist.Count > 0)
-            { ret.ImgType = "OGP-rect5x1"; ret.ImgTurn = turn; return ret; }
-
-            return ret;
-        }
 
         public static ImageDetect GetPicture4inchRev(string imgpath, bool fixangle = false)
         {

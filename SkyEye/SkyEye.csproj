@@ -273,6 +273,8 @@
     <Compile Include="Models\ExternalDataCollector.cs" />
     <Compile Include="Models\FileLoadedData.cs" />
     <Compile Include="Models\GeneralOCRVM.cs" />
+    <Compile Include="Models\ImageDetect.cs" />
+    <Compile Include="Models\ImgCNN.cs" />
     <Compile Include="Models\ImgOperate2x1.cs" />
     <Compile Include="Models\ImgOperate5x1.cs" />
     <Compile Include="Models\ImgOperateA10G.cs" />
@@ -875,6 +877,7 @@
     <Content Include="Views\OGPXY\OCRQuery.cshtml" />
     <Content Include="Views\Main\SpecialXYSN.cshtml" />
     <Content Include="Scripts\WUXI SKY-EYE OCR.pptx" />
+    <Content Include="Scripts\VCSEL_CLASS.pb" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
