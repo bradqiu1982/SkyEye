@@ -300,7 +300,9 @@ namespace SkyEye.Models
             if (obj != null)
             { return (Net)obj; }
 
-            var trainedNet = OpenCvSharp.Dnn.Net.ReadNetFromTensorflow(ctrl.Server.MapPath("~/Scripts/VCSEL_CLASS.pb"));
+            var pbfile = "~/Scripts/VCSEL_CLASS_mobilev3_dir_new4.pb";
+            var trainedNet = OpenCvSharp.Dnn.Net.ReadNetFromTensorflow(ctrl.Server.MapPath(pbfile));
+
             if (trainedNet != null)
             { ctrl.HttpContext.Cache.Insert("VCSELTYPE_CNN", trainedNet, null, DateTime.Now.AddHours(4), Cache.NoSlidingExpiration); }
 

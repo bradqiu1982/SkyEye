@@ -86,7 +86,7 @@ namespace SkyEye.Controllers
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
                     samplepicture.Add(fs);
-                    if (samplepicture.Count > 1)
+                    if (samplepicture.Count > 3)
                     { break; }
                 }
             }
@@ -265,7 +265,7 @@ namespace SkyEye.Controllers
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
                     samplepicture.Add(fs);
-                    if (samplepicture.Count > 1)
+                    if (samplepicture.Count > 3)
                     { break; }
                 }
             }
