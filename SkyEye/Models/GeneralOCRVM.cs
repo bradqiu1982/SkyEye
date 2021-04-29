@@ -201,8 +201,10 @@ namespace SkyEye.Models
             { return false; }
 
             var vcselTypeNet = ImageDetect.GetVCSELTypeCNN(ctrl);
-
             var caprev = ImageDetect.GetPictureRevsm(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2]);
+            if (string.IsNullOrEmpty(caprev.ModelName))
+            { return false; }
+
             var kmode = KMode.GetTrainedMode(caprev.ModelName, ctrl);
 
             var snlist = new List<string>();

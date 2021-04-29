@@ -11,33 +11,288 @@ namespace SkyEye.Models
 {
     public class ImageDetect
     {
+        //var label_name = new string[] { "A10-UP","A10-RT","A10-DW","A10-LF"
+        //    ,"F2X1-UP","F2X1-RT","F2X1-DW","F2X1-LF"
+        //    ,"F5X1-UP","F5X1-RT","F5X1-DW","F5X1-LF"
+        //    ,"IIVI-UP","IIVI-RT","IIVI-DW","IIVI-LF"
+        //    ,"SIX-UP","SIX-RT","SIX-DW","SIX-LF"}.ToList();
+
         public static ImageDetect GetPictureRevsm(Net vcselTypeNet, string f1,string f2,string f3)
         {
             var ret = GetVCSELTypeWithDirect(vcselTypeNet, f1, f2, f3);
+            if (!string.IsNullOrEmpty(ret.ImgType))
+            {
+                if (ret.ImgType.Contains("-UP") || ret.ImgType.Contains("-DW"))
+                {
+                    if (ret.ImgType.Contains("SIX-"))
+                    { }
+                    else if (ret.ImgType.Contains("IIVI-"))
+                    { ret.ModelName = "OGP-iivi";  return ret; }
+                    else if (ret.ImgType.Contains("F5X1-"))
+                    { ret.ModelName = "OGP-rect5x1"; return ret; }
+                    else if (ret.ImgType.Contains("F2X1-"))
+                    { }
+                    else if (ret.ImgType.Contains("A10-"))
+                    { }
+                }
+                else
+                {
+                    if (ret.ImgType.Contains("SIX-"))
+                    { }
+                    else if (ret.ImgType.Contains("IIVI-"))
+                    { ret.ModelName = "OGP-sm-iivi"; return ret; }
+                    else if (ret.ImgType.Contains("F5X1-"))
+                    { ret.ModelName = "OGP-small5x1"; return ret; }
+                    else if (ret.ImgType.Contains("F2X1-"))
+                    { }
+                    else if (ret.ImgType.Contains("A10-"))
+                    { }
+                }
 
-            ret = new ImageDetect();
+                return ret;
+            }
+            else
+            {
+                return PhysicalDetectSM(f1);
+            }
+        }
+
+        public static ImageDetect GetPictureRev4Train(Net vcselTypeNet, string f1, string f2, string f3)
+        {
+            var ret = GetVCSELTypeWithDirect(vcselTypeNet, f1, f2, f3);
+            if (!string.IsNullOrEmpty(ret.ImgType))
+            {
+                if (ret.ImgType.Contains("-UP") || ret.ImgType.Contains("-DW"))
+                {
+                    if (ret.ImgType.Contains("SIX-"))
+                    { ret.ModelName = "OGP-circle2168"; return ret; }
+                    else if (ret.ImgType.Contains("IIVI-"))
+                    { ret.ModelName = "OGP-iivi"; return ret; }
+                    else if (ret.ImgType.Contains("F5X1-"))
+                    { ret.ModelName = "OGP-rect5x1"; return ret; }
+                    else if (ret.ImgType.Contains("F2X1-"))
+                    { ret.ModelName = "OGP-rect2x1"; return ret; }
+                    else if (ret.ImgType.Contains("A10-"))
+                    { ret.ModelName = "OGP-A10G"; return ret; }
+                }
+                else
+                {
+                    if (ret.ImgType.Contains("SIX-"))
+                    { }
+                    else if (ret.ImgType.Contains("IIVI-"))
+                    { ret.ModelName = "OGP-sm-iivi"; return ret; }
+                    else if (ret.ImgType.Contains("F5X1-"))
+                    { ret.ModelName = "OGP-small5x1"; return ret; }
+                    else if (ret.ImgType.Contains("F2X1-"))
+                    { }
+                    else if (ret.ImgType.Contains("A10-"))
+                    { }
+                }
+
+                return ret;
+            }
+            else
+            {
+                return PhysicalDetect4Train(f1);
+            }
+        }
+
+        public static ImageDetect GetPictureRev4Product(Net vcselTypeNet, string f1, string f2, string f3, bool fixangle = false)
+        {
+            var ret = GetVCSELTypeWithDirect(vcselTypeNet, f1, f2, f3);
+            if (!string.IsNullOrEmpty(ret.ImgType))
+            {
+                if (ret.ImgType.Contains("-UP") || ret.ImgType.Contains("-DW"))
+                {
+                    if (ret.ImgType.Contains("SIX-"))
+                    { ret.ModelName = "OGP-circle2168"; return ret; }
+                    else if (ret.ImgType.Contains("IIVI-"))
+                    { ret.ModelName = "OGP-iivi"; return ret; }
+                    else if (ret.ImgType.Contains("F5X1-"))
+                    { ret.ModelName = "OGP-rect5x1"; return ret; }
+                    else if (ret.ImgType.Contains("F2X1-"))
+                    { ret.ModelName = "OGP-rect2x1"; return ret; }
+                    else if (ret.ImgType.Contains("A10-"))
+                    { ret.ModelName = "OGP-A10G"; return ret; }
+                }
+                else
+                {
+                    if (ret.ImgType.Contains("SIX-"))
+                    { }
+                    else if (ret.ImgType.Contains("IIVI-"))
+                    { ret.ModelName = "OGP-sm-iivi"; return ret; }
+                    else if (ret.ImgType.Contains("F5X1-"))
+                    { ret.ModelName = "OGP-small5x1"; return ret; }
+                    else if (ret.ImgType.Contains("F2X1-"))
+                    { }
+                    else if (ret.ImgType.Contains("A10-"))
+                    { }
+                }
+
+                return ret;
+            }
+            else
+            {
+                return PhysicalDetect4Product(f1,fixangle);
+            }
+        }
+
+        public static ImageDetect GetPicture4inchRev(Net vcselTypeNet, string f1, string f2, string f3, bool fixangle = false)
+        {
+            var ret = GetVCSELTypeWithDirect(vcselTypeNet, f1, f2, f3);
+            if (!string.IsNullOrEmpty(ret.ImgType))
+            {
+                if (ret.ImgType.Contains("-UP") || ret.ImgType.Contains("-DW"))
+                {
+                    if (ret.ImgType.Contains("SIX-"))
+                    { ret.ModelName = "OGP-circle2168"; return ret; }
+                    else if (ret.ImgType.Contains("IIVI-"))
+                    { ret.ModelName = "OGP-iivi"; return ret; }
+                    else if (ret.ImgType.Contains("F5X1-"))
+                    { ret.ModelName = "OGP-rect5x1"; return ret; }
+                    else if (ret.ImgType.Contains("F2X1-"))
+                    { ret.ModelName = "OGP-rect2x1"; return ret; }
+                    else if (ret.ImgType.Contains("A10-"))
+                    { ret.ModelName = "OGP-A10G"; return ret; }
+                }
+                else
+                {
+                    if (ret.ImgType.Contains("SIX-"))
+                    { }
+                    else if (ret.ImgType.Contains("IIVI-"))
+                    { ret.ModelName = "OGP-sm-iivi"; return ret; }
+                    else if (ret.ImgType.Contains("F5X1-"))
+                    { ret.ModelName = "OGP-small5x1"; return ret; }
+                    else if (ret.ImgType.Contains("F2X1-"))
+                    { }
+                    else if (ret.ImgType.Contains("A10-"))
+                    { }
+                }
+
+                return ret;
+            }
+            else
+            {
+                return PhysicalDetect4Inch(f1,fixangle);
+            }
+        }
+
+        private static ImageDetect PhysicalDetectSM(string imgpath)
+        {
+            var ret = new ImageDetect();
             var turn = false;
 
-            var iividetect = ImgOperateIIVI.DetectIIVI(f1, 115, 160, 3.0, 4.3, out turn);
+            var iividetect = ImgOperateIIVI.DetectIIVI(imgpath, 115, 160, 3.0, 4.3, out turn);
             if (iividetect)
-            { ret.ModelName = "OGP-iivi"; ret.ImgType = "OGP-iivi"; ret.ImgTurn = turn; return ret; }
+            { ret.ModelName = "OGP-iivi"; ret.ImgType = "IIVI-UP"; ret.ImgTurn = turn; return ret; }
 
-            var iividetectsm = ImgOperateIIVIsm.DetectIIVIsm(f1, 80, 115, 3.0, 4.8);
+            var iividetectsm = ImgOperateIIVIsm.DetectIIVIsm(imgpath, 80, 115, 3.0, 4.8);
             if (iividetectsm)
-            { ret.ModelName = "OGP-sm-iivi"; ret.ImgType = "OGP-sm-iivi"; return ret; }
+            { ret.ModelName = "OGP-sm-iivi"; ret.ImgType = "IIVI-LF"; return ret; }
 
-            var xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(f1, 18, 34, 4.5, 6.92, 5000, 50);
+            var xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000, 50);
             if (xyrectlist.Count > 0)
-            { ret.ModelName = "OGP-small5x1"; ret.ImgType = "OGP-small5x1"; return ret; }
+            { ret.ModelName = "OGP-small5x1"; ret.ImgType = "F5X1-RT"; return ret; }
 
-            xyrectlist = ImgOperate5x1.FindXYRect(f1, 25, 43, 4.5, 6.8, 8000, true, out turn);
+            xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000, true, out turn);
             if (xyrectlist.Count > 0)
-            { ret.ModelName = "OGP-rect5x1"; ret.ImgType = "OGP-rect5x1"; ret.ImgTurn = turn; return ret; }
+            { ret.ModelName = "OGP-rect5x1"; ret.ImgType = "F5X1-UP"; ret.ImgTurn = turn; return ret; }
 
             return ret;
-
-
         }
+
+        public static ImageDetect PhysicalDetect4Train(string imgpath, bool fixangle = false)
+        {
+            var ret = new ImageDetect();
+            var turn = false;
+
+            var iividetectsm = ImgOperateIIVIsm.DetectIIVIsm(imgpath, 80, 115, 3.0, 4.8);
+            if (iividetectsm)
+            { ret.ModelName = "OGP-sm-iivi"; ret.ImgType = "IIVI-LF"; return ret; }
+
+            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000, true, out turn, fixangle);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-rect5x1"; ret.ImgType = "F5X1-UP"; return ret; }
+
+            var alen10g = ImgOperateA10G.DetectA10GRevision(imgpath);
+            if (!string.IsNullOrEmpty(alen10g))
+            { ret.ModelName = "OGP-A10G"; ret.ImgType = "A10-UP"; return ret; }
+
+            var iividetect = ImgOperateIIVI.DetectIIVI(imgpath, 115, 160, 3.0, 4.3, out turn);
+            if (iividetect)
+            { ret.ModelName = "OGP-iivi"; ret.ImgType = "IIVI-UP"; return ret; }
+
+            xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000, 50);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-small5x1"; ret.ImgType = "F5X1-RT"; return ret; }
+
+            var circle2168 = ImgOperateCircle2168.Detect2168Revision(imgpath, fixangle);
+            if (!string.IsNullOrEmpty(circle2168))
+            { ret.ModelName = "OGP-circle2168"; ret.ImgType = "SIX-UP"; return ret; }
+
+            xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-rect2x1"; ret.ImgType = "F2X1-UP"; return ret; }
+
+            return ret;
+        }
+
+        public static ImageDetect PhysicalDetect4Product(string imgpath, bool fixangle = false)
+        {
+            var ret = new ImageDetect();
+            var turn = false;
+
+            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000, true, out turn, fixangle);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-rect5x1"; ret.ImgType = "F5X1-UP"; return ret; }
+
+            var alen10g = ImgOperateA10G.DetectA10GRevision(imgpath);
+            if (!string.IsNullOrEmpty(alen10g))
+            { ret.ModelName = "OGP-A10G"; ret.ImgType = "A10-UP"; return ret; }
+
+            var iividetect = ImgOperateIIVI.DetectIIVI(imgpath, 115, 160, 3.0, 4.3, out turn);
+            if (iividetect)
+            { ret.ModelName = "OGP-iivi"; ret.ImgType = "IIVI-UP"; return ret; }
+
+            xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000, 50);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-small5x1"; ret.ImgType = "F5X1-RT"; return ret; }
+
+            var circle2168 = ImgOperateCircle2168.Detect2168Revision(imgpath, fixangle);
+            if (!string.IsNullOrEmpty(circle2168))
+            { ret.ModelName = "OGP-circle2168"; ret.ImgType = "SIX-UP"; return ret; }
+
+            xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-rect2x1"; ret.ImgType = "F2X1-UP"; return ret; }
+
+            return ret;
+        }
+         
+        public static ImageDetect PhysicalDetect4Inch(string imgpath, bool fixangle = false)
+        {
+            var ret = new ImageDetect();
+            var turn = false;
+
+            var xyrectlist = ImgOperate5x1.FindXYRect(imgpath, 25, 43, 4.5, 6.8, 8000, true, out turn, fixangle);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-rect5x1"; ret.ImgType = "F5X1-UP"; return ret; }
+
+            var alen10g = ImgOperateA10G.DetectA10GRevision(imgpath);
+            if (!string.IsNullOrEmpty(alen10g))
+            { ret.ModelName = "OGP-A10G"; ret.ImgType = "A10-UP"; return ret; }
+
+            xyrectlist = ImgOperateSmall5x1.FindSmall5x1Rect(imgpath, 18, 34, 4.5, 6.92, 5000, 50);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-small5x1"; ret.ImgType = "F5X1-RT"; return ret; }
+
+            xyrectlist = ImgOperate2x1.FindXYRect(imgpath, 60, 100, 2.0, 3.0);
+            if (xyrectlist.Count > 0)
+            { ret.ModelName = "OGP-rect2x1"; ret.ImgType = "F2X1-UP"; return ret; }
+
+            return ret;
+        }
+
 
         public static Net GetVCSELTypeCNN(Controller ctrl)
         {
@@ -206,17 +461,16 @@ namespace SkyEye.Models
             return ret;
         }
 
-
-        public string ImgType { set; get; }
+        public string ModelName { set; get; }
         public bool ImgTurn { set; get; }
         public double Confidence { set; get; }
-        public string ModelName { set; get; }
+        public string ImgType { set; get; }
         public ImageDetect()
         {
-            ImgType = "";
+            ModelName = "";
             ImgTurn = false;
             Confidence = 0.0;
-            ModelName = "";
+            ImgType = "";
         }
     }
 }

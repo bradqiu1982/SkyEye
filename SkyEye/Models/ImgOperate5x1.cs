@@ -481,7 +481,7 @@ namespace SkyEye.Models
             return cmatlist;
         }
 
-        public static List<Mat> CutCharRect(string imgpath, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle,bool newalg,bool turn)
+        public static List<Mat> CutCharRect(string imgpath, ImageDetect detect, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle,bool newalg)
         {
             var cmatlist = new List<Mat>();
 
@@ -493,13 +493,13 @@ namespace SkyEye.Models
                 { src = ImgPreOperate.GetFixedAngleImg(src, angle); }
             }
 
-            if (turn)
-            {
-                var outxymat = new Mat();
-                Cv2.Transpose(src, outxymat);
-                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
-                src = outxymat;
-            }
+            //if (turn)
+            //{
+            //    var outxymat = new Mat();
+            //    Cv2.Transpose(src, outxymat);
+            //    Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+            //    src = outxymat;
+            //}
 
             var xymat = src.SubMat(xyrect);
 

@@ -43,7 +43,7 @@ namespace SkyEye.Models
         }
 
         //115,140
-        public static List<Mat> CutCharRect(string imgpath, int minrad, int maxrad,bool turn, bool fixangle = false)
+        public static List<Mat> CutCharRect(string imgpath,ImageDetect detect, int minrad, int maxrad, bool fixangle = false)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             if (fixangle)
@@ -56,15 +56,15 @@ namespace SkyEye.Models
             var detectsize = ImgPreOperate.GetImageBoundPointX(srcorgimg);
             var srcrealimg = srcorgimg.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
 
-            if (turn)
-            {
-                var outxymat = new Mat();
-                Cv2.Transpose(srcrealimg, outxymat);
-                Cv2.Flip(outxymat, outxymat, FlipMode.Y);
-                srcrealimg = outxymat;
-                var h = (int)((360.0 / (double)srcrealimg.Width) * srcrealimg.Height);
-                srcrealimg = srcrealimg.Resize(new Size(360, h));
-            }
+            //if (turn)
+            //{
+            //    var outxymat = new Mat();
+            //    Cv2.Transpose(srcrealimg, outxymat);
+            //    Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+            //    srcrealimg = outxymat;
+            //    var h = (int)((360.0 / (double)srcrealimg.Width) * srcrealimg.Height);
+            //    srcrealimg = srcrealimg.Resize(new Size(360, h));
+            //}
 
             var srcgray = new Mat();
             Cv2.CvtColor(srcrealimg, srcgray, ColorConversionCodes.BGR2GRAY);

@@ -48,7 +48,7 @@ namespace SkyEye.Models
             return "";
         }
 
-        public static List<Mat> CutCharRect(string imgpath)
+        public static List<Mat> CutCharRect(string imgpath, ImageDetect detect)
         {
             Mat srccolor = Cv2.ImRead(imgpath, ImreadModes.Color);
             var detectsize = ImgPreOperate.GetDetectPoint(srccolor);

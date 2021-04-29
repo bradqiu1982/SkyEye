@@ -103,26 +103,22 @@ namespace SkyEye.Controllers
                 return ret;
             }
 
-
-            var caprev = OGPFatherImg.GetPictureRev4Train(samplepicture[0]);
-            if (string.IsNullOrEmpty(caprev.ImgType))
+            var vcselTypeNet = ImageDetect.GetVCSELTypeCNN(this);
+            var caprev = ImageDetect.GetPictureRev4Train(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2]);
+            if (string.IsNullOrEmpty(caprev.ModelName))
             {
-                caprev = OGPFatherImg.GetPictureRev4Train(samplepicture[1]);
-                if (string.IsNullOrEmpty(caprev.ImgType))
+                CleanWaferParseFile(wafer);
+                ret.Data = new
                 {
-                    CleanWaferParseFile(wafer);
-                    ret.Data = new
-                    {
-                        imglist = imglist,
-                        failimg = failimg,
-                        MSG = "Failed to get revsion from sample pictures!"
-                    };
-                    return ret;
-                }
+                    imglist = imglist,
+                    failimg = failimg,
+                    MSG = "Failed to get revsion from sample pictures!"
+                };
+                return ret;
             }
 
-            var kmode = KMode.GetTrainedMode(caprev.ImgType, this);
-            //var cnnmode = UT.GetNetByType(caprev.ImgType,this);
+
+            var kmode = KMode.GetTrainedMode(caprev.ModelName, this);
 
             var keylist = new List<string>();
 
@@ -285,34 +281,28 @@ namespace SkyEye.Controllers
                 return ret;
             }
 
+            var vcselTypeNet = ImageDetect.GetVCSELTypeCNN(this);
             var caprev = new ImageDetect();
-
             if (string.IsNullOrEmpty(vtype) || vtype.Contains("auto"))
             {
-                caprev = OGPFatherImg.GetPictureRev4Product(samplepicture[0], fixangle);
-                if (string.IsNullOrEmpty(caprev.ImgType))
-                {
-                    caprev = OGPFatherImg.GetPictureRev4Product(samplepicture[1], fixangle);
-                }
+                caprev = ImageDetect.GetPictureRev4Product(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2], fixangle);
             }
             else if (vtype.Contains("4inch"))
             {
-                caprev = OGPFatherImg.GetPicture4inchRev(samplepicture[0], fixangle);
-                if (string.IsNullOrEmpty(caprev.ImgType))
-                {
-                    caprev = OGPFatherImg.GetPicture4inchRev(samplepicture[1], fixangle);
-                }
+                caprev = ImageDetect.GetPicture4inchRev(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2], fixangle);
             }
             else if (vtype.Contains("6inch"))
             {
-                caprev.ImgType = "OGP-circle2168";
+                caprev.ModelName = "OGP-circle2168";
+                caprev.ImgType = "SIX-UP";
             }
             else if (vtype.Contains("iivi"))
             {
-                caprev.ImgType = "OGP-iivi";
+                caprev.ModelName = "OGP-iivi";
+                caprev.ImgType = "IIVI-UP";
             }
 
-            if (string.IsNullOrEmpty(caprev.ImgType))
+            if (string.IsNullOrEmpty(caprev.ModelName))
             {
                 CleanWaferParseFile(wafer);
                 ret.Data = new
@@ -323,7 +313,7 @@ namespace SkyEye.Controllers
                 return ret;
             }
 
-            var kmode = KMode.GetTrainedMode(caprev.ImgType, this);
+            var kmode = KMode.GetTrainedMode(caprev.ModelName, this);
 
             var keylist = new List<string>();
 

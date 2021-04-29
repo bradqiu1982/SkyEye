@@ -38,7 +38,7 @@ namespace SkyEye.Models
         }
 
         //80,115
-        public static List<Mat> CutCharRect(string imgpath, int minrad, int maxrad, bool fixangle = false)
+        public static List<Mat> CutCharRect(string imgpath, ImageDetect detect, int minrad, int maxrad, bool fixangle = false)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             var detectsize = ImgPreOperate.GetImageBoundPointX(srcorgimg);
