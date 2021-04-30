@@ -62,8 +62,8 @@ namespace SkyEye.Models
             //    Cv2.Transpose(srcrealimg, outxymat);
             //    Cv2.Flip(outxymat, outxymat, FlipMode.Y);
             //    srcrealimg = outxymat;
-            //    var h = (int)((360.0 / (double)srcrealimg.Width) * srcrealimg.Height);
-            //    srcrealimg = srcrealimg.Resize(new Size(360, h));
+            //    var w = (int)((460.0 / (double)srcrealimg.Height) * srcrealimg.Width);
+            //    srcrealimg = srcrealimg.Resize(new Size(w, 460));
             //}
 
             var srcgray = new Mat();
@@ -137,9 +137,9 @@ namespace SkyEye.Models
                 var charlist = new List<Mat>();
                 charlist.Add(combinimg);
                 charlist.Add(markmat);
-                charlist.AddRange(GetCharMatsSM(ximg, 1));
+                charlist.AddRange(GetCharMats(ximg, 1));
                 charlist.Add(markmat);
-                charlist.AddRange(GetCharMatsSM(yimg, 2));
+                charlist.AddRange(GetCharMats(yimg, 2));
 
                 return charlist;
             }
@@ -174,7 +174,7 @@ namespace SkyEye.Models
             return true;
         }
 
-        public static List<Mat> GetCharMatsSM(Mat xymat, int id)
+        public static List<Mat> GetCharMats(Mat xymat, int id)
         {
             var charlist = new List<Mat>();
             var ylowhigh = DetectMatYHighLow(xymat);
@@ -227,7 +227,7 @@ namespace SkyEye.Models
         public static int GetMatEnd(Mat img, int ylow, int yhigh)
         {
             var start = img.Width;
-            var end = start - 100;
+            var end = start - 140;
             var sum = 0;
             var es = 0;
             for (var idx = start; idx > end;)
@@ -239,7 +239,7 @@ namespace SkyEye.Models
                 else
                 {
                     sum++;
-                    if (sum > 10)
+                    if (sum > 15)
                     {
                         es = idx;
                         break;
@@ -249,7 +249,7 @@ namespace SkyEye.Models
             }
 
             if (es == 0)
-            { start = img.Width - 50; }
+            { start = img.Width - 80; }
             else
             { start = es; }
             end = img.Width - 10;
