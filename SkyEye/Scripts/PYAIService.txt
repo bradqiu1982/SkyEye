@@ -1,0 +1,84 @@
+﻿import tensorflow as tf
+from object_detection.utils import dataset_util
+
+from object_detection.utils import ops as utils_ops
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as vis_util
+
+import pathlib
+import numpy as np
+import cv2
+import copy
+import sys
+
+from tensorflow.python.framework.convert_to_constants import convert_variables_to_constants_v2
+from tensorflow.lite.python.util import run_graph_optimizations, get_grappler_config
+
+from tensorflow.python.client import session
+
+import json
+from flask import *
+
+
+cache = dict()
+# initialize the flask application
+app = Flask(__name__)
+
+
+def getOBJDectModel(imgtype):
+	if imgtype not in cache:
+		model = tf.saved_model.load('./tfrec/ObjectDetectModel/'+imgtype+'/saved_model')
+		cache[imgtype] = model
+		return model
+	else:
+		return cache[imgtype]
+
+# endpoint OBJDetect() with post method
+@app.route("/OBJDetect", methods=["POST"])
+def OBJDetect():
+	try:
+		res = []
+		request_json = request.get_json()
+		#print(request_json['imgpath'])
+		#print(request_json['imgtype'])
+
+		model = getOBJDectModel(request_json['imgtype'])
+		data_root = pathlib.Path(request_json['imgpath'])
+
+
+		all_image_paths = list(data_root.glob('*'))
+		fs = [str(path) for path in all_image_paths]
+		for f in fs:
+			if '.JPG' in f.upper() or '.JPEG' in f.upper():
+				#print(f)
+				item = {}
+				img = tf.io.read_file(f)
+				image_tensor = tf.io.decode_image(img, channels=3)
+				image_tensor = tf.expand_dims(image_tensor, axis=0)
+				output_dict = model(image_tensor)
+				box = output_dict['detection_boxes'].numpy()
+				box = box[0][0]
+				item['left'] = str(box[1])
+				item['top'] = str(box[0])
+				item['right'] = str(box[3])
+				item['botm'] = str(box[2])
+				item['imgname']=f
+				score = output_dict['detection_scores'].numpy()
+				item['score']=str(score[0][0])
+				#print(item['left'])
+				#print(item['score'])
+				res.append(item)
+				
+		response = jsonify(res)
+		response.status_code = 200
+	except:
+		exception_message = sys.exc_info()[1]
+		response = jsonify({"content":str(exception_message)})
+		response.status_code = 400
+	return response
+
+if __name__ == "__main__":
+	from waitress import serve
+	serve(app, host="0.0.0.0", port=5000)
+#     run flask application in debug mode
+#    app.run(debug=True)

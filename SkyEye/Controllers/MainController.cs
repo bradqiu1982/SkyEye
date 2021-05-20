@@ -4,7 +4,8 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using SkyEye.Models;
-
+using System.Net;
+using System.IO;
 
 namespace SkyEye.Controllers
 {
@@ -14,7 +15,6 @@ namespace SkyEye.Controllers
         // GET: Main
         public ActionResult Index()
         {
-            //Update1x4SN();
             return View();
         }
 
@@ -297,6 +297,32 @@ namespace SkyEye.Controllers
                 return ret;
             }
         }
+
+        //private void UpdateOCRSNClient()
+        //{
+        //    var updatesnobj = new List<object>();
+        //    updatesnobj.Add(new
+        //    {
+        //        lotnum = "S2004100792",
+        //        sn = "X3FAPZS_0",
+        //        x = "X225",
+        //        y = "Y272"
+        //    });
+
+        //    updatesnobj.Add(new
+        //    {
+        //        lotnum = "S2004100792",
+        //        sn = "X3FAPZS_1",
+        //        x = "X228",
+        //        y = "Y273"
+        //    });
+
+        //    var client = new RestSharp.RestClient("http://wuxinpi.china.ads.finisar.com:9091/Main/UpdateGeneralOCRSN");
+        //    var request = new RestSharp.RestRequest(RestSharp.Method.POST);
+        //    request.RequestFormat = RestSharp.DataFormat.Json;
+        //    request.AddParameter("updatesn", Newtonsoft.Json.JsonConvert.SerializeObject(updatesnobj));
+        //    client.Execute(request);
+        //}
 
         public JsonResult UpdateGeneralOCRSN()
         {

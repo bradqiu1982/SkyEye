@@ -300,7 +300,7 @@ namespace SkyEye.Models
             if (obj != null)
             { return (Net)obj; }
 
-            var pbfile = "~/Scripts/VCSEL_CLASS_mobilev3_dir_new4.pb";
+            var pbfile = "~/Scripts/VCSEL_CLASS.pb";
             var trainedNet = OpenCvSharp.Dnn.Net.ReadNetFromTensorflow(ctrl.Server.MapPath(pbfile));
 
             if (trainedNet != null)
