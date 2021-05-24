@@ -1,9 +1,11 @@
-﻿using System;
+﻿using OpenCvSharp;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Web;
+using System.Web.Mvc;
 
 namespace SkyEye.Models
 {
@@ -34,20 +36,17 @@ namespace SkyEye.Models
 
     public class ImageObjDetect
     {
-        public static List<ObjDetectItem> PYOBJDect()
+        public static List<ObjDetectItem> PYOBJDect(string imgpath,string imgtype)
         {
             var ret = new List<ObjDetectItem>();
-            var imgpath = @"\\wux-engsys01\PlanningForCast\VCSEL5\F5X1-TEST";
-            var imgtype = "F5X1";
             var pathobj = new
             {
-                imgpath = imgpath
-                ,
+                imgpath = imgpath,
                 imgtype = imgtype
             };
 
             var reqstr = Newtonsoft.Json.JsonConvert.SerializeObject(pathobj);
-            var response = PythonRESTFun("http://localhost:5000/OBJDetect", reqstr);
+            var response = PythonRESTFun("http://localhost:5000/SingleOBJDetect", reqstr);
             if (!string.IsNullOrEmpty(response))
             {
                 ret = ObjDetectItem.Parse(response);
@@ -83,6 +82,29 @@ namespace SkyEye.Models
             }
 
             return webResponse;
+        }
+
+        public static string WriteRawImg(Mat rawimg, Controller ctrl)
+        {
+            try
+            {
+                var fn = GetUniqKey() + ".jpg";
+                string datestring = DateTime.Now.ToString("yyyyMMdd");
+                string imgdir = ctrl.Server.MapPath("~/userfiles") + "\\images\\" + datestring + "\\";
+                if (!Directory.Exists(imgdir))
+                { Directory.CreateDirectory(imgdir); }
+                var wholefn = imgdir + fn;
+                Cv2.ImWrite(wholefn, rawimg);
+                return wholefn;
+            }
+            catch (Exception ex) { }
+
+            return string.Empty;
+        }
+
+        private static string GetUniqKey()
+        {
+            return Guid.NewGuid().ToString("N");
         }
     }
 }

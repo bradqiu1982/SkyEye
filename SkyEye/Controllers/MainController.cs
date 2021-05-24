@@ -6,6 +6,7 @@ using System.Web.Mvc;
 using SkyEye.Models;
 using System.Net;
 using System.IO;
+using OpenCvSharp;
 
 namespace SkyEye.Controllers
 {
@@ -477,6 +478,91 @@ namespace SkyEye.Controllers
 
         //    return View("Index");
         //}
+
+
+        public ActionResult VCSELAIDemo()
+        {
+            return View();
+        }
+
+        public JsonResult VCSELAIDemoData()
+        {
+            var imgtypedetect = ImageDetect.GetVCSELTypeCNN(this);
+            var urllist = new List<string>();
+
+            var folder = Request.Form["fpath"];
+            var filelist = ExternalDataCollector.DirectoryEnumerateFiles(this, folder);
+            var samplepicture = new List<string>();
+            foreach (var fs in filelist)
+            {
+                var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+                {
+                    var typedetect = ImageDetect.GetVCSELTypeSingle(imgtypedetect, fs);
+                    var imgtp = typedetect.ImgType.Split(new string[] { "-" }, StringSplitOptions.RemoveEmptyEntries);
+                    var vtype = imgtp[0];
+                    var vdir = imgtp[1];
+
+                    var img = Cv2.ImRead(fs, ImreadModes.Color);
+                    var detectsize= ImgPreOperate.GetImageBoundPointX(img);
+                    img = img.SubMat((int)detectsize[1].Min(), (int)detectsize[1].Max(), (int)detectsize[0].Min(), (int)detectsize[0].Max());
+
+                    if (vdir.Contains("LF"))
+                    {
+                        var outxymat = new Mat();
+                        Cv2.Transpose(img, outxymat);
+                        Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                        img = outxymat;
+                    }
+                    else if (vdir.Contains("DW"))
+                    {
+                        var outxymat = new Mat();
+                        Cv2.Transpose(img, outxymat);
+                        Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                        Cv2.Transpose(outxymat, outxymat);
+                        Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                        img = outxymat;
+                    }
+                    else if (vdir.Contains("RT"))
+                    {
+                        var outxymat = new Mat();
+                        Cv2.Transpose(img, outxymat);
+                        Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                        Cv2.Transpose(outxymat, outxymat);
+                        Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                        Cv2.Transpose(outxymat, outxymat);
+                        Cv2.Flip(outxymat, outxymat, FlipMode.Y);
+                        img = outxymat;
+                    }
+
+                    var jpgfile = ImageObjDetect.WriteRawImg(img, this);
+                    if (!string.IsNullOrEmpty(jpgfile))
+                    {
+                        var boxes = ImageObjDetect.PYOBJDect(jpgfile.Replace("\\","/"), vtype);
+                        foreach (var box in boxes)
+                        {
+                            var pt1 = new Point((int)(box.left * img.Width), (int)(box.top * img.Height));
+                            var pt2 = new Point((int)(box.right * img.Width), (int)(box.botm * img.Height));
+                            Cv2.Rectangle(img,pt1,pt2,new Scalar(0,0,255),3);
+                        }//end foreach
+
+                        Cv2.PutText(img, vtype, new Point(10, 40), HersheyFonts.HersheySimplex, 1, new Scalar(0, 0, 255),2,LineTypes.Link8);
+                        jpgfile = ImageObjDetect.WriteRawImg(img, this);
+                        var url = "/userfiles" + jpgfile.Split(new string[] { "userfiles" }, StringSplitOptions.RemoveEmptyEntries)[1].Replace("\\", "/");
+                        urllist.Add(url);
+                    }
+                }//end if
+            }
+
+            var ret = new JsonResult();
+            ret.MaxJsonLength = Int32.MaxValue;
+            ret.Data = new
+            {
+                urllist = urllist
+            };
+            return ret;
+        }
+
 
     }
 

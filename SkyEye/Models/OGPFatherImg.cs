@@ -538,17 +538,17 @@ namespace SkyEye.Models
         {
             try
             {
-                //var fn = mk + ".png";
-                //string datestring = DateTime.Now.ToString("yyyyMMdd");
-                //string imgdir = ctrl.Server.MapPath("~/userfiles") + "\\images\\" + datestring + "\\";
-                //if (!Directory.Exists(imgdir))
-                //{ Directory.CreateDirectory(imgdir); }
-                //var wholefn = imgdir + fn;
-                //var bts = rawimg.ToBytes();
-                //File.WriteAllBytes(wholefn, bts);
-                //var url = "/userfiles/images/" + datestring + "/" + fn;
-                var uri = new Uri(imgpath);
-                var url = uri.AbsoluteUri.Replace("//"+uri.Host,"/////"+uri.Host);
+                var fn = mk + ".png";
+                string datestring = DateTime.Now.ToString("yyyyMMdd");
+                string imgdir = ctrl.Server.MapPath("~/userfiles") + "\\images\\" + datestring + "\\";
+                if (!Directory.Exists(imgdir))
+                { Directory.CreateDirectory(imgdir); }
+                var wholefn = imgdir + fn;
+                var bts = rawimg.ToBytes();
+                File.WriteAllBytes(wholefn, bts);
+                var url = "/userfiles/images/" + datestring + "/" + fn;
+                //var uri = new Uri(imgpath);
+                //var url = uri.AbsoluteUri.Replace("//"+uri.Host,"/////"+uri.Host);
                 return url;
             }
             catch (Exception ex) { }

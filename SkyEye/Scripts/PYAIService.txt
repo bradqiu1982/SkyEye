@@ -33,6 +33,55 @@ def getOBJDectModel(imgtype):
 	else:
 		return cache[imgtype]
 
+@app.route("/SingleOBJDetect", methods=["POST"])
+def SingleOBJDetect():
+	try:
+		res = []
+		request_json = request.get_json()
+		imgtype = request_json['imgtype']
+
+		model = getOBJDectModel(imgtype)
+
+		f = request_json['imgpath']
+		if '.JPG' in f.upper() or '.JPEG' in f.upper():
+
+			img = tf.io.read_file(f)
+			image_tensor = tf.io.decode_image(img, channels=3)
+			image_tensor = tf.expand_dims(image_tensor, axis=0)
+			output_dict = model(image_tensor)
+			boxes = output_dict['detection_boxes'].numpy()
+			score = output_dict['detection_scores'].numpy()
+
+			item = {}
+			box = boxes[0][0]
+			item['left'] = str(box[1])
+			item['top'] = str(box[0])
+			item['right'] = str(box[3])
+			item['botm'] = str(box[2])
+			item['imgname']=f
+			item['score']=str(score[0][0])
+			res.append(item)
+
+			if 'IIVI' in imgtype:
+				item = {}
+				box = boxes[0][1]
+				item['left'] = str(box[1])
+				item['top'] = str(box[0])
+				item['right'] = str(box[3])
+				item['botm'] = str(box[2])
+				item['imgname']=f
+				item['score']=str(score[0][1])
+				res.append(item)
+				
+		response = jsonify(res)
+		response.status_code = 200
+	except:
+		exception_message = sys.exc_info()[1]
+		print(str(exception_message))
+		response = jsonify({"content":str(exception_message)})
+		response.status_code = 400
+	return response
+
 # endpoint OBJDetect() with post method
 @app.route("/OBJDetect", methods=["POST"])
 def OBJDetect():

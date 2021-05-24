@@ -309,7 +309,7 @@ namespace SkyEye.Models
             return trainedNet;
         }
 
-        private static ImageDetect GetVCSELType_(Net vcselTypeNet, string fn)
+        public static ImageDetect GetVCSELTypeSingle(Net vcselTypeNet, string fn)
         {
             var label_name = new string[] { "A10-UP","A10-RT","A10-DW","A10-LF"
             ,"F2X1-UP","F2X1-RT","F2X1-DW","F2X1-LF"
@@ -355,9 +355,9 @@ namespace SkyEye.Models
         public static ImageDetect GetVCSELTypeWithDirect(Net vcselTypeNet, string f1, string f2, string f3)
         {
             var ret = new ImageDetect();
-            var r1 = GetVCSELType_(vcselTypeNet, f1);
-            var r2 = GetVCSELType_(vcselTypeNet, f2);
-            var r3 = GetVCSELType_(vcselTypeNet, f3);
+            var r1 = GetVCSELTypeSingle(vcselTypeNet, f1);
+            var r2 = GetVCSELTypeSingle(vcselTypeNet, f2);
+            var r3 = GetVCSELTypeSingle(vcselTypeNet, f3);
 
             var r1r2 = false;
             var r2r3 = false;
@@ -404,9 +404,9 @@ namespace SkyEye.Models
         public static ImageDetect GetVCSELOnlyType(Net vcselTypeNet, string f1, string f2, string f3)
         {
             var ret = new ImageDetect();
-            var r1 = GetVCSELType_(vcselTypeNet, f1);
-            var r2 = GetVCSELType_(vcselTypeNet, f2);
-            var r3 = GetVCSELType_(vcselTypeNet, f3);
+            var r1 = GetVCSELTypeSingle(vcselTypeNet, f1);
+            var r2 = GetVCSELTypeSingle(vcselTypeNet, f2);
+            var r3 = GetVCSELTypeSingle(vcselTypeNet, f3);
 
             r1.ImgType = r1.ImgType.Split(new string[] { "-" }, StringSplitOptions.RemoveEmptyEntries)[0];
             r2.ImgType = r2.ImgType.Split(new string[] { "-" }, StringSplitOptions.RemoveEmptyEntries)[0];
@@ -457,7 +457,7 @@ namespace SkyEye.Models
         public static ImageDetect GetVCSELTypeWithDirect(Net vcselTypeNet, string f1)
         {
             var ret = new ImageDetect();
-            var r1 = GetVCSELType_(vcselTypeNet, f1);
+            var r1 = GetVCSELTypeSingle(vcselTypeNet, f1);
             if (r1.Confidence >= 76.0)
             { ret.ImgType = r1.ImgType; }
             return ret;
