@@ -19,7 +19,7 @@ namespace SkyEye.Controllers
             return View();
         }
 
-        //http://wuxinpi.china.ads.finisar.com:9091/Main/RefreshLotCoord
+        //http://wuxinpi.chn.ii-vi.net:9091/Main/RefreshLotCoord
         public ActionResult RefreshLotCoord()
         {
             try
@@ -318,7 +318,7 @@ namespace SkyEye.Controllers
         //        y = "Y273"
         //    });
 
-        //    var client = new RestSharp.RestClient("http://wuxinpi.china.ads.finisar.com:9091/Main/UpdateGeneralOCRSN");
+        //    var client = new RestSharp.RestClient("http://wuxinpi.chn.ii-vi.net:9091/Main/UpdateGeneralOCRSN");
         //    var request = new RestSharp.RestRequest(RestSharp.Method.POST);
         //    request.RequestFormat = RestSharp.DataFormat.Json;
         //    request.AddParameter("updatesn", Newtonsoft.Json.JsonConvert.SerializeObject(updatesnobj));
