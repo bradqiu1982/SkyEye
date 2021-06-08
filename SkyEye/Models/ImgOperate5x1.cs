@@ -149,7 +149,7 @@ namespace SkyEye.Models
 
 
   
-        public static List<Mat> CutCharRect(string imgpath, ImageDetect detect, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle,bool newalg)
+        public static List<Mat> CutCharRect(string imgpath, ImageTypeDetect detect, Rect xyrect, int heighlow, int heighhigh, int widthlow, int widthhigh, bool fixangle,bool newalg)
         {
             var cmatlist = new List<Mat>();
 

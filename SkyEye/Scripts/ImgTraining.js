@@ -108,7 +108,7 @@
             });
         }
 
-        function loadnewtrainingimgs(traintype) {
+        function loadnewtrainingimgs(traintype, aialg) {
             var wafernum = $('#wafernum').val().trim();
             var fpath = $('#imgfolder').val().trim();
 
@@ -132,7 +132,8 @@
 
             $.post('/OGPXY/NewImgTrain', {
                 fpath: fpath,
-                wafer: wafernum
+                wafer: wafernum,
+                aialg: aialg
             }, function (output) {
                 $.bootstrapLoading.end();
                 solveimgdata(output, traintype)
@@ -171,25 +172,36 @@
             });
         }
 
-        $('body').on('click', '#btn-all', function () {
-            var fpath = $('#imgfolder').val().trim();
-            var wafernum = $('#wafernum').val().trim();
-            if (fpath != '' && wafernum != '') {
-                loadnewtrainingimgs('ALLTRAINING');
-            }
-            else if (wafernum != '') {
-                loadexisttrainingimgs('ALLTRAINING');
-            }
+        //$('body').on('click', '#btn-all', function () {
+        //    var fpath = $('#imgfolder').val().trim();
+        //    var wafernum = $('#wafernum').val().trim();
+        //    if (fpath != '' && wafernum != '') {
+        //        loadnewtrainingimgs('ALLTRAINING');
+        //    }
+        //    else if (wafernum != '') {
+        //        loadexisttrainingimgs('ALLTRAINING');
+        //    }
             
-        });
+        //});
 
         $('body').on('click', '#btn-option', function () {
             var fpath = $('#imgfolder').val().trim();
             var wafernum = $('#wafernum').val().trim();
             if (fpath != '' && wafernum != '') {
-                loadnewtrainingimgs('OPTTRAINING');
+                loadnewtrainingimgs('OPTTRAINING','FALSE');
             }
             else if (wafernum != ''){
+                loadexisttrainingimgs('OPTTRAINING');
+            }
+        });
+
+        $('body').on('click', '#btn-AI', function () {
+            var fpath = $('#imgfolder').val().trim();
+            var wafernum = $('#wafernum').val().trim();
+            if (fpath != '' && wafernum != '') {
+                loadnewtrainingimgs('OPTTRAINING','TRUE');
+            }
+            else if (wafernum != '') {
                 loadexisttrainingimgs('OPTTRAINING');
             }
         });
@@ -306,7 +318,7 @@
             });
         }
 
-        function recognizeogpxy() {
+        function recognizeogpxy(aialg) {
             var wafernum = $('#wafernum').val().trim();
             var fpath = $('#imgfolder').val().trim();
             var alg = $('#alg').val();
@@ -320,7 +332,12 @@
             else if (wafernum.length > 6)
             { wafer = wafernum.substr(0, 6); }
             else
-            { alert('the length of wafer number seems wrong'); return false;}
+            { alert('the length of wafer number seems wrong'); return false; }
+
+            if (fpath == '' || wafernum == '')
+            { alert('Please input the share folder path of the images and the wafer number!'); return false; }
+
+
             if (fpath.indexOf(wafer) == -1)
             { alert('wafer number failed to match its OGP path'); return false; }
 
@@ -335,9 +352,6 @@
             { newalg = 'TRUE'; }
             else if (alg == 'newalgangle')
             { fixangle = 'TRUE'; newalg = 'TRUE'; }
-
-            if (fpath == '' || wafernum == '')
-            { alert('Please input the share folder path of the images and the wafer number!'); return false; }
 
             if (wafernum.indexOf('E') == -1
                 && wafernum.indexOf('R') == -1
@@ -359,7 +373,8 @@
                 wafer: wafernum,
                 fixangle: fixangle,
                 newalg: newalg,
-                vtype: vtype
+                vtype: vtype,
+                aialg: aialg
             }, function (output) {
                 $.bootstrapLoading.end();
                 solverecognizeresult(output);
@@ -370,8 +385,18 @@
 
         $('body').on('click', '#btn-recognize', function () {
             $('#btn-recognize').attr('disabled', true);
-            recognizeogpxy();
+            $('#btn-AI').attr('disabled', true);
+            recognizeogpxy('FALSE');
             $('#btn-recognize').removeAttr('disabled');
+            $('#btn-AI').removeAttr('disabled');
+        });
+
+        $('body').on('click', '#btn-AI', function () {
+            $('#btn-recognize').attr('disabled', true);
+            $('#btn-AI').attr('disabled', true);
+            recognizeogpxy('TRUE');
+            $('#btn-recognize').removeAttr('disabled');
+            $('#btn-AI').removeAttr('disabled');
         });
 
         //$('body').on('click', '#btn-recognangle', function () {

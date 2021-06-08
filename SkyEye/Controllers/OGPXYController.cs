@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using SkyEye.Models;
 using System.Threading.Tasks;
+using OpenCvSharp.Dnn;
 
 namespace SkyEye.Controllers
 {
@@ -58,6 +59,11 @@ namespace SkyEye.Controllers
             var folder = Request.Form["fpath"];
             var wafer = Request.Form["wafer"].Trim().Replace("\\", "").Replace("/", "");
 
+            var aialg = false;
+            var saialg = Request.Form["aialg"];
+            if (saialg.Contains("TRUE"))
+            { aialg = true; }
+
             var imglist = new List<object>();
             var failimg = "";
 
@@ -103,8 +109,8 @@ namespace SkyEye.Controllers
                 return ret;
             }
 
-            var vcselTypeNet = ImageDetect.GetVCSELTypeCNN(this);
-            var caprev = ImageDetect.GetPictureRev4Train(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2]);
+            var vcselTypeNet = ImageTypeDetect.GetVCSELTypeCNN(this);
+            var caprev = ImageTypeDetect.GetPictureRev4Train(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2]);
             if (string.IsNullOrEmpty(caprev.ModelName))
             {
                 CleanWaferParseFile(wafer);
@@ -119,41 +125,47 @@ namespace SkyEye.Controllers
 
 
             var kmode = KMode.GetTrainedMode(caprev.ModelName, this);
+            var AIFontMode = ImgFontCNN.GetCharacterNetByType(caprev.ModelName,this);
 
             var keylist = new List<string>();
 
-            var sys = CfgUtility.GetSysConfig(this);
-            var poption = new ParallelOptions();
-            poption.MaxDegreeOfParallelism = UT.O2I(sys["MAXTHREADS"]);
-            Parallel.ForEach(filelist, poption, fs =>
-              {
-                  var fn = System.IO.Path.GetFileName(fs).ToUpper();
-                  if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+            if (!aialg)
+            {
+                var sys = CfgUtility.GetSysConfig(this);
+                var poption = new ParallelOptions();
+                poption.MaxDegreeOfParallelism = UT.O2I(sys["MAXTHREADS"]);
+                Parallel.ForEach(filelist, poption, fs =>
                   {
-                      var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this,kmode,null);
-                      if (!string.IsNullOrEmpty(imgkey))
+                      var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                      if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                       {
-                          keylist.Add(imgkey);
+                          var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, kmode, null);
+                          if (!string.IsNullOrEmpty(imgkey))
+                          {
+                              keylist.Add(imgkey);
+                          }
+                          else
+                          { failimg += fn + "/"; }
                       }
-                      else
-                      { failimg += fn + "/"; }
-                  }
-              });
-
-            //foreach (var fs in filelist)
-            //{
-            //    var fn = System.IO.Path.GetFileName(fs).ToUpper();
-            //    if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
-            //    {
-            //        var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this);
-            //        if (!string.IsNullOrEmpty(imgkey))
-            //        {
-            //            keylist.Add(imgkey);
-            //        }
-            //        else
-            //        { failimg += fn + "/"; }
-            //    }
-            //}
+                  });
+            }
+            else
+            {
+                foreach (var fs in filelist)
+                {
+                    var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                    if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+                    {
+                        var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, null, AIFontMode);
+                        if (!string.IsNullOrEmpty(imgkey))
+                        {
+                            keylist.Add(imgkey);
+                        }
+                        else
+                        { failimg += fn + "/"; }
+                    }
+                }
+            }
 
             imglist = OGPFatherImg.NewUnTrainedImg(keylist,wafer);
 
@@ -236,6 +248,11 @@ namespace SkyEye.Controllers
             if (snewalg.Contains("TRUE"))
             { newalg = true; }
 
+            var aialg = false;
+            var saialg = Request.Form["aialg"];
+            if (saialg.Contains("TRUE"))
+            { aialg = true; }
+
             var xylist = new List<OGPSNXYVM>();
             var ret = new JsonResult();
 
@@ -281,15 +298,15 @@ namespace SkyEye.Controllers
                 return ret;
             }
 
-            var vcselTypeNet = ImageDetect.GetVCSELTypeCNN(this);
-            var caprev = new ImageDetect();
+            var vcselTypeNet = ImageTypeDetect.GetVCSELTypeCNN(this);
+            var caprev = new ImageTypeDetect();
             if (string.IsNullOrEmpty(vtype) || vtype.Contains("auto"))
             {
-                caprev = ImageDetect.GetPictureRev4Product(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2], fixangle);
+                caprev = ImageTypeDetect.GetPictureRev4Product(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2], fixangle);
             }
             else if (vtype.Contains("4inch"))
             {
-                caprev = ImageDetect.GetPicture4inchRev(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2], fixangle);
+                caprev = ImageTypeDetect.GetPicture4inchRev(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2], fixangle);
             }
             else if (vtype.Contains("6inch"))
             {
@@ -314,26 +331,47 @@ namespace SkyEye.Controllers
             }
 
             var kmode = KMode.GetTrainedMode(caprev.ModelName, this);
+            var AIFontMode = ImgFontCNN.GetCharacterNetByType(caprev.ModelName, this);
 
             var keylist = new List<string>();
 
-            var sys = CfgUtility.GetSysConfig(this);
-            var poption = new ParallelOptions();
-            poption.MaxDegreeOfParallelism = UT.O2I(sys["MAXTHREADS"]);
-            Parallel.ForEach(filelist, poption, fs =>
+            if (!aialg)
             {
-                var fn = System.IO.Path.GetFileName(fs).ToUpper();
-                if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+                var sys = CfgUtility.GetSysConfig(this);
+                var poption = new ParallelOptions();
+                poption.MaxDegreeOfParallelism = UT.O2I(sys["MAXTHREADS"]);
+                Parallel.ForEach(filelist, poption, fs =>
                 {
-                    var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, kmode,null, fixangle, newalg);
-                    if (!string.IsNullOrEmpty(imgkey))
+                    var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                    if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                     {
-                        keylist.Add(imgkey);
+                        var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, kmode, null, fixangle, newalg);
+                        if (!string.IsNullOrEmpty(imgkey))
+                        {
+                            keylist.Add(imgkey);
+                        }
+                        else
+                        { failimg += fn + "/"; }
                     }
-                    else
-                    { failimg += fn + "/"; }
+                });
+            }
+            else
+            {
+                foreach (var fs in filelist)
+                {
+                    var fn = System.IO.Path.GetFileName(fs).ToUpper();
+                    if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
+                    {
+                        var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, null, AIFontMode, fixangle, newalg);
+                        if (!string.IsNullOrEmpty(imgkey))
+                        {
+                            keylist.Add(imgkey);
+                        }
+                        else
+                        { failimg += fn + "/"; }
+                    }
                 }
-            });
+            }
 
             xylist = OGPSNXYVM.GetConbineXY(wafer);
 
@@ -552,7 +590,7 @@ namespace SkyEye.Controllers
             return ret;
         }
 
-        public ActionResult OCRQuery()
+        public ActionResult OCRQuerySRV()
         {
             return View();
         }

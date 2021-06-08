@@ -244,7 +244,7 @@ namespace SkyEye.Models
 
         public static string RetrieveCurrentMachineName()
         {
-            var netcomputername = "wuxinpi.chn.ii-vi.net";
+            var netcomputername = "wux-engsys01.chn.ii-vi.net";
             //try { netcomputername = System.Net.Dns.GetHostName(); }
             //catch (Exception ex) { }
             return netcomputername;

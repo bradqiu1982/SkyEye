@@ -43,7 +43,7 @@ namespace SkyEye.Models
         }
 
         //115,140
-        public static List<Mat> CutCharRect(string imgpath,ImageDetect detect, int minrad, int maxrad, bool fixangle = false)
+        public static List<Mat> CutCharRect(string imgpath,ImageTypeDetect detect, int minrad, int maxrad, bool fixangle = false)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             if (fixangle)

@@ -585,7 +585,7 @@ namespace SkyEye.Models
             return "";
         }
 
-        public static List<Mat> CutCharRect(string imgpath, ImageDetect detect, bool fixangle)
+        public static List<Mat> CutCharRect(string imgpath, ImageTypeDetect detect, bool fixangle)
         {
             Mat srccolor = Cv2.ImRead(imgpath, ImreadModes.Color);
 

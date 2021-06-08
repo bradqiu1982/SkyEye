@@ -19,7 +19,7 @@ namespace SkyEye.Controllers
             return View();
         }
 
-        //http://wuxinpi.chn.ii-vi.net:9091/Main/RefreshLotCoord
+        //http://wux-engsys01.chn.ii-vi.net:9091/Main/RefreshLotCoord
         public ActionResult RefreshLotCoord()
         {
             try
@@ -318,7 +318,7 @@ namespace SkyEye.Controllers
         //        y = "Y273"
         //    });
 
-        //    var client = new RestSharp.RestClient("http://wuxinpi.chn.ii-vi.net:9091/Main/UpdateGeneralOCRSN");
+        //    var client = new RestSharp.RestClient("http://wux-engsys01.chn.ii-vi.net:9091/Main/UpdateGeneralOCRSN");
         //    var request = new RestSharp.RestRequest(RestSharp.Method.POST);
         //    request.RequestFormat = RestSharp.DataFormat.Json;
         //    request.AddParameter("updatesn", Newtonsoft.Json.JsonConvert.SerializeObject(updatesnobj));
@@ -487,7 +487,7 @@ namespace SkyEye.Controllers
 
         public JsonResult VCSELAIDemoData()
         {
-            var imgtypedetect = ImageDetect.GetVCSELTypeCNN(this);
+            var imgtypedetect = ImageTypeDetect.GetVCSELTypeCNN(this);
             var urllist = new List<string>();
 
             var folder = Request.Form["fpath"];
@@ -498,7 +498,7 @@ namespace SkyEye.Controllers
                 var fn = System.IO.Path.GetFileName(fs).ToUpper();
                 if (fn.Contains(".BMP") || fn.Contains(".PNG") || fn.Contains(".JPG"))
                 {
-                    var typedetect = ImageDetect.GetVCSELTypeSingle(imgtypedetect, fs);
+                    var typedetect = ImageTypeDetect.GetVCSELTypeSingle(imgtypedetect, fs);
                     var imgtp = typedetect.ImgType.Split(new string[] { "-" }, StringSplitOptions.RemoveEmptyEntries);
                     var vtype = imgtp[0];
                     var vdir = imgtp[1];

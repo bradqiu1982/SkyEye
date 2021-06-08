@@ -65,11 +65,11 @@ namespace SkyEye.Models
                 //conn.ConnectionString = "Data Source = (LocalDb)\\MSSQLLocalDB; AttachDbFilename = ~\\App_Data\\Prometheus.mdf; Integrated Security = True";
                 if (IsDebug())
                 {
-                    conn.ConnectionString = "Server=wuxinpi;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
+                    conn.ConnectionString = "Server=wux-engsys01;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
                 }
                 else
                 {
-                    conn.ConnectionString = "Server=wuxinpi;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
+                    conn.ConnectionString = "Server=wux-engsys01;User ID=WATApp;Password=WATApp@123;Database=WAT;Connection Timeout=120;";
                 }
 
                 conn.Open();
@@ -536,7 +536,7 @@ namespace SkyEye.Models
             var conn = new SqlConnection();
             try
             {
-                conn.ConnectionString = @"Server=Wux-Parallel.chn.ii-vi.net;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;";
+                conn.ConnectionString = @"Server=Wux-Parallel;User ID=AiProject;Password=Ai@parallel;Database=AIProjects;Connection Timeout=120;";
                 conn.Open();
                 return conn;
             }
@@ -1037,7 +1037,7 @@ namespace SkyEye.Models
             var conn = new SqlConnection();
             try
             {
-                conn.ConnectionString = @"Server=wuxinpi;User ID=NPI;Password=NPI@NPI;Database=NPITrace;Connection Timeout=120;";
+                conn.ConnectionString = @"Server=wux-engsys01;User ID=NPI;Password=NPI@NPI;Database=NPITrace;Connection Timeout=120;";
                 conn.Open();
                 return conn;
             }
@@ -1197,7 +1197,7 @@ namespace SkyEye.Models
             var conn = new SqlConnection();
             try
             {
-                conn.ConnectionString = @"Server=wuxinpi;User ID=NebulaNPI;Password=abc@123;Database=NebulaTrace;Connection Timeout=120;";
+                conn.ConnectionString = @"Server=wux-engsys01;User ID=NebulaNPI;Password=abc@123;Database=NebulaTrace;Connection Timeout=120;";
                 conn.Open();
                 return conn;
             }

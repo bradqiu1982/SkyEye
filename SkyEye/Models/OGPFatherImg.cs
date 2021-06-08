@@ -14,7 +14,7 @@ namespace SkyEye.Models
     {
 
         public static string LoadImg(string imgpath,string wafer,Dictionary<string,string> snmap
-            , Dictionary<string, bool> probexymap,ImageDetect caprev, Controller ctrl,OpenCvSharp.ML.KNearest onemode,Net cnnnet = null, bool fixangle = false,bool newalg = true)
+            , Dictionary<string, bool> probexymap,ImageTypeDetect caprev, Controller ctrl,OpenCvSharp.ML.KNearest onemode,Net AIFontMode = null, bool fixangle = false,bool newalg = true)
         {
             try
             {
@@ -25,7 +25,7 @@ namespace SkyEye.Models
                     {
 
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode,cnnnet);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, AIFontMode);
                         }
                     }
                     //else
@@ -50,7 +50,7 @@ namespace SkyEye.Models
                     {
 
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, cnnnet);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, AIFontMode);
                         }
                     }
                 }
@@ -65,7 +65,7 @@ namespace SkyEye.Models
                         {
 
                             {
-                                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, cnnnet);
+                                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, AIFontMode);
                             }
                         }
                         else
@@ -86,7 +86,7 @@ namespace SkyEye.Models
                         {
 
                             {
-                                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, cnnnet);
+                                return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, AIFontMode);
                             }
                         }
                     }
@@ -98,7 +98,7 @@ namespace SkyEye.Models
                     {
 
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, cnnnet);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, AIFontMode);
                         }
                     }
                 }
@@ -109,7 +109,7 @@ namespace SkyEye.Models
                     {
 
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, cnnnet);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, AIFontMode);
                         }
                     }
                 }
@@ -120,7 +120,7 @@ namespace SkyEye.Models
                     {
 
                         {
-                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, cnnnet);
+                            return SolveImg(imgpath, wafer, charmatlist, caprev, snmap, probexymap, ctrl, onemode, AIFontMode);
                         }
                     }
                 }
@@ -141,7 +141,7 @@ namespace SkyEye.Models
             return string.Empty;
         }
 
-        public static string Load200xImg(string imgpath, string wafer, ImageDetect caprev, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
+        public static string Load200xImg(string imgpath, string wafer, ImageTypeDetect caprev, Controller ctrl, OpenCvSharp.ML.KNearest kmode)
         {
             try
             {
@@ -237,8 +237,8 @@ namespace SkyEye.Models
             return string.Empty;
         }
 
-        private static string SolveImg(string imgpath,string wafer, List<Mat> charmatlist, ImageDetect caprev
-            , Dictionary<string, string> snmap, Dictionary<string, bool> probexymap, Controller ctrl, OpenCvSharp.ML.KNearest kmode, Net cnnnet)
+        private static string SolveImg(string imgpath,string wafer, List<Mat> charmatlist, ImageTypeDetect caprev
+            , Dictionary<string, string> snmap, Dictionary<string, bool> probexymap, Controller ctrl, OpenCvSharp.ML.KNearest kmode, Net AIFontModel)
         {
             var ret = "";
             var ratelist = new List<double>();
@@ -301,38 +301,43 @@ namespace SkyEye.Models
                 }
                 else
                 {
-                    var imgval = kmode.FindNearest(stcm, 1, resultmat);
-                    if (imgval > 0)
-                    { sonimg.ImgVal = (int)imgval; }
-
-                    var rate = 0.0;
-                    var matched = new Mat();
-                    kmode.FindNearest(stcm, 7, resultmat, matched);
-                    var matchstr = matched.Dump();
-                    var ms = matchstr.Split(new string[] { "[", "]", "," }, StringSplitOptions.RemoveEmptyEntries);
-                    var msidx = 0;
-                    foreach (var m in ms)
+                    if (AIFontModel != null)
                     {
-                        if (string.Compare(m.Trim(), imgval.ToString()) == 0)
+                        var chimg = Mat.ImDecode(Convert.FromBase64String(sonimg.ChildImg), ImreadModes.Grayscale);
+                        var outrate = 0.0;
+                        var aiimgval = ImgFontCNN.CNN_GetCharacterVAL(chimg, AIFontModel, out outrate);
+                        if (aiimgval != -1)
                         {
-                            rate += ratelist[msidx];
-                            if (rate == 93 && msidx == 3)
-                            {
-                                rate = 100; break;
-                            }
+                            sonimg.ImgVal = aiimgval;
+                            sonimg.Rate = outrate.ToString();
                         }
-                        msidx++;
                     }
-                    sonimg.Rate = rate.ToString();
+                    else
+                    {
+                        var imgval = kmode.FindNearest(stcm, 1, resultmat);
+                        if (imgval > 0)
+                        { sonimg.ImgVal = (int)imgval; }
 
-                    //if (cnnnet != null) {
-                    //    var refval = UT.CNN_GetVAL(sm, cnnnet);
-                    //    if (refval != sonimg.ImgVal)
-                    //    {
-                    //        sonimg.ImgVal = refval;
-                    //        sonimg.Rate = "10";
-                    //    }
-                    //}
+                        var rate = 0.0;
+                        var matched = new Mat();
+                        kmode.FindNearest(stcm, 7, resultmat, matched);
+                        var matchstr = matched.Dump();
+                        var ms = matchstr.Split(new string[] { "[", "]", "," }, StringSplitOptions.RemoveEmptyEntries);
+                        var msidx = 0;
+                        foreach (var m in ms)
+                        {
+                            if (string.Compare(m.Trim(), imgval.ToString()) == 0)
+                            {
+                                rate += ratelist[msidx];
+                                if (rate >= 93 && msidx == 3)
+                                {
+                                    rate = 100; break;
+                                }
+                            }
+                            msidx++;
+                        }
+                        sonimg.Rate = rate.ToString();
+                    }
                 }
 
                 if (idx < midx)
@@ -360,7 +365,7 @@ namespace SkyEye.Models
             return ret;
         }
 
-        private static string Solve200xImg(string imgpath, string wafer, List<Mat> charmatlist, ImageDetect caprev
+        private static string Solve200xImg(string imgpath, string wafer, List<Mat> charmatlist, ImageTypeDetect caprev
             , Controller ctrl, OpenCvSharp.ML.KNearest kmode)
         {
             var ret = "";

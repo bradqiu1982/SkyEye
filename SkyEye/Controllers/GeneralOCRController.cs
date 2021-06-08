@@ -11,7 +11,7 @@ namespace SkyEye.Controllers
 {
     public class GeneralOCRController : ApiController
     {
-        //http://wuxinpi.chn.ii-vi.net:9091/api/GeneralOCR/GetSNCoord?LotNum=S2004100792
+        //http://wux-engsys01.chn.ii-vi.net:9091/api/GeneralOCR/GetSNCoord?LotNum=S2004100792
         [HttpGet]
         public string GetSNCoord(string LotNum)
         {

@@ -200,8 +200,8 @@ namespace SkyEye.Models
             if (samplepicture.Count < 3)
             { return false; }
 
-            var vcselTypeNet = ImageDetect.GetVCSELTypeCNN(ctrl);
-            var caprev = ImageDetect.GetPictureRevsm(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2]);
+            var vcselTypeNet = ImageTypeDetect.GetVCSELTypeCNN(ctrl);
+            var caprev = ImageTypeDetect.GetPictureRevsm(vcselTypeNet,samplepicture[0], samplepicture[1], samplepicture[2]);
             if (string.IsNullOrEmpty(caprev.ModelName))
             { return false; }
 

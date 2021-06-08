@@ -101,7 +101,7 @@ namespace SkyEye.Models
         }
 
         //18,34,4.5,8,5000,50
-        public static List<Mat> CutCharRect(string imgpath, ImageDetect detect, double whlow, double whhigh, double ratelow, double ratehigh, double area, double locationoffset)
+        public static List<Mat> CutCharRect(string imgpath, ImageTypeDetect detect, double whlow, double whhigh, double ratelow, double ratehigh, double area, double locationoffset)
         {
             Mat srcorgimg = Cv2.ImRead(imgpath, ImreadModes.Color);
             var detectsize = GetDetectPoint(srcorgimg);
