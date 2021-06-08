@@ -306,11 +306,11 @@ namespace SkyEye.Models
                         var chimg = Mat.ImDecode(Convert.FromBase64String(sonimg.ChildImg), ImreadModes.Grayscale);
                         var outrate = 0.0;
                         var aiimgval = ImgFontCNN.CNN_GetCharacterVAL(chimg, AIFontModel, out outrate);
-                        if (aiimgval != -1)
-                        {
+                        //if (aiimgval != -1)
+                        //{
                             sonimg.ImgVal = aiimgval;
                             sonimg.Rate = outrate.ToString();
-                        }
+                        //}
                     }
                     else
                     {

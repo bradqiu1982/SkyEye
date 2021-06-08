@@ -12,6 +12,8 @@ namespace SkyEye.Models
 
     public class ImgFontCNN
     {
+        private static readonly object lockobj = new object();
+
         //"~/Scripts/font_ogpsm5x1_450.pb"
         public static int CNN_GetCharacterVAL(Mat cmat, Net net,out double rate)
         {
@@ -25,34 +27,37 @@ namespace SkyEye.Models
 
             var blob = CvDnn.BlobFromImage(fmat, 1.0, new Size(224, 224), new Scalar(0, 0, 0), false, false);
 
-            net.SetInput(blob);
-            var ret = net.Forward();
+            lock (ImgFontCNN.lockobj) {
 
-            var retdump = ret.Dump(FormatType.Python);
+                net.SetInput(blob);
+                var ret = net.Forward();
 
-            if (retdump.Contains("nan") || retdump.Contains("NAN"))
-            {
-                rate = 0;
-                return -1;
-            }
+                var retdump = ret.Dump(FormatType.Python);
 
-            var clas = retdump.Split(new string[] { "[", "]", ",", " " }, StringSplitOptions.RemoveEmptyEntries);
-            var idx = 0;
-            var mxval = 0.0;
-            var mxidx = -1;
-            foreach (var c in clas)
-            {
-                var v = UT.O2D(c);
-                if (v > mxval)
+                //if (retdump.Contains("nan") || retdump.Contains("NAN"))
+                //{
+                //    rate = 0;
+                //    return -1;
+                //}
+
+                var clas = retdump.Split(new string[] { "[", "]", "\n", ",", " " }, StringSplitOptions.RemoveEmptyEntries);
+                var idx = 0;
+                var mxval = 0.0;
+                var mxidx = -1;
+                foreach (var c in clas)
                 {
-                    mxval = v;
-                    mxidx = idx;
+                    var v = UT.O2D(c);
+                    if (v > mxval)
+                    {
+                        mxval = v;
+                        mxidx = idx;
+                    }
+                    idx++;
                 }
-                idx++;
-            }
 
-            rate = mxval * 100;
-            return (mxidx + 48);
+                rate = mxval * 100;
+                return (mxidx + 48);
+            }//end lock
         }
 
         public static Net GetCharacterNetByType(string caprev, Controller ctrl)

@@ -11,6 +11,7 @@ namespace SkyEye.Models
 {
     public class ImageTypeDetect
     {
+        private static readonly object lockobj1 = new object();
         //var label_name = new string[] { "A10-UP","A10-RT","A10-DW","A10-LF"
         //    ,"F2X1-UP","F2X1-RT","F2X1-DW","F2X1-LF"
         //    ,"F5X1-UP","F5X1-RT","F5X1-DW","F5X1-LF"
@@ -327,29 +328,33 @@ namespace SkyEye.Models
             fmat = fmat / 255.0;
 
             var blob = CvDnn.BlobFromImage(fmat, 1.0, new Size(SZ, SZ), new Scalar(0, 0, 0), false, false);
-            vcselTypeNet.SetInput(blob);
-            var ret = vcselTypeNet.Forward();
-            var retdump = ret.Dump();
-            var clas = retdump.Split(new string[] { "[", "]", ",", " " }, StringSplitOptions.RemoveEmptyEntries);
 
-            var idx = 0;
-            var mxval = 0.0;
-            var mxidx = -1;
-            foreach (var c in clas)
-            {
-                var v = UT.O2D(c);
-                if (v > mxval)
+            lock (ImageTypeDetect.lockobj1) {
+
+                vcselTypeNet.SetInput(blob);
+                var ret = vcselTypeNet.Forward();
+                var retdump = ret.Dump(FormatType.Python);
+                var clas = retdump.Split(new string[] { "[", "]","\n", ",", " " }, StringSplitOptions.RemoveEmptyEntries);
+
+                var idx = 0;
+                var mxval = 0.0;
+                var mxidx = -1;
+                foreach (var c in clas)
                 {
-                    mxval = v;
-                    mxidx = idx;
+                    var v = UT.O2D(c);
+                    if (v > mxval)
+                    {
+                        mxval = v;
+                        mxidx = idx;
+                    }
+                    idx++;
                 }
-                idx++;
-            }
 
-            var retv = new ImageTypeDetect();
-            retv.ImgType = label_name[mxidx];
-            retv.Confidence = mxval * 100.0;
-            return retv;
+                var retv = new ImageTypeDetect();
+                retv.ImgType = label_name[mxidx];
+                retv.Confidence = mxval * 100.0;
+                return retv;
+            }//end lock
         }
 
         public static ImageTypeDetect GetVCSELTypeWithDirect(Net vcselTypeNet, string f1, string f2, string f3)
