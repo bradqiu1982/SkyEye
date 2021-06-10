@@ -1162,6 +1162,7 @@ namespace SkyEye.Models
 
         private static int GetXXHigh2168(Mat edged, int dcl, int dch)
         {
+            var zerotime = 0;
             var ret = -1;
             var tm = 0;
             var wml = (int)(edged.Width * 0.25);
@@ -1173,6 +1174,7 @@ namespace SkyEye.Models
                 var cnt = snapmat.CountNonZero();
                 if (cnt > 3)
                 {
+                    zerotime = 0;
                     tm++;
                     if (ret == -1)
                     { ret = idx; }
@@ -1180,7 +1182,11 @@ namespace SkyEye.Models
                     { return ret; }
                 }
                 else
-                { ret = -1; tm = 0; }
+                {
+                    zerotime++;
+                    if (zerotime > 1)
+                    { ret = -1; tm = 0; }
+                }
             }
 
             return -1;
@@ -1188,6 +1194,8 @@ namespace SkyEye.Models
 
         private static int GetYXLow2168(Mat edged, int dcl, int dch)
         {
+            var zerotime = 0;
+
             var ret = -1;
             var tm = 0;
             var wml = (int)(edged.Width * 0.5);
@@ -1199,6 +1207,7 @@ namespace SkyEye.Models
                 var cnt = snapmat.CountNonZero();
                 if (cnt > 3)
                 {
+                    zerotime = 0;
                     tm++;
                     if (ret == -1)
                     { ret = idx; }
@@ -1206,13 +1215,18 @@ namespace SkyEye.Models
                     { return ret; }
                 }
                 else
-                { ret = -1; tm = 0; }
+                {
+                    zerotime++;
+                    if (zerotime > 1)
+                    { ret = -1; tm = 0; }
+                }
             }
             return -1;
         }
 
         private static int GetXDirectSplit2168(Mat edged, int start, int end, int dcl, int dch, int previous)
         {
+            var zerotime = 0;
             var ret = -1;
             for (var idx = start; idx > end; idx = idx - 2)
             {
@@ -1220,23 +1234,31 @@ namespace SkyEye.Models
                 var cnt = snapmat.CountNonZero();
                 if (cnt < 2)
                 {
+                    zerotime++;
+
                     if (ret == -1)
                     {
                         ret = idx;
-                        if (previous - idx >= 48)
+                        if (previous - idx >= 48 && zerotime > 2)
                         { return ret; }
                     }
                     else
-                    { return ret; }
+                    {
+                        if (zerotime > 2) { return ret; }
+                    }
                 }
                 else
-                { ret = -1; }
+                {
+                    zerotime = 0;
+                    ret = -1;
+                }
             }
             return -1;
         }
 
         private static int GetYDirectSplit2168(Mat edged, int start, int end, int dcl, int dch, int previous)
         {
+            var zerotime = 0;
             var ret = -1;
             for (var idx = start; idx < end; idx = idx + 2)
             {
@@ -1244,20 +1266,25 @@ namespace SkyEye.Models
                 var cnt = snapmat.CountNonZero();
                 if (cnt < 2)
                 {
+                    zerotime++;
                     if (ret == -1)
                     {
                         ret = idx;
-                        if (idx - previous >= 48)
+                        if (idx - previous >= 48 && zerotime > 2)
                         { return ret; }
                     }
                     else
-                    { return ret; }
+                    { if (zerotime > 2) { return ret; } }
                 }
                 else
-                { ret = -1; }
+                {
+                    zerotime = 0;
+                    ret = -1;
+                }
             }
             return -1;
         }
+
 
         private static List<object> GetXSplitList2168(Mat edged, int xxh, int hl, int hh)
         {
