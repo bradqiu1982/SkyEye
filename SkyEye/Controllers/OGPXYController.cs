@@ -11,6 +11,7 @@ namespace SkyEye.Controllers
 {
     public class OGPXYController : Controller
     {
+
         public ActionResult TrainingNewImg()
         {
             return View();
@@ -127,6 +128,7 @@ namespace SkyEye.Controllers
             var kmode = KMode.GetTrainedMode(caprev.ModelName, this);
             var AIFontMode = ImgFontCNN.GetCharacterNetByType(caprev.ModelName,this);
 
+            Object lockMe = new Object();
             var keylist = new List<string>();
             var sys = CfgUtility.GetSysConfig(this);
             var poption = new ParallelOptions();
@@ -142,7 +144,9 @@ namespace SkyEye.Controllers
                           var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, kmode, null);
                           if (!string.IsNullOrEmpty(imgkey))
                           {
-                              keylist.Add(imgkey);
+                              lock (lockMe)
+                              { keylist.Add(imgkey); }
+                              
                           }
                           else
                           { failimg += fn + "/"; }
@@ -159,7 +163,8 @@ namespace SkyEye.Controllers
                         var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, null, AIFontMode);
                         if (!string.IsNullOrEmpty(imgkey))
                         {
-                            keylist.Add(imgkey);
+                            lock (lockMe)
+                            { keylist.Add(imgkey); }
                         }
                         else
                         { failimg += fn + "/"; }
@@ -348,6 +353,7 @@ namespace SkyEye.Controllers
             var kmode = KMode.GetTrainedMode(caprev.ModelName, this);
             var AIFontMode = ImgFontCNN.GetCharacterNetByType(caprev.ModelName, this);
 
+            Object lockMe = new Object();
             var keylist = new List<string>();
             var sys = CfgUtility.GetSysConfig(this);
             var poption = new ParallelOptions();
@@ -363,7 +369,8 @@ namespace SkyEye.Controllers
                         var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, kmode, null, fixangle, newalg);
                         if (!string.IsNullOrEmpty(imgkey))
                         {
-                            keylist.Add(imgkey);
+                            lock (lockMe)
+                            { keylist.Add(imgkey); }
                         }
                         else
                         { failimg += fn + "/"; }
@@ -380,7 +387,8 @@ namespace SkyEye.Controllers
                         var imgkey = OGPFatherImg.LoadImg(fs, wafer, snmap, probexymap, caprev, this, null, AIFontMode, fixangle, newalg);
                         if (!string.IsNullOrEmpty(imgkey))
                         {
-                            keylist.Add(imgkey);
+                            lock (lockMe)
+                            { keylist.Add(imgkey); }
                         }
                         else
                         { failimg += fn + "/"; }

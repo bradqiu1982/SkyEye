@@ -810,13 +810,13 @@
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.min.css.map" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.standalone.css.map" />
     <Content Include="Scripts\bootstrap-datepicker\bootstrap-datepicker3.standalone.min.css.map" />
-    <Content Include="Scripts\font_ogp2168_1160_10.pb" />
     <Content Include="Scripts\font_ogp2x1_5330_8.pb" />
     <Content Include="Scripts\font_ogp5x1_8390_6.pb" />
     <Content Include="Scripts\font_ogpa10g_810_14.pb" />
     <Content Include="Scripts\font_ogpiivi_620_16.pb" />
     <Content Include="Scripts\font_ogpsm5x1_503_16.pb" />
     <Content Include="Scripts\font_ogpsmiivi_1113_14.pb" />
+    <Content Include="Scripts\font_ogp2168_1160_10.pb" />
     <None Include="Scripts\jquery.validate-vsdoc.js" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.css" />
     <Content Include="Scripts\bootstrap-tagsinput\bootstrap-tagsinput.js" />
