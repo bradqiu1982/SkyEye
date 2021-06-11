@@ -80,7 +80,7 @@ namespace SkyEye.Models
             else if (string.Compare(caprev, "OGP-small5x1", true) == 0)
             { pbfile = "~/Scripts/font_ogpsm5x1_503_16.pb"; }
             else if (string.Compare(caprev, "OGP-sm-iivi", true) == 0)
-            { pbfile = "font_ogpsmiivi_1113_14.pb"; }
+            { pbfile = "~/Scripts/font_ogpsmiivi_1113_14.pb"; }
 
             if (string.IsNullOrEmpty(pbfile))
             { pbfile = "~/Scripts/font_ogp5x1_8390_6.pb"; }
