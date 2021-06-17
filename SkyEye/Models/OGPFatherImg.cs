@@ -303,9 +303,9 @@ namespace SkyEye.Models
                 {
                     if (AIFontModel != null)
                     {
-                        var chimg = Mat.ImDecode(Convert.FromBase64String(sonimg.ChildImg), ImreadModes.Grayscale);
+                        //var chimg = Mat.ImDecode(Convert.FromBase64String(sonimg.ChildImg), ImreadModes.Grayscale);
                         var outrate = 0.0;
-                        var aiimgval = ImgFontCNN.CNN_GetCharacterVAL(chimg, AIFontModel, out outrate);
+                        var aiimgval = ImgFontCNN.CNN_GetCharacterVAL(sm, AIFontModel, out outrate);
                         //if (aiimgval != -1)
                         //{
                             sonimg.ImgVal = aiimgval;

@@ -15,10 +15,17 @@ namespace SkyEye.Models
         private static readonly object lockobj = new object();
 
         //"~/Scripts/font_ogpsm5x1_450.pb"
-        public static int CNN_GetCharacterVAL(Mat cmat, Net net,out double rate)
+        public static int CNN_GetCharacterVAL(Mat cmat1, Net net,out double rate)
         {
+            var tcm = new Mat();
+            cmat1.ConvertTo(tcm, MatType.CV_32FC1);
+            var tcmresize = new Mat();
+            Cv2.Resize(tcm, tcmresize, new Size(50, 50), 0, 0, InterpolationFlags.Linear);
+            var chimg = Mat.ImDecode(tcmresize.ToBytes(), ImreadModes.Grayscale);
+
+
             var cmatcp = new Mat();
-            Cv2.CvtColor(cmat, cmatcp, ColorConversionCodes.GRAY2RGB);
+            Cv2.CvtColor(chimg, cmatcp, ColorConversionCodes.GRAY2RGB);
             Cv2.Resize(cmatcp, cmatcp, new Size(224, 224));
 
             var fmat = new Mat();

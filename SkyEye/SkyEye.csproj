@@ -900,9 +900,9 @@
     <Content Include="Views\OGPXY\OCRAudit.cshtml" />
     <Content Include="Views\OGPXY\OCRQuerySRV.cshtml" />
     <Content Include="Views\Main\SpecialXYSN.cshtml" />
-    <Content Include="Scripts\WUXI SKY-EYE OCR.pptx" />
     <Content Include="Scripts\VCSEL_CLASS.pb" />
     <Content Include="Views\Main\VCSELAIDemo.cshtml" />
+    <Content Include="Views\Main\OCRServiceDemo.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

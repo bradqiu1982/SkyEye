@@ -739,11 +739,11 @@ namespace SkyEye.Models
                     //{
                     //    Cv2.WaitKey();
                     //}
-                    var ylen = CP.Center.Y - boundy;
-                    if (CP.Center.Y < midbond)
-                    { ylen = boundy - CP.Center.Y; }
+                    //var ylen = CP.Center.Y - boundy;
+                    //if (CP.Center.Y < midbond)
+                    //{ ylen = boundy - CP.Center.Y; }
 
-                    return Get2168MatList(coormat,(int)ylen);
+                    return Get2168MatList(coormat);
                     //var idx = 0;
                     //foreach (var cm in charmatlist)
                     //{
@@ -768,7 +768,7 @@ namespace SkyEye.Models
             return new List<Mat>();
         }
 
-        private static List<Mat> Get2168MatList(Mat coordmat,int ylen)
+        public static List<Mat> Get2168MatList(Mat coordmat)
         {
             var cmatlist = new List<Mat>();
 
